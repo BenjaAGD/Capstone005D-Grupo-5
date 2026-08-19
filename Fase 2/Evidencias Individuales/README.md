@@ -1,0 +1,1 @@
+Añadir diario de reflexión
