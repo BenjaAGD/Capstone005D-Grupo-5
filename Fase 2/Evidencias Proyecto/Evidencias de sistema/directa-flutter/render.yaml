@@ -1,0 +1,18 @@
+# Render (render.com) — publica el backend FastAPI desde GitHub con Docker, en el plan gratuito.
+# En Render: New → Blueprint → elige este repositorio. Cada push a GitHub vuelve a publicar.
+#
+# Por defecto arranca en MODO DEMO (sin llaves, datos ficticios), ideal para mostrar la app.
+# Para el MODO REAL: borra la línea "dockerCommand" y completa las llaves en
+# Render → tu servicio → Environment (las mismas de backend/.env.example).
+services:
+  - type: web
+    name: directa-backend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    dockerCommand: python demo/demo_server.py
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: "8000"

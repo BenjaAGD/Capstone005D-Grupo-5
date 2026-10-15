@@ -1,0 +1,56 @@
+data: {"chunk": "**Modo demo** ("}
+
+data: {"chunk": "respuesta simul"}
+
+data: {"chunk": "ada, sin IA rea"}
+
+data: {"chunk": "l). Seg\u00fan los f"}
+
+data: {"chunk": "ragmentos revis"}
+
+data: {"chunk": "ados:\n\n- Perfil"}
+
+data: {"chunk": " de la entidad."}
+
+data: {"chunk": " Nuestra misi\u00f3n"}
+
+data: {"chunk": " es abastecer d"}
+
+data: {"chunk": "e insumos indus"}
+
+data: {"chunk": "triales a la zo"}
+
+data: {"chunk": "na norte del pa"}
+
+data: {"chunk": "\u00eds con\u2026\n- Model"}
+
+data: {"chunk": "o de negocios. "}
+
+data: {"chunk": "Operamos en el "}
+
+data: {"chunk": "sector industri"}
+
+data: {"chunk": "al de distribuc"}
+
+data: {"chunk": "i\u00f3n de insumos "}
+
+data: {"chunk": "mineros, con pa"}
+
+data: {"chunk": "rticipaci\u00f3n de\u2026"}
+
+data: {"chunk": "\n\nCon las llave"}
+
+data: {"chunk": "s configuradas,"}
+
+data: {"chunk": " el agente eleg"}
+
+data: {"chunk": "ido redacta aqu"}
+
+data: {"chunk": "\u00ed la respuesta "}
+
+data: {"chunk": "completa."}
+
+data: {"fuentes": [{"pagina": 2, "preview": "Perfil de la entidad. Nuestra misi\u00f3n es abastecer de insumos industriales a la zona norte del pa\u00eds con\nseguridad y eficiencia. Nuestra visi\u00f3n es ser el proveedor regional de referencia. Nuestros valor...", "similarity": 0.222}, {"pagina": 6, "preview": "Modelo de negocios. Operamos en el sector industrial de distribuci\u00f3n de insumos mineros, con participaci\u00f3n de\nmercado de 14%. L\u00edneas de negocio: repuestos, lubricantes y servicios t\u00e9cnicos. Propiedade...", "similarity": 0.115}, {"pagina": 4, "preview": "Gesti\u00f3n de riesgos. La matriz de riesgos corporativos se actualiz\u00f3 en septiembre de 2024. Los factores de\nriesgo principales son riesgo de liquidez, riesgo de mercado por tipo de cambio, cibersegurida...", "similarity": 0.104}, {"pagina": 5, "preview": "Personas. La dotaci\u00f3n al 31 de diciembre de 2024 es de 1.240 trabajadores (32% mujeres), con contrato\nindefinido el 88%. La rotaci\u00f3n anual fue de 18% (promedio hist\u00f3rico 11%). Brecha salarial por g\u00e9ne...", "similarity": 0.062}], "agente": "Asistente General"}
+
+data: [DONE]
+

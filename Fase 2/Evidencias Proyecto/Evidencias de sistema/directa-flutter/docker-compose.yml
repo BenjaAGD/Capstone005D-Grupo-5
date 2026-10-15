@@ -1,0 +1,25 @@
+# DIRECTA — Gerencia General
+#   docker compose up --build            -> backend real (necesita backend/.env) + app web
+#   docker compose -f docker-compose.yml -f docker-compose.demo.yml up --build   -> MODO DEMO (sin llaves)
+# App web:  http://localhost:8080      Backend:  http://localhost:8000
+services:
+  backend:
+    build: ./backend
+    image: directa-backend
+    env_file:
+      - path: ./backend/.env
+        required: false
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  web:
+    build: ./app
+    image: directa-web
+    environment:
+      BACKEND_URL: http://backend:8000
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
