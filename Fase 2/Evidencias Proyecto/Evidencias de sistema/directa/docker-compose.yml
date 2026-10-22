@@ -1,0 +1,21 @@
+# Uso:
+#   cp .env.example .env     (y pega tu llave de Gemini y los datos de Supabase)
+#   docker compose up --build
+# La aplicación queda en http://localhost:8000/app
+services:
+  directa:
+    build: .
+    image: directa-gerente-general:v3
+    container_name: directa
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env                 # aquí vive la llave; nunca se copia dentro de la imagen
+    environment:
+      DIRECTA_DATOS_DIR: /app/datos_locales
+    volumes:
+      - directa_datos:/app/datos_locales
+    restart: unless-stopped
+
+volumes:
+  directa_datos:

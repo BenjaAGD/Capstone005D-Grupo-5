@@ -1,0 +1,2788 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>DIRECTA — Módulo Gerencia General</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent:#06B6D4; --accent2:#22D3EE; --accent-ink:#0E7490;
+    --crit:#FF2D55; --high:#E05A5A; --med:#F4A261; --low:#50C878; --info:#4A9FD4; --gold:#C9A84C; --purple:#C77DFF;
+    --radius:14px; --radius-sm:10px; --radius-lg:20px;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
+    --font-scale:1;
+  }
+  [data-theme="dark"]{
+    --bg:#070710; --bg2:#0C0C16; --surface:#14141F; --surface2:#1B1B2A; --surface3:#23233560;
+    --text:#F0EEF8; --text2:#A6A6BE; --text3:#8A8AA6; --border:#26263A; --border2:#33334D;
+    --accent-soft:#06B6D422; --glow:radial-gradient(ellipse at 30% 0%, #160f3a 0%, #070710 55%);
+  }
+  [data-theme="light"]{
+    --accent2:#0E7490;
+    --bg:#F4F6F9; --bg2:#EEF1F5; --surface:#FFFFFF; --surface2:#F5F7FA; --surface3:#EDF0F4;
+    --text:#0B1220; --text2:#566072; --text3:#667085; --border:#E2E7EE; --border2:#D2D9E3;
+    --accent-soft:#06B6D416; --glow:radial-gradient(ellipse at 30% 0%, #E6FBFF 0%, #F4F6F9 55%);
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{font-family:var(--sans);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;font-size:calc(14px * var(--font-scale));line-height:1.5;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+  input,select,textarea{font-family:inherit;}
+  ::-webkit-scrollbar{width:9px;height:9px;}
+  ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  .app{display:grid;grid-template-columns:260px 1fr;height:100vh;overflow:hidden;}
+  .sidebar{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 14px;gap:6px;overflow-y:auto;}
+  .brand{display:flex;align-items:center;gap:11px;padding:6px 8px 18px;border-bottom:1px solid var(--border);margin-bottom:8px;}
+  .brand .iso{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand .iso svg{width:20px;height:20px;}
+  .brand h1{font-size:calc(17px * var(--font-scale));margin:0;letter-spacing:3px;font-weight:700;}
+  .brand p{margin:0;font-size:calc(9.5px * var(--font-scale));color:var(--text3);letter-spacing:1.2px;text-transform:uppercase;}
+  .nav-label{font-size:calc(10px * var(--font-scale));color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;padding:14px 10px 6px;font-weight:600;}
+  .nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius-sm);color:var(--text2);font-size:calc(13.5px * var(--font-scale));font-weight:500;transition:.15s;text-align:left;width:100%;}
+  .nav-item svg{width:18px;height:18px;flex-shrink:0;}
+  .nav-item:hover{background:var(--surface2);color:var(--text);}
+  .nav-item.active{background:var(--accent-soft);color:var(--accent2);}
+  [data-theme="light"] .nav-item.active{color:var(--accent-ink);}
+  .nav-item .badge{margin-left:auto;background:var(--surface3);color:var(--text3);font-size:calc(9.5px * var(--font-scale));font-weight:700;padding:2px 7px;border-radius:9px;letter-spacing:.5px;text-transform:uppercase;}
+  .nav-item .badge.soon{background:#C77DFF22;color:var(--purple);}
+  .nav-item .badge.count{background:var(--accent);color:#062b31;}
+  .sidebar-foot{margin-top:auto;padding:12px 8px 4px;border-top:1px solid var(--border);}
+  .profile{display:flex;align-items:center;gap:10px;padding:8px;}
+  .avatar{width:36px;height:36px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:calc(13px * var(--font-scale));color:var(--text3);flex-shrink:0;border:1px dashed var(--border2);}
+  .profile .nm{font-size:calc(13px * var(--font-scale));font-weight:600;color:var(--text2);}
+  .profile .rl{font-size:calc(11px * var(--font-scale));color:var(--text3);}
+
+  .main{display:flex;flex-direction:column;overflow:hidden;background:var(--glow);position:relative;}
+  .topbar{height:62px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 26px;flex-shrink:0;background:var(--bg2);}
+  .crumbs{font-size:calc(13px * var(--font-scale));color:var(--text2);}
+  .crumbs b{color:var(--text);font-weight:600;}
+  .tb-btn{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text2);border:1px solid var(--border);background:var(--surface2);}
+  .tb-btn:hover{color:var(--text);border-color:var(--border2);}
+  .tb-btn svg{width:17px;height:17px;}
+  .tb-btn.text-btn{font-family:var(--mono);font-weight:600;font-size:calc(13px * var(--font-scale));width:auto;padding:0 11px;height:34px;}
+  .tb-btn.text-btn:hover{border-color:var(--accent);color:var(--accent2);}
+  .tb-right{margin-left:auto;display:flex;gap:6px;align-items:center;}
+
+  .content{flex:1;overflow-y:auto;padding:26px 30px 60px;}
+  .view{max-width:1180px;margin:0 auto;}
+  .view.anim{animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+  .bg-banner{position:fixed;top:74px;right:24px;z-index:50;background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 10px 40px rgba(0,0,0,.5);max-width:460px;}
+  .bg-banner.paused{border-color:var(--med);}
+  .bg-banner .ico{width:32px;height:32px;border-radius:9px;background:var(--accent-soft);color:var(--accent2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .bg-banner .ico svg{width:16px;height:16px;animation:spin 2s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .bg-banner .txt{flex:1;min-width:0;}
+  .bg-banner .txt b{font-size:calc(12.5px * var(--font-scale));display:block;margin-bottom:2px;}
+  .bg-banner .txt span{font-size:calc(11px * var(--font-scale));color:var(--text2);}
+  .bg-banner .bar-track{margin-top:6px;height:4px;}
+  .bg-banner .btn-ctrl{width:30px;height:30px;border-radius:8px;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s;}
+  .bg-banner .btn-ctrl:hover{filter:brightness(1.15);}
+  .bg-banner .btn-ctrl.pause{background:var(--med);}
+  .bg-banner .btn-ctrl.resume{background:var(--low);}
+  .bg-banner .btn-ctrl.stop{background:var(--crit);}
+  .bg-banner .btn-ctrl svg{width:14px;height:14px;}
+  .bg-banner .btn-close{width:24px;height:24px;border-radius:6px;color:var(--text3);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .bg-banner .btn-close:hover{color:var(--text);}
+  .bg-banner .btn-close svg{width:14px;height:14px;}
+
+  .page-head{margin:0 0 22px;display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;}
+  .page-head h2{font-size:calc(23px * var(--font-scale));margin:0 0 4px;font-weight:700;letter-spacing:-.3px;}
+  .page-head p{margin:0;color:var(--text2);font-size:calc(14px * var(--font-scale));max-width:720px;}
+  .page-head .spacer{flex:1;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+  .grid{display:grid;gap:16px;}
+  .sec-title{font-size:calc(11px * var(--font-scale));color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin:0 0 12px;font-weight:600;}
+  .pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:calc(11px * var(--font-scale));font-weight:600;}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;}
+  .kpi .v{font-size:calc(27px * var(--font-scale));font-weight:300;line-height:1;}
+  .kpi .l{font-size:calc(12px * var(--font-scale));color:var(--text2);margin-top:6px;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:10px;font-size:calc(13px * var(--font-scale));font-weight:600;background:var(--accent);color:#062b31;transition:.15s;}
+  .btn:hover{filter:brightness(1.08);}
+  .btn.ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+  .btn.danger{background:var(--crit);color:#fff;}
+  .btn.sm{padding:6px 12px;font-size:calc(12px * var(--font-scale));}
+  .btn.lg{padding:13px 22px;font-size:calc(14px * var(--font-scale));}
+  .btn:disabled{opacity:.45;cursor:default;filter:none;}
+  .btn svg{width:15px;height:15px;}
+  .bar-track{height:7px;border-radius:5px;background:var(--surface3);overflow:hidden;}
+  .bar-fill{height:100%;border-radius:5px;background:var(--accent);transition:width .4s ease;}
+  .hidden{display:none!important;}
+  .kv{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:calc(13px * var(--font-scale));}
+  .kv .k{color:var(--text3);width:150px;flex-shrink:0;}
+  .kv:last-child{border-bottom:none;}
+
+  .empty{text-align:center;padding:48px 24px;color:var(--text2);}
+  .empty .ic{width:56px;height:56px;margin:0 auto 16px;border-radius:16px;background:var(--surface2);display:flex;align-items:center;justify-content:center;border:1px solid var(--border);}
+  .empty .ic svg{width:26px;height:26px;color:var(--text3);}
+  .empty h3{margin:0 0 6px;font-size:calc(16px * var(--font-scale));color:var(--text);font-weight:600;}
+  .empty p{margin:0 0 20px;font-size:calc(13px * var(--font-scale));max-width:400px;margin-left:auto;margin-right:auto;}
+
+  .checklist-step{display:flex;align-items:center;gap:14px;padding:16px 18px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);margin-bottom:10px;transition:.15s;}
+  .checklist-step.done{border-color:#50C87844;background:linear-gradient(90deg,#50C87808,var(--surface));}
+  .checklist-step.available{border-color:var(--accent);cursor:pointer;}
+  .checklist-step.available:hover{transform:translateX(3px);}
+  .checklist-step.locked{opacity:.55;}
+  .checklist-step .chk{width:28px;height:28px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:calc(12px * var(--font-scale));font-weight:700;font-family:var(--mono);color:var(--text3);}
+  .checklist-step.done .chk{background:var(--low);border-color:var(--low);color:#052e16;}
+  .checklist-step.available .chk{border-color:var(--accent);color:var(--accent2);}
+  .checklist-step .info{flex:1;}
+  .checklist-step .info b{font-size:calc(14px * var(--font-scale));display:block;margin-bottom:2px;}
+  .checklist-step .info span{font-size:calc(12.5px * var(--font-scale));color:var(--text2);}
+  .checklist-step .meta{font-size:calc(12px * var(--font-scale));color:var(--text3);text-align:right;font-family:var(--mono);}
+
+  .upload-zone{border:2px dashed var(--border2);border-radius:var(--radius);padding:32px 24px;text-align:center;transition:.2s;cursor:pointer;background:var(--surface2);}
+  .upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--accent-soft);}
+  .upload-zone .ic{width:52px;height:52px;margin:0 auto 14px;border-radius:14px;background:var(--surface);display:flex;align-items:center;justify-content:center;border:1px solid var(--border);}
+  .upload-zone .ic svg{width:24px;height:24px;color:var(--accent2);}
+  .upload-zone b{font-size:calc(15px * var(--font-scale));display:block;margin-bottom:4px;}
+  .upload-zone span{font-size:calc(12.5px * var(--font-scale));color:var(--text2);}
+
+  .progress-circular{
+    display:flex;align-items:center;gap:16px;padding:16px;border:1px solid var(--accent);
+    border-radius:10px;background:var(--accent-soft);margin-top:16px;
+  }
+  .circular-wrap{position:relative;width:56px;height:56px;flex-shrink:0;}
+  .circular-wrap svg{transform:rotate(-90deg);}
+  .circular-pct{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:calc(11px * var(--font-scale));font-weight:600;font-family:var(--mono);color:var(--accent2);
+  }
+  .circular-info{flex:1;min-width:0;}
+  .circular-info b{font-size:calc(13px * var(--font-scale));display:block;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .circular-info span{font-size:calc(12px * var(--font-scale));color:var(--text2);}
+  .circular-time{font-family:var(--mono);font-size:calc(12px * var(--font-scale));color:var(--accent2);font-weight:600;white-space:nowrap;}
+
+  .doc-row{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:9px;background:var(--surface2);transition:.15s;}
+  .doc-row:hover{border-color:var(--border2);}
+  .doc-row .ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:calc(11px * var(--font-scale));flex-shrink:0;letter-spacing:.5px;font-family:var(--mono);background:var(--surface3);color:var(--text2);}
+  .doc-row .info{flex:1;min-width:0;}
+  .doc-row .info b{font-size:calc(13.5px * var(--font-scale));display:block;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .doc-row .info .meta{font-size:calc(11.5px * var(--font-scale));color:var(--text3);}
+  .doc-row .status{display:flex;align-items:center;gap:8px;font-size:calc(12px * var(--font-scale));}
+  .doc-row .actions{display:flex;gap:6px;flex-shrink:0;}
+  .doc-row .icon-btn{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text3);border:1px solid var(--border);background:var(--surface);transition:.15s;}
+  .doc-row .icon-btn:hover{color:var(--text);border-color:var(--border2);}
+  .doc-row .icon-btn.danger:hover{color:var(--crit);border-color:var(--crit);}
+  .doc-row .icon-btn svg{width:14px;height:14px;}
+
+  .chat-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden;height:calc(100vh - 150px);}
+  .chat-topbar{padding:12px 18px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .agente-selector{position:relative;}
+  .agente-trigger{display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:10px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:calc(13px * var(--font-scale));font-weight:600;transition:.15s;min-width:200px;}
+  .agente-trigger:hover{border-color:var(--accent);}
+  .agente-trigger .arr{margin-left:auto;color:var(--text3);transition:.2s;display:flex;}
+  .agente-trigger .arr svg{width:14px;height:14px;}
+  .agente-trigger.open{border-color:var(--accent);}
+  .agente-trigger.open .arr{transform:rotate(180deg);}
+  .agente-dropdown{position:absolute;top:calc(100% + 6px);left:0;z-index:100;background:var(--surface);border:1px solid var(--accent);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.6),0 0 20px rgba(6,182,212,.2);width:340px;max-height:440px;overflow-y:auto;padding:8px;animation:dropIn .15s ease;}
+  @keyframes dropIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+  .agente-dropdown .grp{font-size:calc(10px * var(--font-scale));color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;padding:10px 12px 6px;font-weight:700;}
+  .agente-dropdown .opt{display:flex;align-items:flex-start;gap:11px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:.12s;}
+  .agente-dropdown .opt:hover{background:var(--surface2);}
+  .agente-dropdown .opt.on{background:var(--accent-soft);}
+  .agente-dropdown .opt .info{flex:1;min-width:0;}
+  .agente-dropdown .opt b{font-size:calc(12.5px * var(--font-scale));display:block;margin-bottom:2px;color:var(--text);}
+  .agente-dropdown .opt span{font-size:calc(11px * var(--font-scale));color:var(--text2);line-height:1.35;display:block;}
+  .agente-dropdown .opt .tick{margin-left:auto;color:var(--accent2);align-self:center;flex-shrink:0;}
+  .agente-dropdown .opt .tick svg{width:14px;height:14px;}
+
+  .chat-body{flex:1;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:14px;}
+  .chat-msg{display:flex;gap:10px;align-items:flex-start;}
+  .chat-msg.me{flex-direction:row-reverse;}
+  .chat-msg .bubble{max-width:70%;padding:10px 14px;border-radius:12px;font-size:calc(13px * var(--font-scale));line-height:1.45;word-wrap:break-word;position:relative;}
+  .chat-msg.me .bubble{background:var(--accent);color:#062b31;border-bottom-right-radius:4px;font-weight:500;}
+  .chat-msg.ai .bubble{background:var(--surface2);border:1px solid var(--border);border-bottom-left-radius:4px;font-size:calc(12.5px * var(--font-scale));}
+  .chat-msg .who{font-size:calc(10px * var(--font-scale));color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:5px;font-weight:700;}
+  .chat-msg.ai .who{color:var(--accent2);font-family:var(--mono);}
+
+  .chat-tabs{display:flex;gap:4px;margin-bottom:8px;border-bottom:1px solid var(--border);}
+  .chat-tab{padding:5px 11px;font-size:calc(11px * var(--font-scale));font-weight:600;color:var(--text2);border-radius:6px 6px 0 0;background:transparent;border:none;cursor:pointer;transition:.15s;}
+  .chat-tab:hover{color:var(--text);background:var(--surface3);}
+  .chat-tab.on{color:var(--accent2);background:var(--surface3);}
+  .chat-tab .cnt{display:inline-block;background:var(--accent);color:#062b31;font-size:calc(9px * var(--font-scale));padding:0 5px;border-radius:8px;margin-left:4px;font-family:var(--mono);}
+  .chat-tab-body{font-family:var(--sans);font-size:calc(13px * var(--font-scale));line-height:1.55;color:var(--text);word-wrap:break-word;}
+  .chat-tab-body strong{color:var(--text);font-weight:700;}
+  .chat-tab-body em{font-style:italic;}
+  .chat-tab-body p{margin:0 0 8px;}
+  .chat-tab-body ul{margin:6px 0 10px 18px;padding:0;}
+  .chat-tab-body li{margin-bottom:4px;}
+  .chat-tab-body .fuente{margin-bottom:6px;padding:6px 10px;background:var(--bg);border-radius:6px;border-left:2px solid var(--accent);}
+  .chat-tab-body .fuente b{color:var(--accent2);font-family:var(--mono);font-size:calc(10.5px * var(--font-scale));}
+  .chat-tab-body .fuente .prev{color:var(--text2);margin-top:3px;font-size:calc(11px * var(--font-scale));font-family:var(--sans);}
+
+  .chat-msg .cursor-blink{display:inline-block;width:6px;height:12px;background:var(--accent2);margin-left:2px;vertical-align:-2px;animation:blink 1s steps(2) infinite;}
+  @keyframes blink{0%,50%{opacity:1;}50.01%,100%{opacity:0;}}
+  .chat-msg .add-report{display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:4px 10px;border-radius:14px;font-size:calc(10.5px * var(--font-scale));font-weight:600;background:transparent;color:var(--text2);border:1px solid var(--border);transition:.15s;font-family:var(--sans);}
+  .chat-msg .add-report:hover{border-color:var(--accent);color:var(--accent2);background:var(--accent-soft);}
+  .chat-msg .add-report.on{background:var(--accent);color:#062b31;border-color:var(--accent);}
+  .chat-msg .add-report svg{width:10px;height:10px;}
+
+  .chat-input-wrap{padding:14px 18px;border-top:1px solid var(--border);background:var(--surface2);}
+  .suggestions{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;}
+  .suggestion-chip{padding:6px 12px;border-radius:16px;font-size:calc(11.5px * var(--font-scale));background:var(--surface);border:1px solid var(--border);color:var(--text2);transition:.15s;text-align:left;}
+  .suggestion-chip:hover{border-color:var(--accent);color:var(--accent2);transform:translateY(-1px);}
+  .suggestion-chip.pinned{border-color:var(--accent2);color:var(--accent2);}
+  .suggestion-chip .tag{font-size:calc(9px * var(--font-scale));color:var(--text3);margin-left:5px;font-family:var(--mono);}
+  .suggestion-loading{padding:6px 12px;border-radius:16px;font-size:calc(11.5px * var(--font-scale));background:var(--surface3);color:var(--text3);display:inline-flex;align-items:center;gap:8px;}
+  .chat-input-row{display:flex;gap:10px;align-items:flex-end;}
+  .chat-input-row textarea{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:11px 14px;color:var(--text);font-size:calc(13px * var(--font-scale));resize:none;outline:none;min-height:44px;max-height:140px;font-family:var(--sans);line-height:1.45;}
+  .chat-input-row textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+  .chat-send{width:44px;height:44px;border-radius:12px;background:var(--accent);color:#062b31;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .chat-send:hover{filter:brightness(1.08);}
+  .chat-send:disabled{opacity:.4;cursor:default;filter:none;}
+  .chat-send svg{width:18px;height:18px;}
+
+  .agent-card{border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 14px;background:var(--surface2);cursor:pointer;transition:.15s;position:relative;}
+  .agent-card:hover{border-color:var(--border2);}
+  .agent-card.sel{border-color:var(--accent);background:var(--accent-soft);}
+  .agent-card .top{display:flex;align-items:center;gap:9px;margin-bottom:6px;}
+  .agent-card b{font-size:calc(12.5px * var(--font-scale));}
+  .agent-card .ola{font-size:calc(9.5px * var(--font-scale));color:var(--text3);text-transform:uppercase;letter-spacing:.8px;}
+  .agent-card p{margin:0;font-size:calc(11px * var(--font-scale));color:var(--text2);line-height:1.45;}
+  .agent-card .st{position:absolute;top:11px;right:11px;}
+  .agent-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:11px;}
+  .int-tag{font-size:calc(8.5px * var(--font-scale));background:var(--purple);color:#fff;border-radius:6px;padding:1px 6px;font-weight:700;letter-spacing:.5px;}
+  .agent-badge{font-family:var(--mono);font-size:calc(10.5px * var(--font-scale));font-weight:600;letter-spacing:1px;padding:4px 7px;border-radius:6px;border:1px solid currentColor;background:var(--surface);display:inline-flex;align-items:center;justify-content:center;min-width:42px;text-align:center;color:var(--accent2);line-height:1;}
+
+  .run-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--border);font-size:calc(13px * var(--font-scale));}
+  .run-row:last-child{border-bottom:none;}
+  .run-row .nm{width:180px;flex-shrink:0;font-weight:600;font-size:calc(12.5px * var(--font-scale));display:flex;align-items:center;gap:9px;}
+  .run-row .bar{flex:1;}
+  .run-row .st{width:170px;text-align:right;font-size:calc(11.5px * var(--font-scale));color:var(--text3);flex-shrink:0;}
+  .spin{width:13px;height:13px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:rot .7s linear infinite;display:inline-block;vertical-align:-2px;}
+  @keyframes rot{to{transform:rotate(360deg);}}
+
+  .tab-row{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+  .tab{padding:7px 15px;border-radius:20px;font-size:calc(12.5px * var(--font-scale));font-weight:600;color:var(--text2);border:1px solid var(--border);background:var(--surface2);transition:.15s;}
+  .tab:hover{color:var(--text);border-color:var(--border2);}
+  .tab.on{background:var(--accent);color:#062b31;border-color:var(--accent);}
+  .sig-row{display:flex;gap:13px;padding:13px 15px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:9px;background:var(--surface2);cursor:pointer;transition:.15s;align-items:flex-start;}
+  .sig-row:hover{border-color:var(--border2);transform:translateX(2px);}
+  .sig-row .sev{width:4px;border-radius:3px;align-self:stretch;flex-shrink:0;}
+  .sig-row b{font-size:calc(13px * var(--font-scale));display:block;margin-bottom:2px;}
+  .sig-row p{margin:0;font-size:calc(12px * var(--font-scale));color:var(--text2);line-height:1.5;}
+  .sig-row .meta{margin-left:auto;text-align:right;flex-shrink:0;display:flex;flex-direction:column;gap:5px;align-items:flex-end;}
+  .ready-ring{display:flex;align-items:center;gap:18px;}
+  .ring{position:relative;width:96px;height:96px;flex-shrink:0;}
+  .ring svg{transform:rotate(-90deg);}
+  .ring .num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:calc(22px * var(--font-scale));font-weight:600;}
+  .ring .num small{font-size:calc(9px * var(--font-scale));color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600;}
+
+  .score-guide{background:var(--surface3);padding:10px 14px;border-radius:8px;font-size:calc(11.5px * var(--font-scale));color:var(--text2);margin-bottom:14px;border-left:3px solid var(--accent);}
+  .score-guide b{color:var(--accent2);}
+
+  .informe-layout{display:grid;grid-template-columns:1fr 1fr;gap:16px;height:calc(100vh - 180px);}
+  .informe-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden;}
+  .informe-panel-head{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;gap:10px;}
+  .informe-panel-head b{font-size:calc(14px * var(--font-scale));}
+  .informe-panel-head .actions{margin-left:auto;display:flex;gap:6px;}
+  .informe-panel-body{flex:1;overflow-y:auto;padding:16px 18px;}
+  .item-card{border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:10px;background:var(--surface2);transition:.15s;position:relative;}
+  .item-card.excluded{opacity:.45;}
+  .item-card:hover{border-color:var(--border2);}
+  .item-card .head{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .item-card .head b{font-size:calc(12.5px * var(--font-scale));}
+  .item-card .type{font-size:calc(9.5px * var(--font-scale));color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-family:var(--mono);}
+  .item-card .content{font-size:calc(11.5px * var(--font-scale));color:var(--text2);line-height:1.5;max-height:60px;overflow:hidden;text-overflow:ellipsis;}
+  .item-card .toggle{position:absolute;top:11px;right:11px;width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;}
+  .item-card:not(.excluded) .toggle{background:var(--accent);border-color:var(--accent);color:#062b31;}
+  .item-card:not(.excluded) .toggle svg{width:12px;height:12px;}
+  .item-card .exclude-btn{position:absolute;bottom:10px;right:11px;font-size:calc(10.5px * var(--font-scale));color:var(--text3);padding:3px 8px;border-radius:6px;border:1px solid var(--border);}
+  .item-card .exclude-btn:hover{color:var(--text);}
+  .preview-content{font-family:Georgia,serif;font-size:calc(12.5px * var(--font-scale));line-height:1.6;color:var(--text2);}
+  .preview-content h1{font-size:calc(17px * var(--font-scale));margin:0 0 6px;color:var(--text);}
+  .preview-content h2{font-size:calc(14px * var(--font-scale));margin:16px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border);color:var(--text);}
+  .preview-content h3{font-size:calc(12.5px * var(--font-scale));margin:12px 0 6px;color:var(--text);}
+  .preview-content h4{font-size:calc(11px * var(--font-scale));margin:10px 0 4px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;}
+  .preview-content ul{margin:5px 0 8px 20px;padding:0;}
+  .preview-content li{margin-bottom:4px;}
+  .preview-score{display:flex;align-items:center;gap:10px;margin:8px 0;padding:8px 12px;background:var(--surface3);border-radius:6px;}
+  .preview-score .num{font-size:calc(22px * var(--font-scale));font-weight:700;font-family:var(--mono);}
+  .preview-score .txt{font-size:calc(11px * var(--font-scale));color:var(--text2);line-height:1.4;}
+
+  .soon{padding:60px 24px;text-align:center;}
+  .soon .ic{width:64px;height:64px;margin:0 auto 20px;border-radius:18px;background:var(--surface2);display:flex;align-items:center;justify-content:center;border:1px solid var(--border);}
+  .soon .ic svg{width:30px;height:30px;color:var(--text3);}
+  .soon h2{margin:0 0 8px;font-size:calc(22px * var(--font-scale));}
+  .soon p{margin:0 auto;font-size:calc(14px * var(--font-scale));color:var(--text2);max-width:520px;line-height:1.6;}
+  .soon .pill{background:#C77DFF22;color:var(--purple);margin-bottom:14px;padding:4px 12px;font-size:calc(11px * var(--font-scale));letter-spacing:1px;}
+
+  .guia-fab{position:fixed;right:22px;bottom:22px;z-index:60;background:var(--accent);color:#06222b;border:0;border-radius:999px;padding:11px 18px;font-weight:700;font-size:calc(13px * var(--font-scale));cursor:pointer;box-shadow:0 8px 28px rgba(0,0,0,.35);}
+  .guia-box{position:fixed;right:22px;bottom:74px;z-index:61;width:min(360px,calc(100vw - 32px));max-height:70vh;display:none;flex-direction:column;background:var(--surface);border:1px solid var(--border2);border-radius:14px;box-shadow:0 16px 50px rgba(0,0,0,.4);}
+  .guia-box.on{display:flex;}
+  .guia-h{padding:12px 14px;border-bottom:1px solid var(--border);font-weight:700;display:flex;justify-content:space-between;align-items:center;}
+  .guia-h button{background:none;border:0;color:var(--text2);cursor:pointer;font-size:18px;}
+  .guia-msgs{padding:12px 14px;overflow:auto;display:grid;gap:8px;font-size:calc(13px * var(--font-scale));}
+  .guia-msgs .g-u{justify-self:end;background:var(--accent-soft);border-radius:10px;padding:7px 10px;max-width:85%;}
+  .guia-msgs .g-a{background:var(--surface2);border-radius:10px;padding:8px 10px;max-width:92%;white-space:pre-wrap;}
+  .guia-sug{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 8px;}
+  .guia-sug button{font-size:calc(11.5px * var(--font-scale));border:1px solid var(--border2);background:transparent;color:var(--text2);border-radius:999px;padding:4px 9px;cursor:pointer;}
+  .guia-in{display:flex;gap:6px;padding:10px 12px;border-top:1px solid var(--border);}
+  .guia-in input{flex:1;border:1px solid var(--border2);background:var(--bg2);color:var(--text);border-radius:8px;padding:8px 10px;font:inherit;}
+  .guia-in button{border:0;background:var(--accent);color:#06222b;border-radius:8px;padding:0 12px;font-weight:700;cursor:pointer;}
+  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--accent);color:var(--text);border-radius:12px;padding:12px 20px;font-size:calc(13px * var(--font-scale));font-weight:600;z-index:99;box-shadow:0 10px 40px rgba(0,0,0,.4);display:flex;gap:10px;align-items:center;animation:fade .2s ease;}
+  .toast.err{border-color:var(--crit);}
+
+  [data-tip]{cursor:help;}
+  .matrix-tip{position:fixed;z-index:9999;max-width:290px;padding:10px 13px;background:var(--surface);border:1px solid var(--accent);border-radius:8px;font-size:calc(11.5px * var(--font-scale));line-height:1.5;color:var(--text);pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .18s,transform .18s;box-shadow:0 8px 30px rgba(0,0,0,.6),0 0 16px rgba(6,182,212,.2);}
+  .matrix-tip.on{opacity:1;transform:translateY(0);}
+  .matrix-tip b{color:var(--accent2);font-weight:600;display:block;margin-bottom:4px;font-family:var(--mono);font-size:calc(11px * var(--font-scale));letter-spacing:.4px;}
+
+  @media (max-width:960px){
+    .app{grid-template-columns:70px 1fr;}
+    .sidebar .brand h1,.sidebar .brand p,.nav-item span,.nav-label,.sidebar-foot .nm,.sidebar-foot .rl{display:none;}
+    .informe-layout{grid-template-columns:1fr;}
+    .agente-dropdown{width:280px;}
+    .chat-msg .bubble{max-width:85%;}
+  }
+  /* ---- Módulos incrustados (Dashboard / Memoria Anual) ---- */
+  .content.flush{padding:0;overflow:hidden;display:flex;flex-direction:column;}
+  .content.flush .view{max-width:none;margin:0;flex:1;display:flex;min-height:0;animation:none;}
+  .mod-frame{flex:1;width:100%;height:100%;border:0;display:none;background:transparent;}
+  .mod-host{flex:1;min-height:0;display:none;position:relative;}
+  .mod-host .mod-frame.on{display:block;}
+  .doc-quick{display:flex;align-items:center;gap:8px;margin-left:12px;min-width:0;}
+  .doc-quick label{font-size:calc(11px * var(--font-scale));color:var(--text3);letter-spacing:1px;text-transform:uppercase;font-weight:600;white-space:nowrap;}
+  .doc-quick select{margin-left:0;max-width:340px;min-width:180px;border-radius:10px;}
+  .ayuda{margin-bottom:14px;}
+  .ayuda > summary{cursor:pointer;font-weight:600;list-style:none;display:flex;gap:8px;align-items:center;}
+  .ayuda > summary::-webkit-details-marker{display:none;}
+  .ayuda > summary::before{content:"▸";color:var(--text3);} .ayuda[open] > summary::before{content:"▾";}
+  .ayuda .in{margin-top:10px;line-height:1.55;color:var(--text2);}
+  .ayuda .in p{margin:0 0 8px;} .ayuda .in ul{margin:0 0 8px;padding-left:20px;} .ayuda .in b{color:var(--text);}
+  @media (max-width:760px){ .doc-quick label{display:none;} .doc-quick select{min-width:120px;max-width:180px;} }
+  .view-pad{padding:26px 30px;max-width:640px;}
+  /* ---- Accesibilidad ---- */
+  a.nav-item{text-decoration:none;}
+  :focus{outline:none;}
+  :focus-visible{outline:2px solid var(--accent2);outline-offset:2px;border-radius:6px;}
+  .chat-input-row textarea:focus-visible{outline:none;}
+  [role="button"][tabindex]{cursor:pointer;}
+  code{font-family:var(--mono);font-size:.92em;background:var(--surface3);padding:1px 6px;border-radius:5px;}
+  @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important;}}
+
+  /* ---- Grillas ---- */
+  .grid.g4{grid-template-columns:repeat(4,1fr);}
+  .grid.g-score{grid-template-columns:auto 1fr;}
+  .big-ic{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .big-ic svg{width:22px;height:22px;}
+  .ic-alert{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--surface3);color:var(--med);}
+  .ic-alert svg{width:20px;height:20px;}
+  .aviso-err{margin-bottom:18px;border-color:var(--crit);background:linear-gradient(135deg,#FF2D5514,transparent 60%);}
+  .aviso-err .ic-alert{color:var(--crit);}
+  .aviso-warn{border-color:var(--med);background:linear-gradient(135deg,#F4A26118,transparent 60%);}
+  .doc-activo-txt{flex:1;min-width:0;font-size:calc(11.5px * var(--font-scale));color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .doc-row .icon-btn:disabled{opacity:.35;cursor:default;}
+
+  /* ---- Resultados ---- */
+  .res-txt{font-size:calc(12px * var(--font-scale));color:var(--text2);line-height:1.5;}
+  .res-txt p{margin:0 0 4px;}
+  .res-txt ul,.res-txt ol{margin:4px 0 6px 18px;padding:0;}
+  .filtros{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+  .sel{margin-left:auto;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:20px;padding:7px 12px;font-size:calc(12.5px * var(--font-scale));max-width:220px;}
+  details.det{margin-bottom:14px;padding:0;}
+  details.det > summary{list-style:none;display:flex;align-items:center;gap:12px;padding:16px 20px;cursor:pointer;border-radius:var(--radius);}
+  details.det > summary::-webkit-details-marker{display:none;}
+  details.det > summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--text3);border-bottom:2px solid var(--text3);transform:rotate(45deg);margin:0 4px 4px 6px;transition:.2s;flex-shrink:0;}
+  details.det[open] > summary::after{transform:rotate(225deg);margin-bottom:-2px;}
+  details.det[open] > summary{border-bottom:1px solid var(--border);border-bottom-left-radius:0;border-bottom-right-radius:0;}
+  .det-counts{font-size:calc(11px * var(--font-scale));color:var(--text3);font-family:var(--mono);white-space:nowrap;}
+  .score-num{font-size:calc(26px * var(--font-scale));font-weight:700;font-family:var(--mono);line-height:1;}
+  .score-lbl{font-size:calc(10px * var(--font-scale));color:var(--text3);text-transform:uppercase;letter-spacing:1px;}
+  .det-body{padding:8px 20px 18px;}
+  .det-blk h4{margin:14px 0 6px;font-size:calc(11px * var(--font-scale));color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;}
+  .det-it{padding:8px 0;border-bottom:1px dashed var(--border);font-size:calc(12.5px * var(--font-scale));}
+  .det-it:last-child{border-bottom:none;}
+  .det-it p{margin:3px 0 0;color:var(--text2);line-height:1.5;}
+  .link-btn{color:var(--accent2);font-size:calc(11.5px * var(--font-scale));font-weight:600;padding:2px 4px;border-radius:4px;}
+  .link-btn:hover{text-decoration:underline;}
+
+  /* ---- Modal ---- */
+  .modal-back{position:fixed;inset:0;background:rgba(3,3,10,.66);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;}
+  .modal{background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius-lg);width:min(560px,100%);max-height:calc(100vh - 32px);display:flex;flex-direction:column;padding:20px 22px;box-shadow:0 20px 60px rgba(0,0,0,.55);}
+  .modal-head{display:flex;align-items:center;margin-bottom:6px;}
+  .modal-head h3{margin:0;font-size:calc(17px * var(--font-scale));flex:1;}
+  .icon-btn-x{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text3);}
+  .icon-btn-x:hover{color:var(--text);background:var(--surface2);}
+  .icon-btn-x svg{width:16px;height:16px;}
+  .modal-actions-top{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
+  .modal-body{overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 10px 8px;background:var(--surface2);min-height:120px;}
+  .modal .grp{font-size:calc(10px * var(--font-scale));color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;padding:10px 4px 4px;font-weight:700;}
+  .chk-row{display:flex;align-items:center;gap:10px;padding:7px 4px;border-radius:8px;cursor:pointer;font-size:calc(13px * var(--font-scale));}
+  .chk-row:hover{background:var(--surface3);}
+  .chk-row input{width:16px;height:16px;accent-color:var(--accent);flex-shrink:0;}
+  .mini-st{font-size:calc(10.5px * var(--font-scale));font-weight:600;}
+  .modal-foot{display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap;}
+
+  /* ---- Verificación, valoración, guía y reunión ---- */
+  .sello{--c:var(--text3);display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 4px;border-radius:14px;font-size:calc(11px * var(--font-scale));font-weight:600;border:1px solid var(--c);color:var(--text);background:transparent;transition:.15s;}
+  .sello:hover{background:var(--surface3);}
+  .sello .ic{width:16px;height:16px;border-radius:50%;background:var(--c);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;line-height:1;}
+  .sello.verificada{--c:#2F8F5B;} .sello.con_reservas{--c:#B07A00;} .sello.no_verificable{--c:#B4412F;} .sello.cargando{--c:var(--text3);padding-left:10px;cursor:default;}
+  .sello .tag{font-size:calc(9px * var(--font-scale));color:var(--text2);font-family:var(--mono);text-transform:uppercase;}
+  .ver-det{margin-top:8px;padding:10px 12px;background:var(--bg);border-radius:8px;border-left:3px solid var(--accent);font-size:calc(12px * var(--font-scale));color:var(--text2);line-height:1.5;}
+  .ver-det b{color:var(--text);}
+  .ver-det ul{margin:4px 0 8px 18px;padding:0;}
+  .ver-det .capa{margin-bottom:8px;}
+  .ver-det .prob-g{font-family:var(--mono);font-size:calc(9.5px * var(--font-scale));text-transform:uppercase;padding:1px 6px;border-radius:6px;background:var(--surface3);color:var(--text2);margin-right:4px;}
+  .msg-acciones{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px;}
+  .msg-acciones .add-report{margin-top:0!important;}
+  .val-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:14px;font-size:calc(11px * var(--font-scale));border:1px solid var(--border);color:var(--text2);background:transparent;transition:.15s;}
+  .val-btn:hover{border-color:var(--accent);color:var(--text);background:var(--accent-soft);}
+  .val-btn.on{background:var(--accent);border-color:var(--accent);color:#062b31;font-weight:700;}
+  .motivos{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+  .motivos .suggestion-chip{font-size:calc(11px * var(--font-scale));}
+  .guia-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 12px;margin-bottom:8px;border:1px solid var(--accent);border-radius:var(--radius-sm);background:linear-gradient(135deg,var(--accent-soft),transparent 70%);}
+  .guia-bar .gq{flex:1;min-width:220px;}
+  .guia-bar .gq small{display:block;color:var(--text3);font-size:calc(10.5px * var(--font-scale));text-transform:uppercase;letter-spacing:.8px;margin-bottom:1px;}
+  .guia-bar .gq span{font-size:calc(12.5px * var(--font-scale));color:var(--text);}
+  .guia-bar.fin{border-color:var(--low);}
+  .barra{height:8px;border-radius:4px;background:var(--surface3);overflow:hidden;}
+  .barra>i{display:block;height:100%;background:var(--accent);border-radius:4px;transition:width .35s;}
+  .reu-resumen{font-size:calc(13px * var(--font-scale));color:var(--text2);line-height:1.6;margin:8px 0 14px;}
+  .reu-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .reu-sen{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);}
+  .reu-sen:last-child{border-bottom:none;}
+  .reu-sen .sv{flex-shrink:0;font-family:var(--mono);font-size:calc(9.5px * var(--font-scale));text-transform:uppercase;padding:2px 7px;border-radius:6px;border:1px solid var(--c);color:var(--text);}
+  .reu-sen .tx b{font-size:calc(12.5px * var(--font-scale));display:block;}
+  .reu-sen .tx span{font-size:calc(11.5px * var(--font-scale));color:var(--text2);}
+  details.reu-q{border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;background:var(--surface);}
+  details.reu-q summary{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;list-style:none;font-size:calc(12.5px * var(--font-scale));font-weight:600;}
+  details.reu-q summary::-webkit-details-marker{display:none;}
+  details.reu-q summary .q{flex:1;}
+  details.reu-q .cuerpo{padding:2px 14px 12px;font-size:calc(12.5px * var(--font-scale));line-height:1.55;}
+  .mj-fila{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--border);font-size:calc(12.5px * var(--font-scale));}
+  .mj-fila .nm{width:150px;font-weight:600;}
+  .mj-fila .num{min-width:104px;}
+  .mj-fila .num{font-family:var(--mono);font-size:calc(11px * var(--font-scale));color:var(--text2);}
+  .leccion{display:flex;gap:8px;align-items:flex-start;padding:6px 0;font-size:calc(12px * var(--font-scale));}
+  .leccion .x{margin-left:auto;}
+  @media (max-width:900px){ .reu-grid{grid-template-columns:1fr;} }
+  @media (max-width:640px){ .suggestions{max-height:84px;overflow-y:auto;} .guia-bar .btn{width:100%;justify-content:center;} }
+
+  /* ---- Responsive ---- */
+  @media (max-width:1100px){
+    .grid.g4{grid-template-columns:repeat(2,1fr);}
+    .grid.g-score{grid-template-columns:1fr;}
+  }
+  @media (max-width:640px){
+    .content{padding:18px 14px 50px;}
+    .topbar{padding:0 12px;}
+    .bg-banner{right:10px;left:10px;top:70px;}
+    .doc-row{flex-wrap:wrap;}
+    .doc-row .info{flex-basis:calc(100% - 60px);}
+    .doc-row .actions{width:100%;justify-content:flex-end;}
+    .checklist-step{flex-wrap:wrap;}
+    .sig-row{flex-wrap:wrap;}
+    .sig-row .meta{margin-left:17px;align-items:flex-start;text-align:left;flex-direction:row;flex-wrap:wrap;}
+    .kv{flex-direction:column;gap:2px;}
+    .kv .k{width:auto;}
+    .det-counts{display:none;}
+    .sel{margin-left:0;max-width:100%;}
+    .informe-layout{height:auto;}
+    .informe-panel{max-height:70vh;}
+    .chat-wrap{height:calc(100vh - 130px);}
+    .chat-msg .bubble{max-width:92%!important;}
+  }
+
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="iso"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="#062b31" stroke-width="2"/><path d="M9 12l2 2 4-4" stroke="#062b31" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div><h1>DIRECTA</h1><p>Gerencia General</p></div>
+    </div>
+    <nav id="nav" aria-label="Navegación principal"></nav>
+    <div class="sidebar-foot">
+      <div class="profile">
+        <div class="avatar">GG</div>
+        <div><div class="nm">Gerente General</div><div class="rl">Sesión activa</div></div>
+      </div>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div class="crumbs" id="crumbs"></div>
+      <div class="doc-quick" id="docQuickWrap"><label for="docQuick">Documento</label><select class="sel" id="docQuick" aria-label="Documento activo" onchange="cambiarDocQuick(this.value)"></select></div>
+      <div class="tb-right">
+        <button class="tb-btn text-btn" onclick="cambiarFuente(-1)" aria-label="Reducir tamaño de letra" data-tip="A-::Reduce el tamaño de la letra.">A-</button>
+        <button class="tb-btn text-btn" onclick="resetFuente()" aria-label="Tamaño de letra normal" data-tip="A::Vuelve al tamaño normal.">A</button>
+        <button class="tb-btn text-btn" onclick="cambiarFuente(1)" aria-label="Aumentar tamaño de letra" data-tip="A+::Aumenta el tamaño de la letra.">A+</button>
+        <button class="tb-btn" id="themeBtn" aria-label="Cambiar tema claro u oscuro" data-tip="Tema::Cambia entre modo claro y oscuro." onclick="toggleTheme()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </header>
+    <div class="content"><div class="view" id="view"></div><div class="mod-host" id="modHost"></div></div>
+    <div id="bannerRoot"></div>
+  </main>
+</div>
+<div id="modalRoot"></div>
+<button class="guia-fab" id="guiaFab" aria-expanded="false" aria-controls="guiaBox">¿Necesitas ayuda?</button>
+<div class="guia-box" id="guiaBox" role="dialog" aria-label="Guía de uso">
+  <div class="guia-h"><span>Guía de DIRECTA</span><button id="guiaX" aria-label="Cerrar">×</button></div>
+  <div class="guia-msgs" id="guiaMsgs" aria-live="polite"><div class="g-a">Hola, te explico cómo usar cada pantalla. Pregúntame lo que necesites o elige una duda frecuente.</div></div>
+  <div class="guia-sug" id="guiaSug"></div>
+  <form class="guia-in" id="guiaForm"><input id="guiaQ" placeholder="Ej: ¿cómo comparo dos documentos?" maxlength="250" aria-label="Tu pregunta"><button type="submit">Enviar</button></form>
+</div>
+<div id="toastRoot" aria-live="polite"></div>
+
+<script>
+"use strict";
+
+const API = (window.DIRECTA_API || new URLSearchParams(location.search).get("api")
+  || (/^https?:$/.test(location.protocol) ? location.origin : "http://localhost:8000")).replace(/\/+$/, "");
+
+const LS = {
+  font: "directa_font_scale",
+  theme: "directa_theme",
+  informe: "directa_informe_v2",
+  chats: "directa_chats_v2",
+  doc: "directa_doc_activo",
+};
+
+/* Almacenamiento local */
+function lsGet(k, def){ try{ const v = localStorage.getItem(k); return v === null ? def : v; }catch(e){ return def; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, v); }catch(e){} }
+function lsGetJSON(k, def){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; }catch(e){ return def; } }
+function lsSetJSON(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+/* ==========================================================================
+   AGENTES
+   ========================================================================== */
+const AGENTS = [
+  {id:"fin", key:"financiero",     name:"Financiero",            badge:"FIN", tipo:"productor",  ola:1, desc:"Márgenes, liquidez, covenants, calidad de resultados y disciplina presupuestaria."},
+  {id:"cyb", key:"ciberseguridad", name:"Ciberseguridad",        badge:"CYB", tipo:"productor",  ola:1, desc:"Postura de seguridad, incidentes, hallazgos de pentest y cumplimiento normativo."},
+  {id:"aud", key:"auditoria",      name:"Auditoría",             badge:"AUD", tipo:"productor",  ola:2, desc:"Hallazgos de auditoría interna/externa, provisiones y controles internos."},
+  {id:"leg", key:"legal",          name:"Legal",                 badge:"LEG", tipo:"productor",  ola:2, desc:"Contingencias legales, litigios, cumplimiento regulatorio y contratos relevantes."},
+  {id:"cap", key:"capital",        name:"Asignación de Capital", badge:"CAP", tipo:"productor",  ola:2, desc:"CAPEX, retorno sobre capital invertido, escenarios y disciplina de inversión."},
+  {id:"ops", key:"operaciones",    name:"Operaciones",           badge:"OPS", tipo:"productor",  ola:2, desc:"Continuidad operativa, cadena de suministro, productividad y dependencias."},
+  {id:"com", key:"comercial",      name:"Comercial",             badge:"COM", tipo:"productor",  ola:3, desc:"Pipeline, concentración de clientes, pricing y desempeño de ventas."},
+  {id:"hr",  key:"rrhh",           name:"RRHH",                  badge:"HR",  tipo:"productor",  ola:3, desc:"Rotación, clima, sucesión de ejecutivos clave y capacidades críticas."},
+  {id:"tec", key:"tecnologia",     name:"Tecnología",            badge:"TEC", tipo:"productor",  ola:3, desc:"Deuda técnica, proyectos TI, obsolescencia y dependencia de proveedores."},
+  {id:"cmp", key:"compensacion",   name:"Compensación",          badge:"CMP", tipo:"productor",  ola:3, desc:"Alineación de incentivos, benchmarks de compensación y metas ejecutivas."},
+  {id:"esg", key:"esg",            name:"ESG",                   badge:"ESG", tipo:"productor",  ola:4, desc:"Sostenibilidad, emisiones, cumplimiento NCG 461 y riesgos climáticos."},
+  {id:"stk", key:"stakeholders",   name:"Stakeholders",          badge:"STK", tipo:"productor",  ola:4, desc:"Reputación, comunidades, reguladores, medios y relación con accionistas."},
+  {id:"rsk", key:"riesgos",        name:"Riesgos",               badge:"RSK", tipo:"integrador", ola:5, desc:"Correlaciona las señales de los agentes especialistas contra la matriz de riesgos."},
+  {id:"est", key:"estrategia",     name:"Estrategia",            badge:"EST", tipo:"integrador", ola:5, desc:"Coherencia entre plan estratégico, recursos y señales del negocio."},
+];
+
+const state = {
+  view: "inicio",
+  backendOk: true,
+  documentos: [],
+  docActivo: lsGet(LS.doc, null),
+  totalAgentes: AGENTS.length,
+  subiendo: false,
+  subiendoNombre: "",
+  progreso: null,
+  pollingId: null,
+  watchId: null,
+  agenteActual: "auto",     // "auto" = el sistema elige el especialista según la pregunta
+  siguiente: null,          // próxima pregunta guiada {pregunta, restantes, progreso}
+  verAbierta: {},           // mensajes con el detalle de verificación desplegado
+  motivosAbiertos: {},      // mensajes con la lista de motivos del 👎 abierta
+  motivos: null,
+  reunion: {job:null, estado:"", hechas:0, total:0, mensaje:"", carpeta:null, error:"", segundos:0},
+  mejora: {abierto:false, agente:"", datos:null, tendencia:null, cargando:false, resumen:null},
+  mensajes: [],
+  borrador: "",
+  consultando: false,
+  sugerencias: [],
+  cargandoSugerencias: false,
+  sugerenciasCache: {},
+  agenteDropdownAbierto: false,
+  analisis: null,           
+  cargandoAnalisis: false,
+  tabResultados: "consolidado",
+  filtroSev: "todas",
+  filtroAgente: "todos",
+  abiertos: new Set(),
+  informeItems: lsGetJSON(LS.informe, []),
+  generandoPDF: false,
+  tabActivaChat: {},
+};
+if(!Array.isArray(state.informeItems)) state.informeItems = [];
+
+/* ==========================================================================
+   UTILIDADES
+   ========================================================================== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const arg = v => esc(JSON.stringify(v));
+const agentByKey = key => AGENTS.find(a => a.key === key);
+const nombreAgente = key => (agentByKey(key)?.name) || key;
+const badgeAgente = key => (agentByKey(key)?.badge) || String(key || "???").slice(0, 3).toUpperCase();
+const ordenAgente = key => { const i = AGENTS.findIndex(a => a.key === key); return i < 0 ? 99 : i; };
+
+function newId(){
+  try{ if(crypto && crypto.randomUUID) return crypto.randomUUID(); }catch(e){}
+  const b = new Uint8Array(16);
+  try{ crypto.getRandomValues(b); }catch(e){ for(let i=0;i<16;i++) b[i] = Math.floor(Math.random()*256); }
+  b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;
+  const h = Array.from(b, x => x.toString(16).padStart(2, "0")).join("");
+  return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;
+}
+const uid = () => "id_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
+
+async function api(path, opts){
+  const r = await fetch(`${API}${path}`, opts);
+  if(!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+function formatTiempo(seg){
+  seg = Math.max(0, Math.round(seg));
+  if(seg < 60) return `${seg} seg`;
+  const m = Math.floor(seg / 60), s = seg % 60;
+  return s > 0 ? `${m} min ${s} seg` : `${m} min`;
+}
+
+/* Severidad y score */
+const SEV_ORDER = ["crítica", "alta", "media", "baja"];
+const SEV_COL = {"crítica":"var(--crit)", "alta":"var(--high)", "media":"var(--med)", "baja":"var(--low)"};
+const SEV_LABEL = {"crítica":"Críticas", "alta":"Altas", "media":"Medias", "baja":"Bajas"};
+function normSev(v){
+  const t = String(v ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  if(t.includes("|")) return "media";
+  if(t.includes("crit")) return "crítica";
+  if(t.includes("alt")) return "alta";
+  if(t.includes("baj")) return "baja";
+  return "media";
+}
+function scoreInfo(s){
+  s = Number(s) || 0;
+  if(s >= 90) return {col:"var(--low)", label:"Sin observaciones"};
+  if(s >= 75) return {col:"#8BC34A",   label:"Menor atención"};
+  if(s >= 55) return {col:"var(--med)", label:"Requiere revisión"};
+  if(s >= 40) return {col:"var(--high)", label:"Observaciones serias"};
+  return {col:"var(--crit)", label:"Observaciones críticas"};
+}
+const tieneInfo = r => !!r && ((r.hallazgos || []).length > 0 || (r.senales || []).length > 0);
+function senalesDe(r){ return (r?.senales || []).filter(s => s && typeof s === "object"); }
+
+function aplicarTema(t){
+  document.documentElement.setAttribute("data-theme", t);
+  lsSet(LS.theme, t);
+  enviarPrefsModulo();
+}
+function toggleTheme(){
+  aplicarTema(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
+}
+(function initTema(){
+  let t = lsGet(LS.theme, null);
+  if(t !== "dark" && t !== "light"){
+    t = (window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches) ? "light" : "dark";
+  }
+  document.documentElement.setAttribute("data-theme", t);
+})();
+
+function aplicarFuente(scale){
+  scale = Math.round(Math.max(0.8, Math.min(1.4, scale)) * 100) / 100;
+  document.documentElement.style.setProperty("--font-scale", scale);
+  lsSet(LS.font, String(scale));
+  enviarPrefsModulo();
+  return scale;
+}
+function cambiarFuente(delta){
+  const actual = parseFloat(lsGet(LS.font, "1")) || 1;
+  const nuevo = aplicarFuente(actual + delta * 0.1);
+  toast(`Tamaño de letra: ${Math.round(nuevo * 100)}%`);
+}
+function resetFuente(){ aplicarFuente(1); toast("Tamaño de letra: 100%"); }
+aplicarFuente(parseFloat(lsGet(LS.font, "1")) || 1);
+
+function toast(msg, err){
+  const root = $("#toastRoot");
+  root.innerHTML = `<div class="toast ${err ? "err" : ""}" role="${err ? "alert" : "status"}">${esc(msg)}</div>`;
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { root.innerHTML = ""; }, err ? 4500 : 2800);
+}
+
+function icon(p){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${p}</svg>`; }
+const IC = {
+  home:  icon('<path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>'),
+  docs:  icon('<path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M13 2v7h7"/>'),
+  chat:  icon('<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>'),
+  scan:  icon('<circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/>'),
+  chart: icon('<path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-7"/>'),
+  report:icon('<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/>'),
+  book:  icon('<path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>'),
+  up:    icon('<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/>'),
+  dl:    icon('<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>'),
+  send:  icon('<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/>'),
+  check: icon('<path d="M20 6L9 17l-5-5"/>'),
+  trash: icon('<path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>'),
+  play:  icon('<path d="M5 3l14 9-14 9V3z"/>'),
+  pause: icon('<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>'),
+  stop:  icon('<rect x="6" y="6" width="12" height="12" rx="2"/>'),
+  x:     icon('<path d="M18 6L6 18M6 6l12 12"/>'),
+  plus:  icon('<path d="M12 5v14M5 12h14"/>'),
+  refresh:icon('<path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0115-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 01-15 6.7L3 16"/>'),
+  chevron: icon('<path d="M6 9l6 6 6-6"/>'),
+  clock: icon('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+  sun:   icon('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/>'),
+  alert: icon('<path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/><path d="M12 9v4M12 17h.01"/>'),
+};
+
+const NAV = [
+  {id:"inicio",     l:"Inicio",         ic:IC.home,   crumb:"Inicio",         tip:"Inicio::Resumen del estado de la preparación."},
+  {id:"docs",       l:"Documentos",     ic:IC.docs,   crumb:"Documentos",     tip:"Documentos::Sube y administra los documentos."},
+  {id:"chat",       l:"Preguntar a IA", ic:IC.chat,   crumb:"Preguntar a IA", tip:"Preguntar::Consulta a los agentes sobre el documento activo."},
+  {id:"resultados", l:"Resultados",     ic:IC.chart,  crumb:"Resultados",     tip:"Resultados::Resumen consolidado de los agentes."},
+  {id:"informe",    l:"Informe IA",     ic:IC.report, crumb:"Informe IA",     tip:"Informe IA::Reúne todo para exportar PDF.", badge:() => { const n = itemsInforme().length; return n ? String(n) : ""; }},
+  {id:"mejora",     l:"Mejora de agentes", ic:IC.refresh, crumb:"Mejora de agentes", tip:"Mejora de agentes::Lo que aprendió cada agente de tus valoraciones. Reglas, versiones e informe."},
+  {__sep:"HERRAMIENTAS"},
+  {id:"dashboard",  l:"Dashboard",      ic:IC.chart,  crumb:"Dashboard",      tip:"Dashboard::Semáforo, señales y plan de acción con lo ya analizado.", modulo:"dashboard.html"},
+  {id:"memoria",    l:"Memoria Anual",  ic:IC.book,   crumb:"Memoria Anual",  tip:"Memoria Anual::Checklist por capítulos de la NCG 461 con la evidencia de tus documentos.", modulo:"memoria.html"},
+  {id:"indicadores", l:"Indicadores", ic:IC.alert, crumb:"Indicadores", tip:"Indicadores::KPI, KRI y soluciones para el Gerente General: sugeridos con lo analizado y propios que tú agregas.", modulo:"indicadores.html"}
+];
+
+function go(id){
+  state.view = id;
+  state.agenteDropdownAbierto = false;
+  state._resetScroll = true;
+  render();
+  if(id === "chat" && state.docActivo && state.backendOk){
+    if(!state.sugerencias.length) cargarSugerencias();
+    if(!state.siguiente) cargarSiguiente();
+    cargarMotivos();
+  }
+  if(id === "mejora") cargarMejora();
+}
+
+function inlineMd(t){
+  t = t.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  t = t.replace(/(^|[^*])\*([^*\n]+?)\*(?!\*)/g, "$1<em>$2</em>");
+  return t;
+}
+function renderMarkdownLigero(texto){
+  if(!texto) return "";
+  const lines = esc(String(texto)).split("\n");
+  const out = [];
+  let lista = null; // "ul" | "ol"
+  const cerrar = () => { if(lista){ out.push(`</${lista}>`); lista = null; } };
+  for(const line of lines){
+    const t = line.trim();
+    let m;
+    if((m = t.match(/^(?:[-•*])\s+(.*)$/))){
+      if(lista !== "ul"){ cerrar(); out.push("<ul>"); lista = "ul"; }
+      out.push("<li>" + inlineMd(m[1]) + "</li>");
+    } else if((m = t.match(/^\d+[.)]\s+(.*)$/))){
+      if(lista !== "ol"){ cerrar(); out.push("<ol>"); lista = "ol"; }
+      out.push("<li>" + inlineMd(m[1]) + "</li>");
+    } else {
+      cerrar();
+      if(t) out.push("<p>" + inlineMd(t) + "</p>");
+    }
+  }
+  cerrar();
+  return out.join("");
+}
+
+function guardarInforme(){
+  const items = state.informeItems.map(it => ({...it}));
+  lsSetJSON(LS.informe, items);
+}
+function guardarChat(){
+  if(!state.docActivo) return;
+  const todos = lsGetJSON(LS.chats, {});
+  todos[state.docActivo] = state.mensajes.slice(-40).map(m => ({
+    id:m.id, rol:m.rol, texto:m.texto, agente:m.agente, agente_key:m.agente_key,
+    error:!!m.error, verificacion:m.verificacion || null, interaccion_id:m.interaccion_id || null,
+    valoracion:m.valoracion || 0, corregida:!!m.corregida, pregunta_id:m.pregunta_id || "",
+    fuentes:(m.fuentes || []).map(f => ({pagina:f.pagina, preview:String(f.preview || "").slice(0, 240), similarity:f.similarity})),
+  }));
+  lsSetJSON(LS.chats, todos);
+}
+function cargarChat(docId){
+  const todos = lsGetJSON(LS.chats, {});
+  const lista = Array.isArray(todos[docId]) ? todos[docId] : [];
+  state.mensajes = lista.map(m => ({...m, streaming:false, verificando:false}));
+}
+const plano = t => String(t || "").replace(/\*\*|__/g, "").replace(/^\s*[-•*]\s+/gm, "• ");
+function itemsInforme(){ return state.informeItems.filter(i => i.document_id === state.docActivo); }
+
+function avisoBackend(){
+  if(state.backendOk) return "";
+  return `
+  <div class="card aviso-err" role="alert">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <div class="ic-alert">${IC.alert}</div>
+      <div style="flex:1;min-width:220px;">
+        <b>No se pudo conectar con el backend</b>
+        <div style="font-size:calc(12.5px * var(--font-scale));color:var(--text2);margin-top:2px;">Dirección usada: <code>${esc(API)}</code>. Verifica que el servidor esté encendido o abre la página con <code>?api=https://tu-servidor</code>.</div>
+      </div>
+      <button class="btn ghost" onclick="reintentarConexion()">${IC.refresh} Reintentar</button>
+    </div>
+  </div>`;
+}
+async function reintentarConexion(){
+  await cargarDocumentos();
+  if(state.backendOk && state.docActivo) await cargarAnalisisGuardados(state.docActivo);
+  render();
+}
+
+function vInicio(){
+  const nDocs = state.documentos.length;
+  const nChunks = state.documentos.reduce((s, d) => s + (d.chunks || 0), 0);
+  const nAnalisis = state.analisis ? Object.keys(state.analisis.resultados).length : 0;
+  const nInforme = itemsInforme().length;
+  const hayInforme = nInforme > 0;
+  const T = state.totalAgentes;
+
+  const pasos = [
+    { n:1, t:"Cargar documentos", d:"Sube un PDF, Word o Excel. Se indexa y analiza automáticamente.", done:nDocs>0, meta: nDocs>0 ? `${nDocs} archivo${nDocs>1?"s":""}` : "sin archivos", go:"docs" },
+    { n:2, t:"Revisar el análisis", d:`Los ${T} agentes analizan el documento en segundo plano.`, done:nAnalisis>0, meta: nAnalisis>0 ? `${nAnalisis}/${T} agentes` : "sin análisis", go:"resultados" },
+    { n:3, t:"Preguntar a la IA", d:"Consulta los hallazgos ya generados por los agentes.", done:state.mensajes.length>0, meta: state.mensajes.length>0 ? "conversación iniciada" : "sin consultas", go:"chat" },
+    { n:4, t:"Armar el informe", d:"Reúne lo consultado y descarga el PDF para el directorio.", done:hayInforme, meta: hayInforme ? `${nInforme} ítems` : "sin ítems", go:"informe" }
+  ];
+  const siguientes = pasos.filter(p => !p.done);
+
+  return `
+  <div class="page-head">
+    <div>
+      <h2>Bienvenido al módulo de Gerencia General</h2>
+      <p>Sube un documento y el sistema lo indexa, lo analiza con ${T} agentes y deja todo listo para consultar.</p>
+    </div>
+  </div>
+  ${avisoBackend()}
+  <div class="grid g4" style="margin-bottom:22px;">
+    <div class="kpi"><div class="v">${nDocs}</div><div class="l">Documentos cargados</div></div>
+    <div class="kpi"><div class="v">${nChunks}</div><div class="l">Fragmentos indexados</div></div>
+    <div class="kpi"><div class="v">${nAnalisis}</div><div class="l">Agentes con resultado (doc. activo)</div></div>
+    <div class="kpi"><div class="v">${nInforme}</div><div class="l">Ítems en informe</div></div>
+  </div>
+
+  ${vReunion()}
+
+  <div class="card" style="margin-bottom:22px;">
+    <div class="sec-title">Pasos para la preparación</div>
+    ${pasos.map(p => {
+      const habilitado = p.done || nDocs > 0 || p.n === 1;
+      const cls = p.done ? "done" : habilitado ? "available" : "locked";
+      return habilitado
+        ? `<div class="checklist-step ${cls}" role="button" tabindex="0" onclick="go(${arg(p.go)})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();go(${arg(p.go)})}">
+            <div class="chk">${p.done ? "✓" : p.n}</div>
+            <div class="info"><b>${p.t}</b><span>${p.d}</span></div>
+            <div class="meta">${p.meta}</div>
+          </div>`
+        : `<div class="checklist-step ${cls}" aria-disabled="true">
+            <div class="chk">${p.n}</div>
+            <div class="info"><b>${p.t}</b><span>${p.d}</span></div>
+            <div class="meta">${p.meta}</div>
+          </div>`;
+    }).join("")}
+  </div>
+
+  ${siguientes.length > 0 ? `
+    <div class="card" style="background:linear-gradient(135deg,var(--accent-soft),transparent 60%);border-color:var(--accent);">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <div class="big-ic" style="background:var(--accent);color:#062b31;">${IC.play}</div>
+        <div style="flex:1;min-width:200px;">
+          <div class="sec-title" style="margin:0 0 3px;color:var(--accent2);">Siguiente paso</div>
+          <b style="font-size:calc(15px * var(--font-scale));display:block;margin-bottom:3px;">${siguientes[0].t}</b>
+          <div style="font-size:calc(12.5px * var(--font-scale));color:var(--text2);">${siguientes[0].d}</div>
+        </div>
+        <button class="btn lg" onclick="go(${arg(siguientes[0].go)})">${IC.play} Ir al paso</button>
+      </div>
+    </div>
+  ` : `
+    <div class="card" style="background:linear-gradient(135deg,#50C87822,transparent 60%);border-color:var(--low);">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <div class="big-ic" style="background:var(--low);color:#052e16;">${IC.check}</div>
+        <div style="flex:1;min-width:200px;">
+          <b style="font-size:calc(15px * var(--font-scale));display:block;margin-bottom:3px;">Preparación completa</b>
+          <div style="font-size:calc(12.5px * var(--font-scale));color:var(--text2);">Todos los pasos están listos. Puedes generar el informe PDF.</div>
+        </div>
+        <button class="btn lg" onclick="go('informe')">${IC.report} Ir al informe</button>
+      </div>
+    </div>
+  `}`;
+}
+
+function _faseLabel(p){
+  if(!p) return "";
+  if(p.fase === "embeddings") return "Indexando documento";
+  if(p.fase === "analisis") return `Analizando con ${state.totalAgentes} agentes`;
+  if(p.fase === "listo") return "Listo";
+  return p.estado || "Procesando";
+}
+
+function renderProgresoHTML(p, nombre){
+  if(!p) return "";
+  const pct = p.total ? Math.round(100 * p.procesados / p.total) : 3;
+  const restante = p.estimado_seg || 0;
+  const radio = 24, circ = 2 * Math.PI * radio, offset = circ * (1 - pct / 100);
+  return `
+    <div class="progress-circular" role="status">
+      <div class="circular-wrap">
+        <svg width="56" height="56" aria-hidden="true">
+          <circle cx="28" cy="28" r="${radio}" stroke="var(--surface3)" stroke-width="4" fill="none"/>
+          <circle id="circularProgress" cx="28" cy="28" r="${radio}" stroke="var(--accent)" stroke-width="4" fill="none"
+            stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
+            style="transition:stroke-dashoffset 0.3s ease;"/>
+        </svg>
+        <div class="circular-pct" id="circularPct">${pct}%</div>
+      </div>
+      <div class="circular-info">
+        <b>${esc(nombre)}</b>
+        <span id="progEstado">${esc(_faseLabel(p))}</span>
+      </div>
+      <div class="circular-time" id="progTiempo">${restante > 0 ? "~" + formatTiempo(restante) : "…"}</div>
+    </div>`;
+}
+
+function renderProgresoSubida(){
+  const zone = document.getElementById("progressZone");
+  if(!zone) return;
+  if(!state.subiendo || !state.progreso){ zone.innerHTML = ""; return; }
+  const p = state.progreso;
+  const pct = p.total > 0 ? Math.round(100 * (p.procesados || 0) / p.total) : 3;
+  const restante = p.estimado_seg || 0;
+  const circle = document.getElementById("circularProgress");
+  if(!circle){ zone.innerHTML = renderProgresoHTML(p, state.subiendoNombre); return; }
+  const circ = 2 * Math.PI * 24;
+  circle.setAttribute("stroke-dashoffset", circ * (1 - pct / 100));
+  const set = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
+  set("circularPct", pct + "%");
+  set("progEstado", _faseLabel(p));
+  set("progTiempo", restante > 0 ? "~" + formatTiempo(restante) : "…");
+}
+
+function vDocs(){
+  const nDocs = state.documentos.length;
+  return `
+  <div class="page-head">
+    <div>
+      <h2>Documentos</h2>
+      <p>Sube un PDF, Word o Excel. Se indexa y analiza con los ${state.totalAgentes} agentes automáticamente. Cuando termine, podrás consultarlo.</p>
+    </div>
+  </div>
+  ${avisoBackend()}
+  <div class="card" style="margin-bottom:18px;">
+    <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.xlsx,.xls" style="display:none" onchange="subirArchivo(this.files[0]); this.value='';">
+    <div class="upload-zone" id="uploadZone" role="button" tabindex="0"
+         onclick="document.getElementById('fileInput').click()"
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('fileInput').click()}"
+         ondragover="event.preventDefault();this.classList.add('drag')"
+         ondragleave="this.classList.remove('drag')"
+         ondrop="event.preventDefault();this.classList.remove('drag');subirArchivo(event.dataTransfer.files[0])">
+      <div class="ic">${IC.up}</div>
+      <b>Subir un documento</b>
+      <span>Arrastra el archivo aquí o haz clic · PDF, Word o Excel · análisis automático al terminar la indexación</span>
+    </div>
+    <div id="progressZone">
+      ${state.subiendo && state.progreso ? renderProgresoHTML(state.progreso, state.subiendoNombre) : ""}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-title">Documentos cargados (${nDocs})</div>
+    ${nDocs === 0 ? `
+      <div class="empty">
+        <div class="ic">${IC.docs}</div>
+        <h3>Aún no hay documentos</h3>
+        <p>Sube el primer archivo para empezar. Se indexará y analizará automáticamente.</p>
+      </div>
+    ` : state.documentos.map(docRow).join("")}
+  </div>`;
+}
+
+const ESTADOS_PROCESANDO = ["Procesando", "Analizando", "Iniciando"];
+function docRow(d){
+  const colores = {
+    "Listo":"var(--low)", "Listo con errores":"var(--med)", "Analizando":"var(--accent2)",
+    "Procesando":"var(--accent2)", "Iniciando":"var(--accent2)", "Error":"var(--crit)"
+  };
+  const color = colores[d.estado] || "var(--text3)";
+  const activo = state.docActivo === d.id;
+  const nAn = d.analisis_count || 0, T = state.totalAgentes;
+  const ext = ((d.nombre_archivo || d.titulo || "").split(".").pop() || "").toUpperCase().slice(0, 4) || "DOC";
+  const procesando = ESTADOS_PROCESANDO.includes(d.estado);
+  const incompleto = !procesando && d.estado !== "Error" && nAn < T;
+  return `
+  <div class="doc-row" style="${activo ? "border-color:var(--accent);background:var(--accent-soft);" : ""}">
+    <div class="ic">${esc(ext)}</div>
+    <div class="info">
+      <b>${esc(d.titulo || d.nombre_archivo || "(sin título)")}</b>
+      <div class="meta">${d.total_paginas ?? "?"} páginas · ${d.chunks ?? 0} fragmentos · ${nAn}/${T} agentes${activo ? " · <span style='color:var(--accent2)'>activo</span>" : ""}${incompleto ? " · <span style='color:var(--med)'>análisis incompleto</span>" : ""}</div>
+    </div>
+    <div class="status">
+      <span class="pill" style="background:${color}22;color:${color};">
+        <span class="dot" style="background:${color}"></span>${esc(d.estado || "—")}
+      </span>
+    </div>
+    <div class="actions">
+      <button class="icon-btn" data-tip="Activar::Marcar este documento como activo." onclick="activarDocumento(${arg(d.id)})">${IC.check}</button>
+      <button class="icon-btn" data-tip="Preguntar::Ir al chat con este documento." onclick="irAChat(${arg(d.id)})">${IC.chat}</button>
+      <button class="icon-btn" data-tip="Resultados::Ver el análisis de los agentes." onclick="irAResultados(${arg(d.id)})">${IC.chart}</button>
+      <button class="icon-btn danger" data-tip="Eliminar::Borra el documento, sus fragmentos y sus análisis." onclick="eliminarDocumento(${arg(d.id)})">${IC.trash}</button>
+    </div>
+  </div>`;
+}
+
+/* ---------------------------------- chat ---------------------------------- */
+function opcionAgente(a){
+  return `
+    <div class="opt ${state.agenteActual === a.key ? "on" : ""}" role="option" tabindex="0" onclick="cambiarAgente(${arg(a.key)})" onkeydown="if(event.key==='Enter'){cambiarAgente(${arg(a.key)})}">
+      <span class="agent-badge" style="font-size:calc(9px * var(--font-scale));min-width:38px;">${a.badge}</span>
+      <div class="info"><b>${esc(a.name)}</b><span>${esc(a.desc)}</span></div>
+      ${state.agenteActual === a.key ? `<span class="tick">${IC.check}</span>` : ""}
+    </div>`;
+}
+
+function burbujaIA(m){
+  const inReport = state.informeItems.some(it => it.tipo === "chat" && it.msgId === m.id);
+  const tieneFuentes = m.fuentes && m.fuentes.length > 0;
+  const tabActual = state.tabActivaChat[m.id] || "respuesta";
+  let cuerpo;
+  if(tabActual === "fuentes" && tieneFuentes){
+    cuerpo = m.fuentes.map((f, i) => `
+      <div class="fuente">
+        <b>[${i+1}] Página ${esc(f.pagina)}</b>
+        <span style="color:var(--text3);font-size:calc(10.5px * var(--font-scale));margin-left:6px;">${Number(f.similarity) > 0 ? "similitud " + esc(f.similarity) : ""}</span>
+        <div class="prev">${esc(f.preview)}</div>
+      </div>`).join("");
+  } else if(m.streaming){
+    cuerpo = m.texto
+      ? `<span id="txt_${m.id}">${esc(m.texto)}</span><span class="cursor-blink"></span>`
+      : `<span id="txt_${m.id}" style="color:var(--text3);"><span class="spin"></span> Analizando el documento…</span>`;
+  } else if(m.error){
+    cuerpo = `<span id="txt_${m.id}" style="color:var(--high);">${esc(m.texto)}</span>`;
+  } else {
+    cuerpo = `<span id="txt_${m.id}">${renderMarkdownLigero(m.texto)}</span>`;
+  }
+  return `
+    <div class="chat-msg ai">
+      <div class="bubble" style="max-width:80%;">
+        <div class="who">&gt; ${esc(m.agente || "Asistente")}</div>
+        ${tieneFuentes && !m.streaming ? `
+          <div class="chat-tabs">
+            <button class="chat-tab ${tabActual === "respuesta" ? "on" : ""}" onclick="cambiarTabChat(${arg(m.id)},'respuesta')">Respuesta</button>
+            <button class="chat-tab ${tabActual === "fuentes" ? "on" : ""}" onclick="cambiarTabChat(${arg(m.id)},'fuentes')">Fuentes <span class="cnt">${m.fuentes.length}</span></button>
+          </div>` : ""}
+        <div class="chat-tab-body">${cuerpo}</div>
+        ${!m.streaming && !m.error ? `
+          <div class="msg-acciones">
+            ${selloHtml(m)}
+            <button class="add-report ${inReport ? "on" : ""}" onclick="toggleChatEnInforme(${arg(m.id)})">
+              ${inReport ? IC.check + " En el informe" : IC.plus + " Agregar al informe"}
+            </button>
+            ${valoracionHtml(m)}
+          </div>
+          ${state.verAbierta[m.id] ? detalleVerificacionHtml(m) : ""}
+          ${state.motivosAbiertos[m.id] ? motivosHtml(m) : ""}` : ""}
+      </div>
+    </div>`;
+}
+
+/* ---- sello de verificación (3 capas: código → sub-agentes LLM → memorias anuales) ---- */
+const SELLO = {
+  verificada:     {t:"Verificada",     i:"✓", tip:"Verificada::Las cifras y afirmaciones coinciden con el documento y pasaron la doble verificación."},
+  con_reservas:   {t:"Con reservas",   i:"!", tip:"Con reservas::Hay datos que conviene revisar antes de usarlos. Abre el detalle."},
+  no_verificable: {t:"No verificable", i:"?", tip:"No verificable::No se pudo comprobar con el documento. Trátala como borrador."},
+};
+function selloHtml(m){
+  if(m.verificando) return `<span class="sello cargando" role="status"><span class="spin"></span> Verificando…</span>`;
+  const v = m.verificacion;
+  if(!v || !v.sello) return "";
+  const s = SELLO[v.sello] || SELLO.no_verificable;
+  return `<button class="sello ${esc(v.sello)}" aria-expanded="${!!state.verAbierta[m.id]}" onclick="toggleVerificacion(${arg(m.id)})" data-tip="${esc(s.tip)}">
+    <span class="ic" aria-hidden="true">${s.i}</span>${s.t}${v.puntaje != null ? ` · ${Math.round(v.puntaje)}/100` : ""}${m.corregida || v.corregida ? ` <span class="tag">corregida</span>` : ""}</button>`;
+}
+function toggleVerificacion(id){ state.verAbierta[id] = !state.verAbierta[id]; render(); }
+
+function detalleVerificacionHtml(m){
+  const v = m.verificacion;
+  if(!v) return "";
+  const c = v.capas || {}, cod = c.codigo, llm = c.llm, mem = c.memoria;
+  const probs = (v.problemas || []).map(p => `<li><span class="prob-g">${esc(p.gravedad || "")}</span>${esc(p.detalle || p.descripcion || p.tipo || "")}</li>`).join("");
+  const VER = {correcta:"sin errores", con_problemas:"con problemas", no_verificable:"no concluyente"};
+  return `<div class="ver-det" role="region" aria-label="Detalle de la verificación">
+    ${v.resumen ? `<div class="capa"><b>${esc(v.etiqueta || "Resultado")}.</b> ${esc(v.resumen)}</div>` : ""}
+    ${m.corregida || v.corregida ? `<div class="capa">Se corrigió el texto: las frases con cifras sin respaldo se reemplazaron o se marcaron antes de mostrártelo.</div>` : ""}
+    <div class="capa"><b>1 · Control por código</b><br>${cod
+      ? `${cod.cifras_revisadas ?? 0} cifras contrastadas con el documento; ${(cod.cifras_sin_respaldo || []).length ? "sin respaldo: " + esc((cod.cifras_sin_respaldo || []).map(x => typeof x === "object" ? (x.texto || x.valor || "") : x).join(", ")) : "todas con respaldo"}.`
+      : "No se ejecutó."}</div>
+    <div class="capa"><b>2 · Segunda revisión por sub-agentes (cifras, evidencia y coherencia)</b><br>${llm
+      ? (llm.error ? "No disponible: " + esc(llm.error) : `Veredicto: ${esc(VER[llm.veredicto] || llm.veredicto || "—")}${(llm.afirmaciones || []).length ? ` · ${(llm.afirmaciones || []).length} afirmaciones revisadas` : ""}.`)
+      : "No se ejecutó."}</div>
+    <div class="capa"><b>3 · Contraste con las memorias anuales</b><br>${mem
+      ? (mem.consultada
+          ? `${esc({coincide:"Coincide con las memorias anteriores", difiere:"Difiere de las memorias anteriores", sin_base:"Las memorias no permiten contrastar este tema"}[mem.veredicto] || "Contrastada")}${(mem.documentos || []).length ? " (" + esc((mem.documentos || []).join(", ")) + ")" : ""}.`
+          : esc(mem.motivo || "No hay memorias anuales cargadas para contrastar."))
+      : "No se ejecutó."}</div>
+    ${probs ? `<div><b>Puntos a revisar</b><ul>${probs}</ul></div>` : ""}
+  </div>`;
+}
+
+/* ---- 👍 / 👎: el agente aprende reglas de comportamiento (no datos) de tus valoraciones ---- */
+function valoracionHtml(m){
+  if(!m.interaccion_id) return "";
+  return `<span role="group" aria-label="Valorar la respuesta" style="display:inline-flex;gap:6px;">
+    <button class="val-btn ${m.valoracion === 1 ? "on" : ""}" onclick="valorar(${arg(m.id)},1)" aria-pressed="${m.valoracion === 1}" data-tip="Me sirvió::El agente refuerza lo que hizo bien.">👍</button>
+    <button class="val-btn ${m.valoracion === -1 ? "on" : ""}" onclick="valorar(${arg(m.id)},-1)" aria-pressed="${m.valoracion === -1}" data-tip="No me sirvió::Dinos por qué: el agente ajusta su forma de responder.">👎</button>
+  </span>`;
+}
+function motivosHtml(m){
+  const lista = state.motivos || [];
+  return `<div class="motivos" role="group" aria-label="¿Qué falló?">
+    <span style="font-size:calc(11px * var(--font-scale));color:var(--text3);align-self:center;">¿Qué falló?</span>
+    ${lista.map(x => `<button class="suggestion-chip" onclick="enviarMotivo(${arg(m.id)},${arg(x.clave)})">${esc(x.texto)}</button>`).join("")}
+    <button class="suggestion-chip" onclick="enviarMotivo(${arg(m.id)},'')">Prefiero no decir</button>
+  </div>`;
+}
+async function cargarMotivos(){
+  if(state.motivos) return;
+  try{ const d = await api("/api/valoracion/motivos"); state.motivos = d.motivos || []; }catch(e){ state.motivos = []; }
+}
+async function enviarValoracion(m, valor, motivo){
+  const fd = new FormData();
+  fd.append("interaccion_id", m.interaccion_id);
+  fd.append("valor", String(valor));
+  if(motivo) fd.append("motivo", motivo);
+  try{
+    const r = await api("/api/valorar/", {method:"POST", body:fd});
+    if(r && r.ok === false){ toast(r.error || "No se pudo guardar la valoración", true); return false; }
+    return true;
+  }catch(e){ toast("No se pudo guardar la valoración", true); return false; }
+}
+async function valorar(id, valor){
+  const m = state.mensajes.find(x => x.id === id);
+  if(!m || !m.interaccion_id) return;
+  if(valor === -1){
+    await cargarMotivos();
+    state.motivosAbiertos[id] = !state.motivosAbiertos[id];
+    render();
+    return;
+  }
+  state.motivosAbiertos[id] = false;
+  if(await enviarValoracion(m, 1, "")){ m.valoracion = 1; guardarChat(); toast("¡Gracias! El agente lo tendrá en cuenta."); }
+  render();
+}
+async function enviarMotivo(id, motivo){
+  const m = state.mensajes.find(x => x.id === id);
+  if(!m) return;
+  state.motivosAbiertos[id] = false;
+  if(await enviarValoracion(m, -1, motivo)){ m.valoracion = -1; guardarChat(); toast("Anotado. El agente ajustará su forma de responder."); }
+  render();
+}
+
+function vChat(){
+  const ag = agentByKey(state.agenteActual);
+  const esAuto = state.agenteActual === "auto";
+  const esGeneral = !esAuto && (state.agenteActual === "general" || !ag);
+  const docActivo = state.documentos.find(d => d.id === state.docActivo);
+  const productores = AGENTS.filter(a => a.tipo === "productor");
+  const integradores = AGENTS.filter(a => a.tipo === "integrador");
+
+  const dropdown = state.agenteDropdownAbierto ? `
+    <div class="agente-dropdown" role="listbox" onclick="event.stopPropagation()">
+      <div class="grp">Recomendado</div>
+      <div class="opt ${esAuto ? "on" : ""}" role="option" tabindex="0" onclick="cambiarAgente('auto')" onkeydown="if(event.key==='Enter'){cambiarAgente('auto')}">
+        <span class="agent-badge" style="font-size:calc(9px * var(--font-scale));min-width:38px;">AUTO</span>
+        <div class="info"><b>Automático</b><span>El sistema elige al especialista según tu pregunta. No tienes que decidir.</span></div>
+        ${esAuto ? `<span class="tick">${IC.check}</span>` : ""}
+      </div>
+      <div class="grp">General</div>
+      <div class="opt ${esGeneral ? "on" : ""}" role="option" tabindex="0" onclick="cambiarAgente('general')" onkeydown="if(event.key==='Enter'){cambiarAgente('general')}">
+        <span class="agent-badge" style="font-size:calc(9px * var(--font-scale));min-width:38px;">GEN</span>
+        <div class="info"><b>Asistente general</b><span>Consultas generales sobre cualquier documento.</span></div>
+        ${esGeneral ? `<span class="tick">${IC.check}</span>` : ""}
+      </div>
+      <div class="grp">Integradores</div>
+      ${integradores.map(opcionAgente).join("")}
+      <div class="grp">Especialistas</div>
+      ${productores.map(opcionAgente).join("")}
+    </div>` : "";
+
+  const mensajesHtml = state.mensajes.length === 0 ? `
+    <div class="empty" style="margin:auto;">
+      <div class="ic">${IC.chat}</div>
+      <h3>Empieza la conversación</h3>
+      <p>Escribe una pregunta sobre el documento activo o usa una de las sugerencias. Las repreguntas ("¿y por qué?") se entienden en contexto.</p>
+    </div>
+  ` : state.mensajes.map(m => m.rol === "me"
+      ? `<div class="chat-msg me"><div class="bubble">${esc(m.texto)}</div></div>`
+      : burbujaIA(m)).join("");
+
+  const fija = `<button class="suggestion-chip pinned" ${state.consultando ? "disabled" : ""} onclick="usarSugerencia(-1)" data-tip="Fija::Pregunta general sobre el documento. Un clic y se envía.">¿De qué trata el documento? <span class="tag">FIJA</span></button>`;
+  const sugerenciasHtml = state.cargandoSugerencias
+    ? `<div class="suggestion-loading"><span class="spin"></span> Buscando sugerencias…</div>`
+    : `<div class="suggestions">
+        ${state.sugerencias.map((s, i) => `
+          <button class="suggestion-chip" ${state.consultando ? "disabled" : ""} onclick="usarSugerencia(${i})" data-tip="Sugerencia::Un clic y se envía.">${esc(s)} <span class="tag">SUG</span></button>`).join("")}
+        ${fija}
+      </div>`;
+  const guiaHtml = guiaBarHtml(docActivo);
+
+  return `
+  <div class="page-head">
+    <div>
+      <h2>Preguntar a la IA</h2>
+      <p>Pregunta lo que necesites: el sistema elige al especialista y cada respuesta llega con su sello de verificación. Sigue la pregunta guiada o escribe la tuya.</p>
+    </div>
+  </div>
+  ${avisoBackend()}
+  ${!docActivo && state.documentos.length > 0 ? `
+    <div class="card" style="margin-bottom:16px;border-color:var(--med);background:linear-gradient(135deg,#F4A26122,transparent 60%);">
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+        <div style="flex:1;font-size:calc(13px * var(--font-scale));min-width:200px;"><b>Selecciona un documento activo.</b> Ve a <b>Documentos</b> y haz clic en el check del archivo.</div>
+        <button class="btn ghost" onclick="go('docs')">${IC.docs} Ir a Documentos</button>
+      </div>
+    </div>` : ""}
+  <div class="chat-wrap">
+    <div class="chat-topbar">
+      <div class="agente-selector">
+        <button class="agente-trigger ${state.agenteDropdownAbierto ? "open" : ""}" aria-haspopup="listbox" aria-expanded="${state.agenteDropdownAbierto}" onclick="toggleAgenteDropdown(event)">
+          <span class="agent-badge" style="font-size:calc(9px * var(--font-scale));min-width:36px;">${esAuto ? "AUTO" : esGeneral ? "GEN" : ag.badge}</span>
+          <span>${esc(esAuto ? "Automático" : esGeneral ? "Asistente general" : ag.name)}</span>
+          <span class="arr">${IC.chevron}</span>
+        </button>
+        ${dropdown}
+      </div>
+      <div class="doc-activo-txt">
+        ${docActivo ? "Documento: " + esc(docActivo.titulo || docActivo.nombre_archivo) : "Sin documento activo"}
+      </div>
+      <button class="btn ghost sm" onclick="nuevaConversacion()" ${state.mensajes.length === 0 || state.consultando ? "disabled" : ""} data-tip="Nueva conversación::Borra el chat de este documento (lo ya agregado al informe se conserva).">${IC.plus} Nueva</button>
+      <button class="btn ghost sm" onclick="refrescarSugerencias()" data-tip="Nuevas sugerencias::Recarga las sugerencias desde el análisis guardado.">${IC.refresh} Sugerencias</button>
+    </div>
+    <div class="chat-body" id="chatBody" role="log" aria-live="polite">
+      ${mensajesHtml}
+    </div>
+    <div class="chat-input-wrap">
+      ${guiaHtml}
+      ${sugerenciasHtml}
+      <div class="chat-input-row">
+        <textarea id="chatInput" aria-label="Escribe tu pregunta" placeholder="Escribe tu pregunta… (Enter envía, Shift+Enter salto de línea)" rows="1"
+          oninput="state.borrador=this.value;autoTamano(this)"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){event.preventDefault();enviarPregunta();}">${esc(state.borrador)}</textarea>
+        <button class="chat-send" aria-label="Enviar pregunta" onclick="enviarPregunta()" ${state.consultando || !docActivo ? "disabled" : ""}>${IC.send}</button>
+      </div>
+    </div>
+  </div>`;
+}
+function autoTamano(el){ el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 140) + "px"; }
+
+function cambiarTabChat(msgId, tab){ state.tabActivaChat[msgId] = tab; render(); }
+function toggleAgenteDropdown(e){ e.stopPropagation(); state.agenteDropdownAbierto = !state.agenteDropdownAbierto; render(); }
+document.addEventListener("click", () => { if(state.agenteDropdownAbierto){ state.agenteDropdownAbierto = false; render(); } });
+document.addEventListener("keydown", e => {
+  if(e.key !== "Escape") return;
+  if(state.agenteDropdownAbierto){ state.agenteDropdownAbierto = false; render(); }
+});
+
+function cambiarAgente(key){
+  state.agenteDropdownAbierto = false;
+  if(state.agenteActual === key){ render(); return; }
+  state.agenteActual = key;
+  state.sugerencias = [];
+  state.siguiente = null;
+  render();
+  if(state.docActivo){ cargarSugerencias(); cargarSiguiente(); }
+}
+/* Un clic en una sugerencia la envía de inmediato (antes solo la escribía y había que apretar enviar). */
+function usarSugerencia(idx){
+  if(state.consultando) return;
+  const texto = idx === -1 ? "¿De qué trata el documento?" : (state.sugerencias[idx] || "");
+  if(texto) enviarPregunta(texto);
+}
+
+/* ---- secuencia guiada de preguntas (6 por agente: panorama → diagnóstico → decisión) ---- */
+const agenteGuia = () => (state.agenteActual === "auto" ? "general" : state.agenteActual);
+async function cargarSiguiente(){
+  if(!state.docActivo || !state.backendOk) return;
+  const doc = state.docActivo, ag = agenteGuia();
+  try{
+    const d = await api(`/api/guia/siguiente?document_id=${encodeURIComponent(doc)}&agente=${encodeURIComponent(ag)}`);
+    if(d.ok && doc === state.docActivo && ag === agenteGuia()){
+      state.siguiente = {pregunta:d.pregunta, restantes:d.restantes, progreso:d.progreso};
+      render();
+    }
+  }catch(e){}
+}
+function guiaBarHtml(docActivo){
+  if(!docActivo) return "";
+  const s = state.siguiente;
+  if(!s) return "";
+  const pr = s.progreso || {hechas:0, total:0};
+  const pct = pr.total ? Math.round(100 * pr.hechas / pr.total) : 0;
+  const nombre = state.agenteActual === "auto" ? "Asistente general" : nombreAgente(state.agenteActual);
+  if(!s.pregunta){
+    return `<div class="guia-bar fin" role="status"><div class="gq"><small>Guía de ${esc(nombre)}</small><span><b>Completaste las ${pr.total} preguntas.</b> Ya tienes el panorama, el diagnóstico y la decisión. Cambia de agente para seguir con otra área.</span></div></div>`;
+  }
+  return `<div class="guia-bar">
+    <div class="gq"><small>Siguiente pregunta · ${esc(s.pregunta.nivel_nombre || "")} · ${pr.hechas}/${pr.total}</small><span>${esc(s.pregunta.pregunta)}</span>
+      <div class="barra" style="margin-top:6px;" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Avance de la guía"><i style="width:${pct}%"></i></div></div>
+    <button class="btn" onclick="preguntarSiguiente()" ${state.consultando ? "disabled" : ""}>${IC.send} Preguntar</button>
+  </div>`;
+}
+function preguntarSiguiente(){
+  const p = state.siguiente && state.siguiente.pregunta;
+  if(!p || state.consultando) return;
+  enviarPregunta(p.pregunta, {preguntaId:p.id, agente:agenteGuia()});
+}
+function refrescarSugerencias(){
+  if(state.docActivo) delete state.sugerenciasCache[`${state.docActivo}::${state.agenteActual}`];
+  state.sugerencias = [];
+  render();
+  if(state.docActivo) cargarSugerencias();
+}
+function nuevaConversacion(){
+  if(!confirm("¿Borrar la conversación de este documento?")) return;
+  state.mensajes = [];
+  state.tabActivaChat = {};
+  guardarChat();
+  render();
+}
+function preguntarEnChat(agenteKey, texto){
+  if(agentByKey(agenteKey)) state.agenteActual = agenteKey;
+  state.borrador = texto;
+  state.sugerencias = [];
+  go("chat");
+  if(state.docActivo) cargarSugerencias();
+}
+
+/* ------------------------------- resultados ------------------------------- */
+function conteoSeveridad(res){
+  const c = {"crítica":0, "alta":0, "media":0, "baja":0};
+  Object.values(res).forEach(r => senalesDe(r).forEach(s => { c[normSev(s.severidad)]++; }));
+  return c;
+}
+
+function scoreGlobalDe(res){
+  const conInfo = Object.values(res).filter(tieneInfo);
+  if(!conInfo.length) return {score:0, n:0, sinInfo:Object.keys(res).length};
+  const media = Math.round(conInfo.reduce((a, r) => a + (Number(r.score) || 0), 0) / conInfo.length);
+  return {score:media, n:conInfo.length, sinInfo:Object.keys(res).length - conInfo.length};
+}
+
+function listaDetalle(titulo, items, render){
+  if(!items || !items.length) return "";
+  return `<div class="det-blk"><h4>${titulo} (${items.length})</h4>${items.map(render).join("")}</div>`;
+}
+
+function tarjetaAgente(k, r){
+  const si = scoreInfo(r.score);
+  const abierto = state.abiertos.has(k);
+  const enInforme = state.informeItems.some(it => it.tipo === "analisis" && it.agente_key === k && it.document_id === state.docActivo);
+  const sens = senalesDe(r);
+  return `
+    <details class="card det" ${abierto ? "open" : ""} ontoggle="toggleDet(${arg(k)}, this.open)">
+      <summary>
+        <span class="agent-badge">${esc(badgeAgente(k))}</span>
+        <div style="flex:1;min-width:0;">
+          <b style="font-size:calc(14px * var(--font-scale));">${esc(nombreAgente(k))}</b>
+          <div style="font-size:calc(11.5px * var(--font-scale));color:${si.col};font-weight:600;">${si.label}</div>
+        </div>
+        <div class="det-counts">${(r.hallazgos||[]).length} hallaz. · ${sens.length} señales · ${(r.omisiones||[]).length} omis.</div>
+        <div style="text-align:right;">
+          <div class="score-num" style="color:${si.col};">${Number(r.score) || 0}</div>
+          <div class="score-lbl">Score</div>
+        </div>
+      </summary>
+      <div class="det-body">
+        <div class="kv"><div class="k">Resumen</div><div>${renderMarkdownLigero(r.resumen_ejecutivo || "—")}</div></div>
+        ${listaDetalle("Hallazgos", r.hallazgos, h => `<div class="det-it"><b>${esc(h.titulo || "")}</b><p>${esc(h.descripcion || "")}</p></div>`)}
+        ${listaDetalle("Señales", sens, s => { const sv = normSev(s.severidad); return `<div class="det-it"><span class="pill" style="background:${SEV_COL[sv]}22;color:${SEV_COL[sv]}">${sv.toUpperCase()}</span> <b>${esc(s.titulo || "")}</b><p>${esc(s.descripcion || "")}</p></div>`; })}
+        ${listaDetalle("Omisiones", r.omisiones, o => `<div class="det-it"><p>${esc(o.descripcion || o.titulo || "")}</p></div>`)}
+        ${listaDetalle("Preguntas probables del directorio (para preparar la sesión)", r.preguntas, q => `<div class="det-it"><p>“${esc(q.pregunta || "")}”</p></div>`)}
+        ${listaDetalle("Recomendaciones", r.recomendaciones, x => `<div class="det-it"><p>${esc(x.descripcion || x.titulo || "")}</p></div>`)}
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn ghost sm" onclick="toggleAnalisisEnInforme(${arg(k)})">${enInforme ? IC.check + " En el informe (quitar)" : IC.plus + " Agregar al informe"}</button>
+        </div>
+      </div>
+    </details>`;
+}
+function toggleDet(k, abierto){ if(abierto) state.abiertos.add(k); else state.abiertos.delete(k); }
+
+function vResultados(){
+  const res = state.analisis ? state.analisis.resultados : {};
+  const keys = Object.keys(res).sort((a, b) => ordenAgente(a) - ordenAgente(b));
+  const docActivo = state.documentos.find(d => d.id === state.docActivo);
+  const T = state.totalAgentes;
+
+  if(keys.length === 0){
+    const hayDoc = !!docActivo;
+    const procesando = hayDoc && ESTADOS_PROCESANDO.includes(docActivo.estado);
+    return `
+    <div class="page-head"><div><h2>Resultados</h2><p>Aquí aparece el resumen consolidado de los agentes sobre el documento activo.</p></div></div>
+    ${avisoBackend()}
+    <div class="card">
+      <div class="empty">
+        <div class="ic">${state.cargandoAnalisis ? '<span class="spin"></span>' : IC.chart}</div>
+        <h3>${state.cargandoAnalisis ? "Cargando análisis…" : procesando ? "El documento se está procesando" : "Sin resultados todavía"}</h3>
+        <p>${!hayDoc ? "Sube un documento. El análisis se ejecuta automáticamente y los resultados aparecerán aquí."
+            : procesando ? "Los resultados aparecerán solos cuando termine el análisis."
+            : "Este documento no tiene análisis guardados. El análisis se hace una sola vez, al subir el archivo. Si falló, elimina el documento y vuelve a subirlo."}</p>
+        ${!hayDoc ? `<button class="btn" onclick="go('docs')">${IC.up} Ir a Documentos</button>` : ""}
+      </div>
+    </div>`;
+  }
+
+  const todasSenales = [];
+  keys.forEach(k => senalesDe(res[k]).forEach(s => todasSenales.push({...s, severidad:normSev(s.severidad), agente:k})));
+  const cont = conteoSeveridad(res);
+  const g = scoreGlobalDe(res);
+  const gi = scoreInfo(g.score);
+  const C = 2 * Math.PI * 42;
+  const faltan = AGENTS.filter(a => !(a.key in res)).map(a => a.key);
+
+  const tabs = [
+    {id:"consolidado", l:"Resumen consolidado"},
+    {id:"senales",     l:`Señales (${todasSenales.length})`},
+    {id:"omisiones",   l:"Omisiones"},
+    {id:"preguntas",   l:"Preguntas probables"},
+    {id:"agentes",     l:`Por agente (${keys.length})`}
+  ];
+
+  let tabBody = "";
+  if(state.tabResultados === "consolidado"){
+    tabBody = `
+      ${faltan.length ? `
+        <div class="card aviso-warn" style="margin-bottom:16px;" role="alert">
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            <div class="ic-alert">${IC.alert}</div>
+            <div style="flex:1;min-width:220px;font-size:calc(13px * var(--font-scale));">
+              <b>Faltan ${faltan.length} agente${faltan.length > 1 ? "s" : ""} por analizar:</b> ${faltan.map(k => esc(nombreAgente(k))).join(", ")}.
+              <div style="color:var(--text2);font-size:calc(12px * var(--font-scale));margin-top:2px;">No se pudieron analizar al subir el archivo. El análisis no se repite solo. El puntaje global solo considera los agentes que tienen resultado.</div>
+            </div>
+          </div>
+        </div>` : ""}
+      <div class="score-guide">
+        <b>¿Qué significa el Score?</b> Índice 0-100 por agente. <b>90-100</b> sin observaciones · <b>75-89</b> menor atención · <b>55-74</b> requiere revisión · <b>40-54</b> observaciones serias · <b>0-39</b> críticas, no enviar aún.
+        Con la configuración por defecto se calcula a partir de las señales: cada crítica resta 30, alta 15, media 6 y baja 2.
+      </div>
+      <div class="card">
+        <div class="sec-title">Agentes con resultado</div>
+        ${keys.map(k => {
+          const r = res[k], si = scoreInfo(r.score);
+          return `
+            <div class="sig-row" style="cursor:default;">
+              <div class="sev" style="background:${si.col}"></div>
+              <div style="flex:1;min-width:0;">
+                <b><span class="agent-badge" style="font-size:calc(9px * var(--font-scale));min-width:36px;">${esc(badgeAgente(k))}</span> ${esc(nombreAgente(k))}</b>
+                <div class="res-txt">${renderMarkdownLigero(r.resumen_ejecutivo || "Sin resumen ejecutivo.")}</div>
+              </div>
+              <div class="meta">
+                <span class="pill" style="background:${si.col}22;color:${si.col}">Score ${Number(r.score) || 0}</span>
+                <span style="font-size:calc(10.5px * var(--font-scale));color:${si.col};">${si.label}</span>
+              </div>
+            </div>`;
+        }).join("")}
+      </div>`;
+  }
+  else if(state.tabResultados === "senales"){
+    const agentesConSenal = [...new Set(todasSenales.map(s => s.agente))];
+    const filtradas = todasSenales
+      .filter(s => (state.filtroSev === "todas" || s.severidad === state.filtroSev) && (state.filtroAgente === "todos" || s.agente === state.filtroAgente))
+      .sort((a, b) => SEV_ORDER.indexOf(a.severidad) - SEV_ORDER.indexOf(b.severidad) || ordenAgente(a.agente) - ordenAgente(b.agente));
+    tabBody = `
+      <div class="filtros">
+        <button class="tab ${state.filtroSev === "todas" ? "on" : ""}" onclick="setFiltroSev('todas')">Todas (${todasSenales.length})</button>
+        ${SEV_ORDER.map(s => `<button class="tab ${state.filtroSev === s ? "on" : ""}" onclick="setFiltroSev(${arg(s)})">${SEV_LABEL[s]} (${cont[s]})</button>`).join("")}
+        <select class="sel" aria-label="Filtrar por agente" onchange="setFiltroAgente(this.value)">
+          <option value="todos">Todos los agentes</option>
+          ${agentesConSenal.map(k => `<option value="${esc(k)}" ${state.filtroAgente === k ? "selected" : ""}>${esc(nombreAgente(k))}</option>`).join("")}
+        </select>
+      </div>
+      <div class="card">${filtradas.length === 0 ? `<div class="empty"><p>No hay señales con estos filtros.</p></div>` : filtradas.map(s => `
+        <div class="sig-row" style="cursor:default;">
+          <div class="sev" style="background:${SEV_COL[s.severidad]}"></div>
+          <div style="flex:1;min-width:0;"><b>${esc(s.titulo || "")}</b><p>${esc(s.descripcion || "")}</p></div>
+          <div class="meta">
+            <span class="pill" style="background:${SEV_COL[s.severidad]}22;color:${SEV_COL[s.severidad]}">${s.severidad.toUpperCase()}</span>
+            <span style="font-size:calc(11px * var(--font-scale));color:var(--text3);"><span class="agent-badge" style="font-size:calc(9px * var(--font-scale));min-width:34px;">${esc(badgeAgente(s.agente))}</span> ${esc(nombreAgente(s.agente))}</span>
+          </div>
+        </div>`).join("")}</div>`;
+  }
+  else if(state.tabResultados === "omisiones"){
+    const all = [];
+    keys.forEach(k => (res[k].omisiones || []).forEach(o => all.push({...o, agente:k})));
+    tabBody = `<div class="card">${all.length === 0 ? `<div class="empty"><p>No se registraron omisiones.</p></div>` : all.map(o => `
+      <div class="sig-row" style="cursor:default;">
+        <div class="sev" style="background:var(--med)"></div>
+        <div style="flex:1;min-width:0;"><b>${esc(o.descripcion || o.titulo || "")}</b></div>
+        <div class="meta"><span style="font-size:calc(11px * var(--font-scale));color:var(--text3);"><span class="agent-badge" style="font-size:calc(9px * var(--font-scale));min-width:34px;">${esc(badgeAgente(o.agente))}</span> ${esc(nombreAgente(o.agente))}</span></div>
+      </div>`).join("")}</div>`;
+  }
+  else if(state.tabResultados === "preguntas"){
+    const all = [];
+    keys.forEach(k => (res[k].preguntas || []).forEach(p => all.push({...p, agente:k})));
+    tabBody = `<div class="card">${all.length === 0 ? `<div class="empty"><p>No se registraron preguntas.</p></div>` : `<p class="muted" style="margin:0 0 10px">Son preguntas que el directorio podría hacer y que el documento no deja resueltas. Sirven para llegar preparado a la sesión; por eso no se envían al chat, que solo puede responder con lo que dice el documento.</p>` + all.map(q => `
+      <div class="sig-row" style="cursor:default;">
+        <div class="sev" style="background:var(--info)"></div>
+        <div style="flex:1;min-width:0;"><b>“${esc(q.pregunta || "")}”</b></div>
+        <div class="meta"><span style="font-size:calc(11px * var(--font-scale));color:var(--text3);"><span class="agent-badge" style="font-size:calc(9px * var(--font-scale));min-width:34px;">${esc(badgeAgente(q.agente))}</span> ${esc(nombreAgente(q.agente))}</span></div>
+      </div>`).join("")}</div>`;
+  }
+  else {
+    tabBody = keys.map(k => tarjetaAgente(k, res[k])).join("");
+  }
+
+  return `
+  <div class="page-head">
+    <div>
+      <h2>Resultados del análisis</h2>
+      <p>Resumen consolidado de los agentes sobre el documento activo${docActivo ? ": <b>" + esc(docActivo.titulo || docActivo.nombre_archivo) + "</b>" : ""}.</p>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn" onclick="agregarTodoAlInforme()" data-tip="Agregar al informe::Suma todos los análisis al informe PDF.">${IC.plus} Agregar al informe</button>
+    <button class="btn ghost" onclick="recargarAnalisis()" data-tip="Recargar::Vuelve a leer los análisis ya guardados.">${IC.refresh} Recargar</button>
+  </div>
+  ${avisoBackend()}
+
+  <div class="grid g-score" style="margin-bottom:16px;align-items:stretch;">
+    <div class="card ready-ring" style="min-width:280px;">
+      <div class="ring">
+        <svg width="96" height="96" aria-hidden="true"><circle cx="48" cy="48" r="42" stroke="var(--surface3)" stroke-width="8" fill="none"/><circle cx="48" cy="48" r="42" stroke="${gi.col}" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - g.score / 100)}"/></svg>
+        <div class="num">${g.score}<small>/100</small></div>
+      </div>
+      <div>
+        <div class="sec-title" style="margin-bottom:4px;">Preparación global</div>
+        <div style="font-size:calc(13px * var(--font-scale));font-weight:600;color:${gi.col};margin-bottom:3px;">${gi.label}</div>
+        <div style="font-size:calc(12px * var(--font-scale));color:var(--text2);line-height:1.5;">Promedio de ${g.n} agente${g.n === 1 ? "" : "s"} con hallazgos${g.sinInfo ? ` (${g.sinInfo} sin información relevante no cuentan)` : ""}. Igual que en el PDF.</div>
+      </div>
+    </div>
+    <div class="grid g4">
+      ${SEV_ORDER.map(s => `<div class="kpi"><div class="v" style="color:${SEV_COL[s]}">${cont[s]}</div><div class="l">Señales ${SEV_LABEL[s].toLowerCase()}</div></div>`).join("")}
+    </div>
+  </div>
+
+  <div class="tab-row" role="tablist">
+    ${tabs.map(t => `<button class="tab ${state.tabResultados === t.id ? "on" : ""}" role="tab" aria-selected="${state.tabResultados === t.id}" onclick="setTabResultados(${arg(t.id)})">${t.l}</button>`).join("")}
+  </div>
+  ${tabBody}`;
+}
+function setTabResultados(id){ state.tabResultados = id; render(); }
+function setFiltroSev(s){ state.filtroSev = s; render(); }
+function setFiltroAgente(k){ state.filtroAgente = k; render(); }
+
+async function recargarAnalisis(){
+  if(!state.docActivo) return;
+  toast("Recargando análisis…");
+  await cargarAnalisisGuardados(state.docActivo);
+  render();
+  toast("Análisis recargados");
+}
+
+/* --------------------------------- informe --------------------------------- */
+function resumenGeneralJS(activos){
+  const an = activos.filter(i => i.tipo === "analisis" && i.resultado);
+  if(!an.length) return [];
+  const conInfo = an.filter(i => tieneInfo(i.resultado));
+  const partes = [];
+  if(conInfo.length <= 2){
+    partes.push(conInfo.length === 0
+      ? `Ninguno de los ${an.length} agentes incluidos identificó contenido sustantivo en el documento.`
+      : `Solo ${conInfo.length} de los ${an.length} agentes incluidos identificó contenido relevante para su área.`);
+    return partes;
+  }
+  partes.push(`El documento fue evaluado por ${an.length} agentes; ${conInfo.length} identificaron hallazgos relevantes.`);
+  const cont = {"crítica":0, "alta":0, "media":0, "baja":0};
+  const graves = [];
+  const esInteg = k => (AGENTS.find(a => a.key === k) || {}).tipo === "integrador";
+  let transv = 0;
+  conInfo.forEach(i => senalesDe(i.resultado).forEach(s => {
+    const sv = normSev(s.severidad); cont[sv]++;
+    if(esInteg(i.agente_key)) transv++;
+    if((sv === "crítica" || sv === "alta") && s.titulo) graves.push({sv, k:i.agente_key, t:s.titulo});
+  }));
+  const total = SEV_ORDER.reduce((a, s) => a + cont[s], 0);
+  if(total) partes.push(`Se levantaron ${total} señales: ` + SEV_ORDER.filter(s => cont[s]).map(s => `${cont[s]} ${SEV_LABEL[s].toLowerCase()}`).join(", ") + "." +
+    (transv ? ` ${transv} de ellas son transversales (Riesgos y Estrategia cruzan hechos que otros agentes ya reportaron, por lo que pueden repetir un mismo tema).` : ""));
+  graves.sort((a, b) => (SEV_ORDER.indexOf(a.sv) - SEV_ORDER.indexOf(b.sv)) || (esInteg(a.k) - esInteg(b.k)));
+  if(graves.length) partes.push("Señales de mayor severidad: " + graves.slice(0, 5).map(g => `${nombreAgente(g.k)}: ${g.t} (${g.sv})`).join("; ") + ".");
+  const bajos = conInfo.map(i => ({k:i.agente_key, s:Number(i.resultado.score) || 0})).filter(x => x.s < 70).sort((a, b) => a.s - b.s).slice(0, 3);
+  if(bajos.length) partes.push("Áreas que requieren más atención: " + bajos.map(b => `${nombreAgente(b.k)} (${b.s}/100)`).join(", ") + ".");
+  return partes;
+}
+
+function vInforme(){
+  const items = itemsInforme();
+  const activos = items.filter(i => !i.excluido);
+  const docActivo = state.documentos.find(d => d.id === state.docActivo);
+  const orden = it => ordenAgente(it.agente_key) * 10 + (it.tipo === "analisis" ? 0 : 1);
+  const ordenados = items.map(it => ({it, realIdx:state.informeItems.indexOf(it)})).sort((a, b) => orden(a.it) - orden(b.it));
+
+  const itemsHtml = items.length === 0 ? `
+    <div class="empty">
+      <div class="ic">${IC.report}</div>
+      <h3>Sin contenidos todavía</h3>
+      <p>Cuando agregues respuestas del chat o análisis al informe, aparecerán aquí. Se guardan aunque recargues la página.</p>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap;">
+        <button class="btn ghost" onclick="go('chat')">${IC.chat} Ir al chat</button>
+        <button class="btn ghost" onclick="go('resultados')">${IC.chart} Ir a Resultados</button>
+      </div>
+    </div>` : ordenados.map(({it, realIdx}) => {
+    const preview = it.tipo === "chat"
+      ? `P: ${it.pregunta} — R: ${plano(it.respuesta).replace(/\s+/g, " ").slice(0, 120)}…`
+      : `${plano(it.resultado?.resumen_ejecutivo).replace(/\s+/g, " ").slice(0, 140)}…`;
+    return `
+      <div class="item-card ${it.excluido ? "excluded" : ""}">
+        <div class="toggle" aria-hidden="true">${!it.excluido ? IC.check : ""}</div>
+        <div class="head">
+          <span class="agent-badge" style="font-size:calc(9px * var(--font-scale));min-width:34px;">${esc(badgeAgente(it.agente_key))}</span>
+          <b>${esc(it.agente || nombreAgente(it.agente_key))}</b>
+          <span class="type">${it.tipo === "chat" ? "CONVERSACIÓN" : "ANÁLISIS"}</span>
+        </div>
+        <div class="content">${esc(preview)}</div>
+        <button class="exclude-btn" onclick="toggleExcluir(${realIdx})">${it.excluido ? "Incluir" : "Excluir"}</button>
+      </div>`;
+  }).join("");
+
+  let previewHtml;
+  if(activos.length === 0){
+    previewHtml = `
+      <div class="empty" style="margin:auto;">
+        <div class="ic">${IC.report}</div>
+        <h3>Vista previa</h3>
+        <p>Selecciona al menos un ítem para ver el informe consolidado.</p>
+      </div>`;
+  } else {
+    const porAgente = {};
+    activos.forEach(it => {
+      const k = it.agente_key || "general";
+      if(!porAgente[k]) porAgente[k] = {nombre:it.agente || nombreAgente(k), chats:[], analisis:[]};
+      (it.tipo === "chat" ? porAgente[k].chats : porAgente[k].analisis).push(it);
+    });
+    const analisisIncl = activos.filter(i => i.tipo === "analisis" && i.resultado);
+    const gs = scoreGlobalDe(Object.fromEntries(analisisIncl.map(i => [i.agente_key, i.resultado])));
+    const gi = scoreInfo(gs.score);
+    previewHtml = `
+    <div class="preview-content">
+      <h1>Informe de Preparación Pre-Directorio</h1>
+      <p style="color:var(--text3);font-size:calc(12px * var(--font-scale));">
+        Documento: <b>${esc(docActivo?.titulo || docActivo?.nombre_archivo || "—")}</b><br>
+        Fecha: ${esc(new Date().toLocaleString("es-CL"))}<br>
+        Generado por DIRECTA v2 · Gerencia General
+      </p>
+      <h2>Resumen general</h2>
+      ${analisisIncl.length
+        ? `<div class="preview-score"><div class="num" style="color:${gi.col}">${gs.score}</div><div class="txt"><b>Preparación global</b><br>${gi.label}</div></div>` + resumenGeneralJS(activos).map(p => `<p>${esc(p)}</p>`).join("")
+        : `<p><i>Incluye al menos un análisis para ver el resumen general (el PDF final lo genera con todos los ítems seleccionados).</i></p>`}
+      <h2>Análisis por agente</h2>
+      ${Object.entries(porAgente).sort((a, b) => ordenAgente(a[0]) - ordenAgente(b[0])).map(([k, d]) => `
+        <h3>${esc(d.nombre)}</h3>
+        ${d.analisis.map(a => {
+          const si = scoreInfo(a.resultado?.score);
+          return `
+            <div class="preview-score">
+              <div class="num" style="color:${si.col}">${Number(a.resultado?.score) || 0}</div>
+              <div class="txt"><b>Índice de Preparación</b><br>${si.label}</div>
+            </div>
+            <p>${esc(plano(a.resultado?.resumen_ejecutivo))}</p>`;
+        }).join("")}
+        ${d.chats.map(c => `
+          <p><b>P:</b> ${esc(c.pregunta)}</p>
+          <p><b>R:</b> ${esc(plano(c.respuesta).slice(0, 300))}${(c.respuesta || "").length > 300 ? "…" : ""}</p>`).join("")}
+      `).join("")}
+    </div>`;
+  }
+
+  return `
+  <div class="page-head">
+    <div>
+      <h2>Informe IA</h2>
+      <p>Reúne las conversaciones y análisis que quieras incluir. Al final, se descarga un PDF formal listo para el directorio.</p>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn ghost" onclick="limpiarInforme()" ${items.length === 0 ? "disabled" : ""} data-tip="Vaciar::Quita todos los ítems del informe del documento activo.">${IC.trash} Vaciar</button>
+    <button class="btn lg" onclick="descargarPDF()" ${activos.length === 0 || state.generandoPDF ? "disabled" : ""} data-tip="Descargar PDF::Genera y descarga el informe en PDF.">${state.generandoPDF ? `<span class="spin"></span> Generando…` : IC.dl + " Descargar PDF"}</button>
+  </div>
+  ${avisoBackend()}
+  <div class="informe-layout">
+    <div class="informe-panel">
+      <div class="informe-panel-head">
+        <b>Contenidos (${activos.length} / ${items.length})</b>
+        <div class="actions">
+          <button class="btn ghost sm" onclick="setTodosExcluidos(false)">Todos</button>
+          <button class="btn ghost sm" onclick="setTodosExcluidos(true)">Ninguno</button>
+        </div>
+      </div>
+      <div class="informe-panel-body">${itemsHtml}</div>
+    </div>
+    <div class="informe-panel">
+      <div class="informe-panel-head">
+        <b>Vista previa</b>
+        <div class="actions"><span style="font-size:calc(11px * var(--font-scale));color:var(--text3);">El PDF final puede variar en el diseño</span></div>
+      </div>
+      <div class="informe-panel-body">${previewHtml}</div>
+    </div>
+  </div>`;
+}
+
+function toggleExcluir(idx){
+  if(!state.informeItems[idx]) return;
+  state.informeItems[idx].excluido = !state.informeItems[idx].excluido;
+  guardarInforme();
+  render();
+}
+function setTodosExcluidos(v){
+  state.informeItems.forEach(i => { if(i.document_id === state.docActivo) i.excluido = v; });
+  guardarInforme();
+  render();
+}
+function limpiarInforme(){
+  if(!confirm("¿Vaciar los ítems del informe del documento activo?")) return;
+  state.informeItems = state.informeItems.filter(i => i.document_id !== state.docActivo);
+  guardarInforme();
+  render();
+}
+
+function toggleChatEnInforme(msgId){
+  const existing = state.informeItems.findIndex(it => it.tipo === "chat" && it.msgId === msgId);
+  if(existing >= 0){
+    state.informeItems.splice(existing, 1);
+  } else {
+    const idx = state.mensajes.findIndex(m => m.id === msgId);
+    if(idx === -1) return;
+    const msg = state.mensajes[idx];
+    let pregunta = "";
+    for(let i = idx - 1; i >= 0; i--){
+      if(state.mensajes[i].rol === "me"){ pregunta = state.mensajes[i].texto; break; }
+    }
+    state.informeItems.push({
+      tipo:"chat", msgId, document_id:state.docActivo, agente:msg.agente,
+      agente_key:msg.agente_key || state.agenteActual, pregunta, respuesta:msg.texto,
+      fuentes:msg.fuentes || [], excluido:false,
+    });
+  }
+  guardarInforme();
+  render();
+}
+
+function agregarChatAlInforme(msgId, pregunta){
+  const msg = state.mensajes.find(m => m.id === msgId);
+  if(!msg || !msg.texto || msg.error) return;
+  if(state.informeItems.some(it => it.tipo === "chat" && it.msgId === msgId)) return;
+  state.informeItems.push({
+    tipo:"chat", msgId, document_id:state.docActivo, agente:msg.agente,
+    agente_key:msg.agente_key || state.agenteActual,
+    pregunta, respuesta:msg.texto, fuentes:msg.fuentes || [], excluido:false,
+  });
+  guardarInforme();
+}
+
+function agregarTodoAlInforme(){
+  if(!state.analisis || !state.docActivo){ toast("No hay análisis para agregar", true); return; }
+  let agregados = 0;
+  Object.entries(state.analisis.resultados).forEach(([k, r]) => {
+    if(!state.informeItems.some(it => it.tipo === "analisis" && it.agente_key === k && it.document_id === state.docActivo)){
+      state.informeItems.push({tipo:"analisis", document_id:state.docActivo, agente:nombreAgente(k), agente_key:k, resultado:r, excluido:false});
+      agregados++;
+    }
+  });
+  guardarInforme();
+  toast(agregados > 0 ? `${agregados} análisis agregados al informe` : "Ya estaban todos en el informe");
+  render();
+}
+function toggleAnalisisEnInforme(k){
+  const i = state.informeItems.findIndex(it => it.tipo === "analisis" && it.agente_key === k && it.document_id === state.docActivo);
+  if(i >= 0) state.informeItems.splice(i, 1);
+  else if(state.analisis?.resultados[k]) state.informeItems.push({tipo:"analisis", document_id:state.docActivo, agente:nombreAgente(k), agente_key:k, resultado:state.analisis.resultados[k], excluido:false});
+  guardarInforme();
+  render();
+}
+
+function vSoon(titulo, descripcion){
+  return `
+  <div class="page-head"><div><h2>${esc(titulo)}</h2></div></div>
+  <div class="card soon">
+    <div class="ic">${IC.clock}</div>
+    <div class="pill">PRÓXIMAMENTE</div>
+    <h2>Módulo en desarrollo</h2>
+    <p>${esc(descripcion)}</p>
+  </div>`;
+}
+
+async function cargarAgentesBackend(){
+  try{
+    const d = await api("/api/agentes");
+    const lista = (d.agentes || []).filter(a => a.tipo !== "general");
+    if(!lista.length) return;
+    lista.forEach(a => {
+      const local = agentByKey(a.clave);
+      if(local){ local.ola = a.ola; local.tipo = a.tipo; }
+      else AGENTS.push({id:a.clave, key:a.clave, name:String(a.nombre || a.clave).replace(/^Agente\s+/, "").replace(/\s*\(.*\)\s*$/, ""),
+                        badge:String(a.clave).slice(0, 3).toUpperCase(), tipo:a.tipo, ola:a.ola, desc:a.descripcion || ""});
+    });
+    AGENTS.sort((x, y) => x.ola - y.ola);
+    state.totalAgentes = AGENTS.length;
+  }catch(e){}
+}
+
+async function cargarDocumentos(silencioso){
+  try{
+    const datos = await api("/api/documentos");
+    if(datos.ok === false) throw new Error(datos.error || "el backend no pudo listar los documentos");
+    state.backendOk = true;
+    state.documentos = datos.documentos || [];
+    const ids = new Set(state.documentos.map(d => d.id));
+    // Limpia lo guardado de documentos que ya no existen (solo si el listado llegó bien)
+    const antes = state.informeItems.length;
+    state.informeItems = state.informeItems.filter(i => ids.has(i.document_id));
+    if(state.informeItems.length !== antes) guardarInforme();
+    if(!state.docActivo || !ids.has(state.docActivo)){
+      state.docActivo = state.documentos.length ? state.documentos[0].id : null;
+      lsSet(LS.doc, state.docActivo || "");
+      state.mensajes = []; state.sugerencias = []; state.analisis = null;
+      if(state.docActivo){
+        cargarChat(state.docActivo);
+        await cargarAnalisisGuardados(state.docActivo);  
+      }
+    }
+  }catch(e){
+    console.warn("No se pudieron cargar documentos:", e.message);
+    state.backendOk = false;
+  }
+  vigilarDocumentos();
+  if(!silencioso) render();
+}
+
+
+function vigilarDocumentos(){
+  if(state.watchId) return;
+  if(!state.documentos.some(d => ESTADOS_PROCESANDO.includes(d.estado))) return;
+  const desde = Date.now();
+  state.watchId = setInterval(async () => {
+    const procesando = () => state.documentos.some(d => ESTADOS_PROCESANDO.includes(d.estado));
+    if(state.subiendo) return;
+    const activoAntes = state.documentos.find(d => d.id === state.docActivo);
+    const enProcesoAntes = activoAntes && ESTADOS_PROCESANDO.includes(activoAntes.estado);
+    const firmaAntes = JSON.stringify(state.documentos);
+    await cargarDocumentos(true);
+    const activoAhora = state.documentos.find(d => d.id === state.docActivo);
+    let cambio = firmaAntes !== JSON.stringify(state.documentos);
+    if(enProcesoAntes && activoAhora && !ESTADOS_PROCESANDO.includes(activoAhora.estado)){
+      await cargarAnalisisGuardados(state.docActivo);
+      toast(activoAhora.estado === "Error" ? "El documento terminó con error" : "Documento listo");
+      cambio = true;
+    }
+    if(cambio) render();
+    if(!procesando() || Date.now() - desde > 40 * 60 * 1000){ clearInterval(state.watchId); state.watchId = null; }
+  }, 4000);
+}
+
+async function cargarAnalisisGuardados(documentId){
+  if(!documentId) return null;
+  state.cargandoAnalisis = true;
+  try{
+    const d = await api(`/api/analisis-completos/${encodeURIComponent(documentId)}`);
+    if(documentId !== state.docActivo) return d;    
+    state.analisis = (d.ok && d.analisis && Object.keys(d.analisis).length > 0) ? {resultados:d.analisis} : null;
+    return d;
+  }catch(e){
+    console.warn("No se pudieron cargar análisis:", e);
+    if(documentId === state.docActivo) state.analisis = null;
+    return null;
+  }finally{
+    state.cargandoAnalisis = false;
+  }
+}
+
+async function cambiarDocumento(id){
+  if(state.consultando){ toast("Espera a que termine la respuesta en curso", true); return false; }
+  if(id === state.docActivo) return true;
+  guardarChat();
+  state.docActivo = id;
+  lsSet(LS.doc, id);
+  state.sugerencias = []; state.tabActivaChat = {}; state.analisis = null; state.borrador = "";
+  state.filtroSev = "todas"; state.filtroAgente = "todos"; state.abiertos = new Set();
+  state.siguiente = null; state.verAbierta = {}; state.motivosAbiertos = {};
+  reunionReiniciar();
+  cargarChat(id);
+  render();
+  await cargarAnalisisGuardados(id);
+  render();
+  cargarUltimaReunion();
+  if(state.view === "chat"){ cargarSugerencias(); cargarSiguiente(); }
+  return true;
+}
+
+async function subirArchivo(file){
+  if(!file) return;
+  if(state.subiendo){ toast("Ya hay una subida en curso", true); return; }
+  const ext = file.name.toLowerCase().split(".").pop();
+  if(!["pdf", "docx", "doc", "xlsx", "xls"].includes(ext)){ toast("Solo se aceptan PDF, Word o Excel", true); return; }
+
+  const document_id = newId();
+  state.subiendo = true;
+  state.subiendoNombre = file.name;
+  state.progreso = {estado:"Iniciando", fase:"iniciando", procesados:0, total:0, estimado_seg:0, errores:0};
+  render();
+
+  const fd = new FormData();
+  fd.append("archivo", file);
+  fd.append("document_id", document_id);
+
+  const terminarSubida = () => {
+    clearInterval(state.pollingId); state.pollingId = null;
+    state.subiendo = false; state.progreso = null;
+  };
+
+  state.pollingId = setInterval(async () => {
+    try{
+      const d = await api(`/api/progreso/${document_id}`);
+      if(d && d.estado && d.estado !== "No encontrado"){
+        state.progreso = d;
+        renderProgresoSubida();
+        if(d.estado === "Listo" || d.estado === "Listo con errores" || d.estado === "Error"){
+          terminarSubida();
+          if(d.estado === "Error"){
+            toast("Error procesando el documento", true);
+            await cargarDocumentos();
+          } else {
+            toast(d.estado === "Listo" ? "Documento listo y analizado" : "Documento listo, pero con errores: revisa qué agentes faltan", d.estado !== "Listo");
+            guardarChat();
+            state.docActivo = document_id; lsSet(LS.doc, document_id);
+            state.mensajes = []; state.sugerencias = []; state.sugerenciasCache = {};
+            state.tabActivaChat = {}; state.analisis = null; state.borrador = "";
+            await cargarDocumentos(true);
+            await cargarAnalisisGuardados(document_id);
+            render();
+          }
+        }
+      }
+    }catch(e){}
+  }, 1500);
+
+  try{
+    const datos = await api("/api/subir-informe/", {method:"POST", body:fd});
+    if(!datos.ok){ terminarSubida(); toast("Error al procesar: " + (datos.error || "desconocido"), true); render(); }
+  }catch(e){
+    terminarSubida();
+    toast("Error de conexión con el backend", true);
+    render();
+  }
+}
+
+async function eliminarDocumento(id){
+  if(!confirm("¿Eliminar este documento, sus fragmentos y sus análisis?")) return;
+  try{
+    const datos = await api(`/api/documentos/${encodeURIComponent(id)}`, {method:"DELETE"});
+    if(!datos.ok){ toast("Error al eliminar", true); return; }
+    toast("Documento eliminado");
+    state.informeItems = state.informeItems.filter(i => i.document_id !== id);
+    guardarInforme();
+    const todos = lsGetJSON(LS.chats, {}); delete todos[id]; lsSetJSON(LS.chats, todos);
+    Object.keys(state.sugerenciasCache).forEach(k => { if(k.startsWith(id + "::")) delete state.sugerenciasCache[k]; });
+    if(state.docActivo === id){ state.docActivo = null; state.analisis = null; state.mensajes = []; state.sugerencias = []; }
+    await cargarDocumentos();   
+  }catch(e){ toast("Error de conexión", true); }
+}
+
+async function activarDocumento(id){
+  const ok = await cambiarDocumento(id);
+  if(ok) toast("Documento activado");
+}
+async function irAChat(id){
+  if(!(await cambiarDocumento(id))) return;
+  go("chat");
+  cargarSugerencias();
+}
+async function irAResultados(id){
+  if(!(await cambiarDocumento(id))) return;
+  go("resultados");
+}
+
+async function cargarSugerencias(){
+  if(!state.docActivo) return;
+  const cacheKey = `${state.docActivo}::${state.agenteActual}`;
+  if(state.sugerenciasCache[cacheKey]){ state.sugerencias = state.sugerenciasCache[cacheKey]; render(); return; }
+  if(state.cargandoSugerencias) return;
+  const doc = state.docActivo, agente = state.agenteActual;       // "auto" pide las sugerencias del asistente general
+  state.cargandoSugerencias = true;
+  render();
+  try{
+    const fd = new FormData();
+    fd.append("document_id", doc);
+    fd.append("agente", agente === "auto" ? "general" : agente);
+    const datos = await api("/api/sugerencias/", {method:"POST", body:fd});
+    if(datos.ok){
+      state.sugerenciasCache[`${doc}::${agente}`] = datos.sugerencias || [];
+      if(doc === state.docActivo && agente === state.agenteActual) state.sugerencias = datos.sugerencias || [];
+    }
+  }catch(e){ console.warn("Error cargando sugerencias:", e); }
+  state.cargandoSugerencias = false;
+  render();
+}
+
+/* ------------------------------- chat: envío ------------------------------- */
+function historialParaBackend(){
+  const turnos = [];
+  for(let i = 0; i < state.mensajes.length - 1; i++){
+    const a = state.mensajes[i], b = state.mensajes[i + 1];
+    if(a.rol === "me" && b.rol === "ai" && !b.streaming && !b.error && b.texto) turnos.push({pregunta:a.texto, respuesta:b.texto});
+  }
+  return JSON.stringify(turnos.slice(-4));
+}
+
+/* enviarPregunta()                    -> envía lo escrito en el cuadro
+   enviarPregunta(texto, {preguntaId, agente}) -> envía de inmediato (chips y secuencia guiada) */
+async function enviarPregunta(textoDirecto, opts){
+  opts = opts || {};
+  const input = document.getElementById("chatInput");
+  const pregunta = String(typeof textoDirecto === "string" ? textoDirecto : (input ? input.value : state.borrador)).trim();
+  if(!pregunta || state.consultando) return;
+  if(!state.docActivo){ toast("Selecciona un documento activo", true); return; }
+  const agenteEnvio = opts.agente || state.agenteActual;
+
+  const historial = historialParaBackend();
+  state.mensajes.push({id:uid(), rol:"me", texto:pregunta});
+  const ag = agentByKey(agenteEnvio);
+  const msg = {
+    id:uid(), rol:"ai", texto:"", fuentes:[],
+    agente: agenteEnvio === "auto" ? "Eligiendo especialista…" : agenteEnvio === "general" ? "Asistente General" : (ag?.name || "Asistente"),
+    agente_key: agenteEnvio, streaming:true, error:false, verificando:false, verificacion:null,
+    interaccion_id:null, valoracion:0, corregida:false, pregunta_id:opts.preguntaId || "",
+  };
+  state.mensajes.push(msg);
+  state.tabActivaChat[msg.id] = "respuesta";
+  state.consultando = true;
+  state.borrador = "";
+  state._chatAlFondo = true;
+  render();
+
+  const fd = new FormData();
+  fd.append("pregunta", pregunta);
+  fd.append("document_id", state.docActivo);
+  fd.append("agente", agenteEnvio);
+  fd.append("historial", historial);
+  if(opts.preguntaId) fd.append("pregunta_id", opts.preguntaId);
+
+  const aplicarCierre = p => {        // lo que llega después de la verificación
+    if(p.verificacion !== undefined) msg.verificacion = p.verificacion;
+    if(p.interaccion_id) msg.interaccion_id = p.interaccion_id;
+    if(p.agente_key) msg.agente_key = p.agente_key;
+    if(p.siguiente && msg.agente_key === agenteGuia()) state.siguiente = p.siguiente;   // en modo automático la guía es la del asistente general
+  };
+  const fallar = txt => { msg.error = true; msg.texto = txt; };
+  try{
+    const r = await fetch(`${API}/api/consultar-stream/`, {method:"POST", body:fd});
+    if(!r.ok || !r.body){
+      const datos = await api("/api/consultar/", {method:"POST", body:fd});
+      if(datos.ok){
+        msg.texto = datos.respuesta; msg.fuentes = datos.fuentes || []; msg.corregida = !!datos.respuesta_original;
+        if(datos.agente) msg.agente = datos.agente;
+        aplicarCierre(datos);
+      }
+      else fallar("No se pudo obtener respuesta: " + (datos.error || "error desconocido"));
+    } else {
+      const reader = r.body.getReader(), decoder = new TextDecoder();
+      let buffer = "", acumulado = "", errorServidor = "", textoCorregido = "";
+      const procesar = line => {
+        const t = line.trim();
+        if(!t.startsWith("data:")) return;
+        const payload = t.slice(5).trim();
+        if(payload === "[DONE]") return;
+        try{
+          const p = JSON.parse(payload);
+          if(p.error) errorServidor = String(p.error);
+          if(p.chunk){
+            acumulado += p.chunk;
+            msg.texto = acumulado;
+            const el = document.getElementById(`txt_${msg.id}`);
+            if(el){ el.textContent = acumulado; }
+            const body = document.getElementById("chatBody");
+            if(body) body.scrollTop = body.scrollHeight;
+          }
+          if(p.fuentes) msg.fuentes = p.fuentes;
+          if(p.agente) msg.agente = p.agente;
+          if(p.agente_key && !p.verificacion && !("verificacion" in p)) msg.agente_key = p.agente_key;
+          if(p.verificando){                       // el texto ya está completo: se muestra y se verifica en paralelo
+            msg.streaming = false; msg.verificando = true; msg.texto = acumulado;
+            state._chatAlFondo = true; render();
+          }
+          if("verificacion" in p){                 // resultado de la doble verificación
+            msg.verificando = false; msg.streaming = false;
+            if(p.texto_corregido){ msg.texto = p.texto_corregido; textoCorregido = p.texto_corregido; msg.corregida = true; }
+            aplicarCierre(p);
+            state._chatAlFondo = true; render();
+          }
+        }catch(e){}
+      };
+      while(true){
+        const {done, value} = await reader.read();
+        if(done) break;
+        buffer += decoder.decode(value, {stream:true});
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+        lines.forEach(procesar);
+      }
+      if(buffer) procesar(buffer);
+      if(!acumulado && errorServidor) fallar("No se pudo obtener respuesta: " + errorServidor);
+      else if(!acumulado) fallar("El agente no devolvió texto. Intenta de nuevo.");
+      else msg.texto = textoCorregido || acumulado;
+      if(errorServidor && acumulado) msg.nota = errorServidor;
+    }
+  }catch(e){
+    console.warn("Error de chat:", e);
+    if(!msg.texto) fallar("Error de conexión con el backend.");
+  }
+  msg.streaming = false;
+  if(msg.verificando){          // el flujo se cortó antes de terminar la verificación
+    msg.verificando = false;
+    if(!msg.verificacion) msg.verificacion = {sello:"no_verificable", etiqueta:"No verificable", resumen:"La verificación no alcanzó a completarse. Trata la respuesta como borrador."};
+  }
+  state.consultando = false;
+  if(!msg.error) agregarChatAlInforme(msg.id, pregunta);
+  guardarChat();
+  state._chatAlFondo = true;
+  render();
+  if(!msg.error) cargarSiguiente();
+}
+
+/* ------------------------------- informe PDF ------------------------------- */
+async function descargarPDF(){
+  const activos = itemsInforme().filter(i => !i.excluido);
+  if(activos.length === 0){ toast("No hay ítems seleccionados", true); return; }
+  state.generandoPDF = true;
+  render();
+  const docActivo = state.documentos.find(d => d.id === state.docActivo);
+  const payload = {
+    documento: {nombre: docActivo?.titulo || docActivo?.nombre_archivo || "Documento", paginas: docActivo?.total_paginas || "?"},
+    items: activos.map(it => it.tipo === "chat"
+      ? {tipo:"chat", agente:it.agente, agente_key:it.agente_key, pregunta:it.pregunta, respuesta:it.respuesta, fuentes:it.fuentes}
+      : {tipo:"analisis", agente:it.agente, agente_key:it.agente_key, resultado:it.resultado}),
+  };
+  try{
+    toast("Generando informe…");
+    const fd = new FormData();
+    fd.append("document_id", state.docActivo || "");
+    fd.append("payload", JSON.stringify(payload));
+    const r = await fetch(`${API}/api/informe/`, {method:"POST", body:fd});
+    if(!r.ok){ toast("Error generando el informe (HTTP " + r.status + ")", true); return; }
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Directa_Informe_${new Date().toISOString().slice(0, 10)}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    toast("PDF descargado");
+  }catch(e){
+    console.error(e);
+    toast("Error generando PDF: " + e.message, true);
+  }finally{
+    state.generandoPDF = false;
+    render();
+  }
+}
+
+function urlModulo(archivo){
+  const q = new URLSearchParams({
+    embed: "1", api: API,
+    theme: document.documentElement.getAttribute("data-theme") || "dark",
+    font: lsGet(LS.font, "1"),
+  });
+  if(state.docActivo) q.set("doc", state.docActivo);
+  return `${API}/${archivo}?${q.toString()}`;
+}
+function vModuloCaido(){
+  const n = NAV.find(x => x.id === state.view);
+  return `<div class="view-pad"><div class="card"><h2 style="margin:0 0 6px">${esc(n.l)}</h2>
+    <p class="muted">No hay conexión con el servidor, y esta sección lee los datos desde ahí. Enciende el backend y vuelve a entrar.</p>
+    <button class="btn" onclick="go('${esc(n.id)}')">Reintentar</button></div></div>`;
+}
+function framesModulos(){ return Array.from(document.querySelectorAll("#modHost iframe")); }
+function asegurarModulo(id){
+  const host = document.getElementById("modHost");
+  const n = NAV.find(x => x.id === id);
+  if(!host || !n || !n.modulo) return null;
+  let f = host.querySelector(`iframe[data-mod="${id}"]`);
+  if(!f){
+    f = document.createElement("iframe");
+    f.className = "mod-frame"; f.dataset.mod = id; f.title = n.l;
+    f.addEventListener("load", () => { f.dataset.listo = "1"; enviarPrefsModulo(f); enviarDocModulo(f); });
+    f.src = urlModulo(n.modulo);
+    host.appendChild(f);
+  }
+  return f;
+}
+let _precargaId = null;
+function precargarModulos(){
+  if(_precargaId || !state.backendOk) return;
+  const pendientes = NAV.filter(n => n.modulo);
+  let i = 0;
+  const paso = () => {
+    if(i >= pendientes.length){ _precargaId = null; return; }
+    asegurarModulo(pendientes[i++].id);
+    _precargaId = setTimeout(paso, 700);
+  };
+  _precargaId = setTimeout(paso, 900);
+}
+function enviarPrefsModulo(solo){
+  const msg = {directa: "prefs", theme: document.documentElement.getAttribute("data-theme"), font: parseFloat(lsGet(LS.font, "1")) || 1};
+  (solo ? [solo] : framesModulos()).forEach(f => { try{ if(f.contentWindow) f.contentWindow.postMessage(msg, "*"); }catch(e){} });
+}
+function enviarDocModulo(solo){
+  const msg = {directa: "setdoc", id: state.docActivo ? String(state.docActivo) : ""};
+  (solo ? [solo] : framesModulos()).forEach(f => { try{ if(f.contentWindow && f.dataset.listo) f.contentWindow.postMessage(msg, "*"); }catch(e){} });
+}
+function enviarRefrescoModulos(){
+  framesModulos().forEach(f => { try{ if(f.contentWindow && f.dataset.listo) f.contentWindow.postMessage({directa: "refresh"}, "*"); }catch(e){} });
+}
+window.addEventListener("message", ev => {
+  if(!framesModulos().some(f => f.contentWindow === ev.source)) return;
+  const d = ev.data;
+  if(d && d.directa === "doc" && state.documentos.some(x => String(x.id) === d.id)){
+    const doc = state.documentos.find(x => String(x.id) === d.id);
+    if(String(state.docActivo) !== String(doc.id)){ cambiarDocumento(doc.id); }
+  }
+});
+
+const VIEWS = {
+  inicio: vInicio, docs: vDocs, chat: vChat, resultados: vResultados, informe: vInforme, mejora: vMejora,
+};
+
+function renderDocQuick(){
+  const sel = document.getElementById("docQuick"), wrap = document.getElementById("docQuickWrap");
+  if(!sel || !wrap) return;
+  const docs = state.documentos || [];
+  wrap.style.display = docs.length ? "flex" : "none";
+  const firma = docs.map(d => d.id + "|" + (d.titulo || d.nombre_archivo) + "|" + d.estado).join("~") + "#" + state.docActivo;
+  if(sel.dataset.firma === firma) return;
+  sel.dataset.firma = firma;
+  sel.innerHTML = docs.map(d => `<option value="${esc(d.id)}" ${String(d.id) === String(state.docActivo) ? "selected" : ""}>${esc(d.titulo || d.nombre_archivo)}${ESTADOS_PROCESANDO.includes(d.estado) ? " (procesando…)" : ""}</option>`).join("");
+}
+async function cambiarDocQuick(id){
+  const ok = await cambiarDocumento(id);
+  if(!ok){ const s = document.getElementById("docQuick"); if(s) s.value = state.docActivo; }
+}
+let _docEnviado = null, _firmaDocs = null;
+function sincronizarModulos(){
+  const doc = state.docActivo ? String(state.docActivo) : "";
+  if(doc !== _docEnviado){ _docEnviado = doc; enviarDocModulo(); }
+  const firma = (state.documentos || []).map(d => d.id + ":" + d.estado + ":" + (d.analisis_count || 0)).join("|");
+  if(_firmaDocs !== null && firma !== _firmaDocs) enviarRefrescoModulos();
+  _firmaDocs = firma;
+}
+
+const AYUDA = {
+  inicio: {
+    p: ["DIRECTA ayuda al Gerente General a preparar la reunión de directorio a partir de los documentos de la empresa: detecta riesgos, anticipa las preguntas que puede hacer el directorio y ordena la información para los informes y la memoria anual."],
+    pasos: ["Entra a <b>Documentos</b> y sube el informe (PDF, Word o Excel). Se lee y se analiza una sola vez.", "Con el documento activo, pulsa <b>Preparar mi reunión</b>: en un clic obtienes las señales clave, las preguntas probables del directorio ya respondidas y verificadas, y el PDF.", "En <b>Resultados</b> ves el puntaje y las alertas por área.", "En <b>Preguntar a IA</b> consultas dudas sobre el documento.", "En <b>Informe IA</b> armas el PDF para llevar al directorio.", "<b>Dashboard</b>, <b>Memoria Anual</b> e <b>Indicadores</b> convierten el análisis en gráficos, listas de trabajo y metas."],
+  },
+  docs: {
+    p: ["Aquí subes y administras los documentos que se van a analizar. Cada archivo se procesa una sola vez; después todas las pantallas usan ese resultado."],
+    pasos: ["Arrastra o elige un archivo (PDF, Word o Excel).", "Espera a que termine el proceso: verás el avance en pantalla.", "Marca el documento como activo para trabajar con él en las demás pantallas (también puedes cambiarlo desde el selector de arriba).", "Si un documento terminó con error o incompleto, elimínalo y vuelve a subirlo."],
+  },
+  chat: {
+    p: ["Conversa con los especialistas de la IA sobre el documento activo. Responden usando los fragmentos del documento y el análisis ya hecho."],
+    pasos: ["Déjalo en <b>Automático</b>: el sistema elige al especialista según tu pregunta (o elige uno tú).", "Un clic en una sugerencia la envía. Con <b>Preguntar</b> sigues la secuencia guiada del agente: panorama, diagnóstico y decisión.", "Cada respuesta pasa por una doble verificación y trae su sello: <b>Verificada</b>, <b>Con reservas</b> o <b>No verificable</b>. Púlsalo para ver el detalle.", "Valora con 👍/👎: el agente aprende cómo responderte mejor (ver <b>Mejora de agentes</b>).", "Con el botón de agregar, la respuesta pasa al Informe IA."],
+  },
+  mejora: {
+    p: ["Muestra qué ha aprendido cada agente a partir de tus valoraciones y de lo que detecta la verificación."],
+    pasos: ["Revisa la tabla: consultas, % verificadas y valoraciones por agente.", "Abre un agente para ver sus reglas; retira las que no te sirvan o escribe las tuyas.", "Si un cambio empeoró las respuestas, vuelve a una versión anterior.", "Descarga el informe de mejora en PDF o Markdown."],
+  },
+  resultados: {
+    p: ["Muestra el análisis completo del documento activo: puntaje de preparación, señales de alerta, omisiones y preguntas probables del directorio."],
+    pasos: ["Mira primero el puntaje global y las áreas con menor puntaje.", "Filtra las señales por gravedad (crítica, alta, media, baja) o por agente.", "Revisa las <b>omisiones</b>: lo que el documento debería contar y no cuenta.", "Agrega al Informe IA lo que quieras llevar al directorio."],
+  },
+  informe: {
+    p: ["Arma el informe final para la reunión de directorio con los análisis y respuestas que elijas, y lo descarga como PDF."],
+    pasos: ["Agrega análisis o respuestas del chat desde Resultados y Preguntar a IA.", "Marca u oculta los ítems que quieras incluir.", "Revisa la vista previa y descarga el PDF."],
+  },
+};
+const LS_AYUDA = "directa_ayuda_v1";
+const LS_AY = "directa_ayuda_v2";
+function ayudaEstado(){ try{ return JSON.parse(localStorage.getItem(LS_AY) || "{}") || {}; }catch(e){ return {}; } }
+function ayudaGuardar(k, v){ try{ const o = ayudaEstado(); o[k] = v; localStorage.setItem(LS_AY, JSON.stringify(o)); }catch(e){} }
+function ayudaSlide(d, abrir){
+  if(d.open === abrir) return;
+  if(!d.animate || matchMedia("(prefers-reduced-motion: reduce)").matches){ d.open = abrir; return; }
+  const h0 = d.offsetHeight;
+  d.open = abrir;
+  const h1 = d.offsetHeight;
+  if(!abrir) d.open = true;
+  d.style.overflow = "hidden";
+  const a = d.animate([{height: h0 + "px"}, {height: h1 + "px"}], {duration: 240, easing: "ease"});
+  a.onfinish = a.oncancel = () => { d.style.overflow = ""; d.open = abrir; };
+}
+function ayudaIniciar(d, k){
+  if(!d || d.dataset.ayIni) return; d.dataset.ayIni = "1";
+  const est = ayudaEstado()[k];
+  d.open = est !== false;
+  let armado = est === undefined && d.open;
+  const cerrar = () => { if(!armado) return; armado = false; if(d.isConnected && d.open){ ayudaSlide(d, false); ayudaGuardar(k, false); } };
+  const sum = d.querySelector("summary");
+  if(sum) sum.addEventListener("click", e => { e.preventDefault(); armado = false; const ab = !d.open; ayudaSlide(d, ab); ayudaGuardar(k, ab); });
+  document.addEventListener("scroll", e => { if(!armado) return; const t = e.target === document ? document.scrollingElement : e.target; if(t && t.scrollTop > 60) cerrar(); }, true);
+  document.addEventListener("click", e => { if(armado && !d.contains(e.target)) cerrar(); }, true);
+}
+function ayudaAbierta(v){ return ayudaEstado()[v] !== false; }
+function ayudaHtml(v){
+  const a = AYUDA[v]; if(!a) return "";
+  return `<details class="card ayuda" data-ayuda="${v}" ${ayudaAbierta(v) ? "open" : ""}>
+    <summary>¿Para qué sirve esta pantalla? (leer primero)</summary>
+    <div class="in">${a.p.map(x => `<p>${x}</p>`).join("")}<p><b>Cómo usarla:</b></p><ol style="margin:0;padding-left:20px">${a.pasos.map(x => `<li>${x}</li>`).join("")}</ol></div></details>`;
+}
+
+function capturarUI(){
+  const ci = document.getElementById("chatInput");
+  const cont = document.querySelector(".content");
+  const cb = document.getElementById("chatBody");
+  return {
+    foco: ci && document.activeElement === ci ? {s:ci.selectionStart, e:ci.selectionEnd} : null,
+    contenido: cont ? cont.scrollTop : 0,
+    chat: cb ? cb.scrollTop : 0,
+    chatAlFondo: cb ? (cb.scrollHeight - cb.scrollTop - cb.clientHeight < 80) : true,
+    paneles: [...document.querySelectorAll(".informe-panel-body")].map(p => p.scrollTop),
+  };
+}
+function restaurarUI(u){
+  const cont = document.querySelector(".content");
+  if(cont) cont.scrollTop = state._resetScroll ? 0 : u.contenido;
+  const cb = document.getElementById("chatBody");
+  if(cb){
+    if(state._resetScroll || state._chatAlFondo || u.chatAlFondo) cb.scrollTop = cb.scrollHeight;
+    else cb.scrollTop = u.chat;
+  }
+  if(!state._resetScroll) document.querySelectorAll(".informe-panel-body").forEach((p, i) => { if(u.paneles[i] != null) p.scrollTop = u.paneles[i]; });
+  const ci = document.getElementById("chatInput");
+  if(ci){
+    autoTamano(ci);
+    if(u.foco){ ci.focus({preventScroll:true}); try{ ci.setSelectionRange(u.foco.s, u.foco.e); }catch(e){} }
+  }
+  state._resetScroll = false;
+  state._chatAlFondo = false;
+}
+
+function render(){
+  const ui = capturarUI();
+  const navHtml = [];
+  NAV.forEach(n => {
+    if(n.__sep){ navHtml.push(`<div class="nav-label">${esc(n.__sep)}</div>`); return; }
+    let badge = "";
+    if(n.soon) badge = `<span class="badge soon">Pronto</span>`;
+    else if(n.badge){ const b = n.badge(); if(b) badge = `<span class="badge count">${esc(b)}</span>`; }
+    navHtml.push(`<button class="nav-item ${state.view === n.id ? "active" : ""}" ${state.view === n.id ? 'aria-current="page"' : ""} onclick="go(${arg(n.id)})" data-tip="${esc(n.tip || "")}">${n.ic}<span>${n.l}</span>${badge}</button>`);
+  });
+  $("#nav").innerHTML = navHtml.join("");
+
+  const cur = NAV.find(n => n.id === state.view);
+  $("#crumbs").innerHTML = `DIRECTA › <b>${esc(cur ? cur.crumb : "")}</b>`;
+
+  const vista = $("#view");
+  const host = $("#modHost");
+  const esModulo = !!(cur && cur.modulo);
+  $(".content").classList.toggle("flush", esModulo);
+  if(esModulo && state.backendOk){
+    vista.style.display = "none"; vista.dataset.mod = "";
+    host.style.display = "flex";
+    asegurarModulo(state.view);
+    framesModulos().forEach(f => f.classList.toggle("on", f.dataset.mod === state.view));
+  } else if(esModulo){
+    host.style.display = "none"; vista.style.display = "";
+    const clave = state.view + ":off";
+    if(vista.dataset.mod !== clave){ vista.dataset.mod = clave; vista.innerHTML = vModuloCaido(); }
+  } else {
+    host.style.display = "none"; vista.style.display = ""; vista.dataset.mod = "";
+    vista.innerHTML = ayudaHtml(state.view) + (VIEWS[state.view] || vInicio)();
+  }
+  renderDocQuick();
+  document.querySelectorAll("details.ayuda[data-ayuda]").forEach(d => ayudaIniciar(d, d.dataset.ayuda));
+  sincronizarModulos();
+  if(state._resetScroll){ vista.classList.remove("anim"); void vista.offsetWidth; vista.classList.add("anim"); }   // la animación solo al cambiar de vista
+
+  hideTip();
+  bindTooltips();
+  restaurarUI(ui);
+}
+
+/* ==========================================================================
+   TOOLTIPS y etiquetas accesibles
+   ========================================================================== */
+let tipEl = null, tipTimer = null, tipTarget = null;
+function ensureTip(){
+  if(tipEl) return tipEl;
+  tipEl = document.createElement("div");
+  tipEl.className = "matrix-tip";
+  tipEl.setAttribute("role", "tooltip");
+  tipEl.innerHTML = `<b></b><span></span>`;
+  document.body.appendChild(tipEl);
+  return tipEl;
+}
+function showTip(t){
+  const raw = t.getAttribute("data-tip");
+  if(!raw || !document.body.contains(t)) return;
+  const [title, ...rest] = raw.split("::");
+  const body = rest.join("::").trim();
+  const el = ensureTip();
+  el.querySelector("b").textContent = title.trim();
+  el.querySelector("b").style.display = title.trim() ? "block" : "none";
+  el.querySelector("span").textContent = body;
+  el.classList.add("on");
+  const r = t.getBoundingClientRect(), e = el.getBoundingClientRect();
+  const vw = innerWidth, vh = innerHeight;
+  let x = r.left + r.width / 2 - e.width / 2;
+  let y = r.top - e.height - 10;
+  if(y < 8) y = r.bottom + 10;
+  if(x < 8) x = 8;
+  if(x + e.width > vw - 8) x = vw - e.width - 8;
+  if(y + e.height > vh - 8) y = vh - e.height - 8;
+  el.style.left = x + "px";
+  el.style.top = y + "px";
+}
+function hideTip(){ if(tipEl) tipEl.classList.remove("on"); tipTarget = null; clearTimeout(tipTimer); }
+function bindTooltips(){
+  document.querySelectorAll("[data-tip]").forEach(el => {
+    if(el.__tipB) return;
+    el.__tipB = true;
+    const [title, ...rest] = el.getAttribute("data-tip").split("::");
+    if(!el.getAttribute("aria-label") && !el.textContent.trim()) el.setAttribute("aria-label", title.trim() + (rest.length ? ". " + rest.join("::").trim() : ""));
+    const mostrar = () => { clearTimeout(tipTimer); tipTarget = el; tipTimer = setTimeout(() => { if(tipTarget === el) showTip(el); }, 250); };
+    el.addEventListener("mouseenter", mostrar);
+    el.addEventListener("focus", mostrar);
+    el.addEventListener("mouseleave", hideTip);
+    el.addEventListener("blur", hideTip);
+    el.addEventListener("click", hideTip);
+  });
+}
+window.addEventListener("scroll", hideTip, true);
+
+/* ==========================================================================
+   PREPARAR MI REUNIÓN (un clic: señales + preguntas probables respondidas y verificadas + PDF)
+   ========================================================================== */
+const reunionVacia = () => ({job:null, estado:"", hechas:0, total:0, mensaje:"", carpeta:null, error:"", segundos:0});
+function reunionReiniciar(){ clearTimeout(state._reuT); state.reunion = reunionVacia(); }
+const SEV_C = {"crítica":"#B4412F", "alta":"#C2571A", "media":"#B07A00", "baja":"#2F8F5B"};
+function selloChip(sello){
+  const k = sello in SELLO ? sello : "no_verificable", s = SELLO[k];
+  return `<span class="sello ${k}"><span class="ic" aria-hidden="true">${s.i}</span>${s.t}</span>`;
+}
+
+async function bajarArchivo(path, nombre){
+  try{
+    const r = await fetch(`${API}${path}`);
+    if(!r.ok){
+      let msg = "HTTP " + r.status;
+      try{ const j = await r.json(); if(j.error) msg = j.error; }catch(e){}
+      toast("No se pudo descargar: " + msg, true); return;
+    }
+    const blob = await r.blob(), url = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    toast("Archivo descargado");
+  }catch(e){ toast("No se pudo descargar: " + e.message, true); }
+}
+const hoyISO = () => new Date().toISOString().slice(0, 10);
+function descargarReunionPDF(){ if(state.docActivo) bajarArchivo(`/api/reunion/pdf/${encodeURIComponent(state.docActivo)}`, `Directa_Preparacion_Directorio_${hoyISO()}.pdf`); }
+
+async function prepararReunion(){
+  if(!state.docActivo){ toast("Selecciona un documento activo", true); return; }
+  if(state.reunion.estado === "corriendo") return;
+  const doc = state.docActivo, previa = state.reunion.carpeta;
+  state.reunion = {...reunionVacia(), estado:"corriendo", mensaje:"Iniciando…", carpeta:previa};
+  render();
+  try{
+    const fd = new FormData(); fd.append("document_id", doc);
+    const r = await api("/api/reunion/preparar", {method:"POST", body:fd});
+    if(!r.ok || !r.job_id) throw new Error(r.error || "sin respuesta");
+    state.reunion.job = r.job_id;
+    sondearReunion(doc, r.job_id, 0);
+  }catch(e){
+    state.reunion = {...reunionVacia(), estado:"error", error:"No se pudo iniciar la preparación (" + e.message + ").", carpeta:previa};
+    render();
+  }
+}
+function sondearReunion(doc, job, fallos){
+  clearTimeout(state._reuT);
+  state._reuT = setTimeout(async () => {
+    if(state.docActivo !== doc || state.reunion.job !== job) return;
+    try{
+      const r = await fetch(`${API}/api/reunion/estado/${job}`);
+      const e = await r.json();
+      if(!e.ok){ state.reunion = {...reunionVacia(), estado:"error", error:e.error || "Se perdió el trabajo (¿se reinició el servidor?). Vuelve a preparar.", carpeta:state.reunion.carpeta}; render(); return; }
+      if(e.estado === "corriendo"){
+        Object.assign(state.reunion, {hechas:e.hechas, total:e.total, mensaje:e.mensaje, segundos:e.segundos});
+        const b = document.getElementById("reuBarra"), m = document.getElementById("reuMsg");
+        if(b && m){ b.style.width = (e.total ? Math.max(5, Math.round(100 * e.hechas / e.total)) : 5) + "%"; m.innerHTML = `<span class="spin"></span> ${esc(e.mensaje)} ${e.total ? `(${e.hechas}/${e.total})` : ""}`; }
+        else render();
+        sondearReunion(doc, job, 0);
+      } else if(e.estado === "listo"){
+        state.reunion = {...reunionVacia(), estado:"listo", carpeta:e.carpeta, segundos:e.segundos};
+        render(); toast("Tu carpeta de reunión está lista");
+      } else {
+        state.reunion = {...reunionVacia(), estado:"error", error:e.mensaje || "No se pudo preparar la reunión.", carpeta:state.reunion.carpeta}; render();
+      }
+    }catch(err){
+      if(fallos < 3) sondearReunion(doc, job, fallos + 1);
+      else { state.reunion = {...reunionVacia(), estado:"error", error:"Se perdió la conexión con el servidor mientras se preparaba la reunión.", carpeta:state.reunion.carpeta}; render(); }
+    }
+  }, 1500);
+}
+async function cargarUltimaReunion(){
+  const doc = state.docActivo;
+  if(!doc || !state.backendOk || state.reunion.estado === "corriendo") return;
+  try{
+    const d = await api(`/api/reunion/ultima/${encodeURIComponent(doc)}`);
+    if(doc === state.docActivo && state.reunion.estado !== "corriendo"){
+      state.reunion.carpeta = d.carpeta || null;
+      state.reunion.estado = d.carpeta ? "listo" : "";
+      render();
+    }
+  }catch(e){}
+}
+/* Profundizar en una pregunta de la carpeta: abre el chat y la envía de inmediato con el agente que la respondió. */
+function profundizar(agente, texto){
+  state.agenteActual = agentByKey(agente) ? agente : "auto";
+  state.sugerencias = []; state.siguiente = null;
+  go("chat");
+  enviarPregunta("Profundiza en esto: " + texto);
+}
+
+function carpetaHtml(c){
+  const r = c.resumen || {}, ps = r.por_sello || {};
+  const fecha = c.generado_en ? new Date(c.generado_en).toLocaleString("es-CL", {dateStyle:"medium", timeStyle:"short"}) : "";
+  const senales = (c.senales || []).map(s => `
+    <div class="reu-sen" style="--c:${SEV_C[s.severidad] || "#888"}">
+      <span class="sv">${esc(s.severidad)}</span>
+      <div class="tx"><b>${esc(s.titulo)}</b><span>${esc(s.agente_nombre || s.agente)}${(s.tambien_en || []).length ? " · también: " + esc(s.tambien_en.join(", ")) : ""}</span></div>
+    </div>`).join("") || `<div style="color:var(--text3);font-size:calc(12px * var(--font-scale));">Los agentes no dejaron señales para este documento.</div>`;
+  const preguntas = (c.preguntas || []).map((q, i) => `
+    <details class="reu-q">
+      <summary><span class="q">${i + 1}. ${esc(q.pregunta)}</span>${selloChip(q.sello)}</summary>
+      <div class="cuerpo">
+        ${q.respuesta ? renderMarkdownLigero(q.respuesta) : `<i style="color:var(--text3);">${esc(q.error || "Sin respuesta.")}</i>`}
+        <div style="font-size:calc(11px * var(--font-scale));color:var(--text3);margin:6px 0;">
+          Responde: ${esc(q.agente_nombre || nombreAgente(q.agente_usado || q.agente))}${(q.paginas || []).length ? " · pág. " + esc(q.paginas.join(", ")) : ""}${q.puntaje != null ? " · verificación " + Math.round(q.puntaje) + "/100" : ""}${q.corregida ? " · el texto fue corregido por la verificación" : ""}
+        </div>
+        ${(q.problemas || []).length ? `<ul style="margin:0 0 8px 18px;padding:0;font-size:calc(11.5px * var(--font-scale));color:var(--text2);">${q.problemas.map(p => `<li>${esc(p.detalle || p.tipo || "")}</li>`).join("")}</ul>` : ""}
+        <button class="btn ghost sm" onclick="profundizar(${arg(q.agente_usado || q.agente)},${arg(q.pregunta)})">${IC.chat} Profundizar en el chat</button>
+      </div>
+    </details>`).join("") || `<div style="color:var(--text3);font-size:calc(12px * var(--font-scale));">Los agentes no anticiparon preguntas para este documento.</div>`;
+  const conReservas = (c.reservas || []).length;
+  return `
+    <div style="font-size:calc(11px * var(--font-scale));color:var(--text3);margin-top:12px;">Carpeta generada el ${esc(fecha)} · ${esc(c.documento || "")}</div>
+    <p class="reu-resumen">${esc(c.texto_resumen || "")}</p>
+    <div class="grid g4" style="margin-bottom:16px;">
+      <div class="kpi"><div class="v">${r.senales_totales ?? 0}</div><div class="l">Señales detectadas</div></div>
+      <div class="kpi"><div class="v">${(r.por_severidad?.["crítica"] || 0) + (r.por_severidad?.alta || 0)}</div><div class="l">Críticas o altas (mostradas)</div></div>
+      <div class="kpi"><div class="v">${r.preguntas ?? 0}</div><div class="l">Preguntas preparadas</div></div>
+      <div class="kpi"><div class="v">${ps.verificada || 0}/${r.preguntas ?? 0}</div><div class="l">Respuestas verificadas</div></div>
+    </div>
+    ${conReservas ? `<div class="card aviso-err" role="note" style="margin-bottom:14px;"><b>${conReservas} respuesta${conReservas > 1 ? "s" : ""} con reservas o no verificable${conReservas > 1 ? "s" : ""}.</b> Revísalas antes de usarlas en el directorio.</div>` : ""}
+    <div class="reu-grid">
+      <div><div class="sec-title">Lo que debes tener claro</div>${senales}</div>
+      <div><div class="sec-title">Preguntas que pueden hacerte (con respuesta verificada)</div>${preguntas}</div>
+    </div>`;
+}
+
+function vReunion(){
+  const R = state.reunion, c = R.carpeta, corriendo = R.estado === "corriendo";
+  let cuerpo = "";
+  if(corriendo){
+    const pct = R.total ? Math.max(5, Math.round(100 * R.hechas / R.total)) : 5;
+    cuerpo = `<div role="status" aria-live="polite" style="margin-top:14px;">
+      <div id="reuMsg" style="font-size:calc(12.5px * var(--font-scale));color:var(--text2);margin-bottom:8px;"><span class="spin"></span> ${esc(R.mensaje || "Preparando…")} ${R.total ? `(${R.hechas}/${R.total})` : ""}</div>
+      <div class="barra"><i id="reuBarra" style="width:${pct}%"></i></div>
+      <div style="font-size:calc(11px * var(--font-scale));color:var(--text3);margin-top:6px;">Puedes seguir trabajando: se arma en segundo plano y queda guardada.</div></div>`;
+  } else if(c){
+    cuerpo = carpetaHtml(c);
+  }
+  const botones = corriendo
+    ? `<button class="btn lg" disabled><span class="spin"></span> Preparando…</button>`
+    : c
+      ? `<button class="btn" onclick="descargarReunionPDF()">${IC.dl} Descargar PDF</button>
+         <button class="btn ghost" onclick="prepararReunion()" ${state.docActivo ? "" : "disabled"}>${IC.refresh} Volver a preparar</button>`
+      : `<button class="btn lg" onclick="prepararReunion()" ${state.docActivo && state.backendOk ? "" : "disabled"}>${IC.play} Preparar mi reunión</button>`;
+  return `
+  <div class="card" style="margin-bottom:22px;border-color:var(--accent);">
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+      <div class="big-ic" style="background:var(--accent);color:#062b31;">${IC.report}</div>
+      <div style="flex:1;min-width:220px;">
+        <div class="sec-title" style="margin:0 0 3px;color:var(--accent2);">Un solo clic</div>
+        <b style="font-size:calc(15px * var(--font-scale));display:block;margin-bottom:3px;">Preparar mi reunión de directorio</b>
+        <div style="font-size:calc(12.5px * var(--font-scale));color:var(--text2);">${state.docActivo
+          ? "Reúne las señales más graves, responde las preguntas que probablemente te harán (con doble verificación) y te deja la carpeta lista en PDF."
+          : "Primero sube un documento y márcalo como activo."}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">${botones}</div>
+    </div>
+    ${R.error ? `<div class="card aviso-err" role="alert" style="margin-top:14px;">${esc(R.error)}</div>` : ""}
+    ${cuerpo}
+  </div>`;
+}
+
+/* ==========================================================================
+   MEJORA DE LOS AGENTES (memoria: lo que aprendió cada agente con tus valoraciones)
+   ========================================================================== */
+const nombreAg = k => k === "general" ? "Asistente general" : nombreAgente(k);
+const fmtPct = v => v == null ? "—" : v + "%";
+const ORIGEN_LECCION = {gerente:"De tus valoraciones o escrita por ti", verificador:"Detectada por la verificación", mejorador:"Propuesta por la IA"};
+
+async function cargarMejora(){
+  state.mejora.cargando = true; render();
+  try{ const d = await api("/api/mejora/resumen"); state.mejora.resumen = d.agentes || []; }
+  catch(e){ state.mejora.resumen = []; toast("No se pudo cargar el resumen de mejora", true); }
+  state.mejora.cargando = false;
+  if(state.mejora.agente) await cargarDetalleMejora(state.mejora.agente); else render();
+}
+async function cargarDetalleMejora(a){
+  state.mejora.agente = a; state.mejora.datos = null; state.mejora.tendencia = null; render();
+  try{
+    const [e, t] = await Promise.all([api(`/api/agentes/${encodeURIComponent(a)}/estado`), api(`/api/agentes/${encodeURIComponent(a)}/tendencia`)]);
+    state.mejora.datos = e; state.mejora.tendencia = t;
+  }catch(err){ toast("No se pudo cargar el detalle del agente", true); }
+  render();
+}
+async function mejorarAhora(a){
+  toast("La IA está revisando las últimas conversaciones…");
+  try{
+    const r = await api(`/api/agentes/${encodeURIComponent(a)}/mejorar`, {method:"POST"});
+    if(!r.ok){ toast(r.error || "No se pudo mejorar", true); return; }
+    toast(r.mensaje || `Reglas nuevas: ${(r.agregadas || []).length} · retiradas: ${(r.retiradas || []).length}`);
+  }catch(e){ toast("No se pudo mejorar el agente", true); }
+  cargarMejora();
+}
+async function revertirVersion(a, v){
+  if(!confirm(`¿Volver el agente a la versión ${v}? Se crea una versión nueva; no se pierde nada.`)) return;
+  try{
+    const fd = new FormData(); fd.append("version", String(v));
+    const r = await api(`/api/agentes/${encodeURIComponent(a)}/revertir`, {method:"POST", body:fd});
+    toast(r.ok ? `Agente vuelto a la versión ${v}` : (r.error || "No se pudo revertir"), !r.ok);
+  }catch(e){ toast("No se pudo revertir", true); }
+  cargarMejora();
+}
+async function agregarRegla(a){
+  const el = document.getElementById("reglaNueva"), texto = (el ? el.value : "").trim();
+  if(texto.length < 10){ toast("Escribe la regla con una frase completa", true); return; }
+  try{
+    const fd = new FormData(); fd.append("texto", texto);
+    const r = await api(`/api/agentes/${encodeURIComponent(a)}/leccion`, {method:"POST", body:fd});
+    if(r.ok){ toast(r.duplicada ? "Esa regla ya existía; se reforzó" : "Regla agregada"); if(el) el.value = ""; }
+    else toast("No se pudo agregar: " + (r.motivo || r.error || "la regla no pasó el filtro de seguridad"), true);
+  }catch(e){ toast("No se pudo agregar la regla", true); }
+  cargarMejora();
+}
+async function retirarRegla(a, id){
+  try{
+    const r = await api(`/api/agentes/${encodeURIComponent(a)}/leccion/${encodeURIComponent(id)}`, {method:"DELETE"});
+    toast(r.ok ? "Regla retirada" : (r.error || "No se pudo retirar"), !r.ok);
+  }catch(e){ toast("No se pudo retirar la regla", true); }
+  cargarMejora();
+}
+function descargarMejora(fmt){ bajarArchivo(`/api/mejora/informe?formato=${fmt}`, `informe_mejora_agentes_${hoyISO()}.${fmt === "pdf" ? "pdf" : "md"}`); }
+
+function vMejora(){
+  const M = state.mejora, res = M.resumen || [];
+  const filas = res.map(a => {
+    const m = a.metricas || {};
+    return `<div class="mj-fila">
+      <span class="nm">${esc(nombreAg(a.agente))}</span>
+      <span class="num">${a.interacciones} consultas</span>
+      <span class="num">verificadas ${fmtPct(m.pct_verificada)}</span>
+      <span class="num">👍 ${fmtPct(m.pct_pulgar_arriba)} · 👎 ${fmtPct(m.pct_pulgar_abajo)}</span>
+      <span class="num">${a.lecciones_activas} reglas · v${a.version}</span>
+      <button class="btn ghost sm" style="margin-left:auto;" onclick="cargarDetalleMejora(${arg(a.agente)})" ${M.agente === a.agente ? "disabled" : ""}>${M.agente === a.agente ? "Viendo" : "Ver detalle"}</button>
+    </div>`;
+  }).join("");
+
+  let detalle = "";
+  if(M.agente){
+    const d = M.datos, t = M.tendencia, a = M.agente;
+    if(!d){ detalle = `<div class="card" style="margin-top:18px;"><span class="spin"></span> Cargando ${esc(nombreAg(a))}…</div>`; }
+    else {
+      const lecs = (d.lecciones || []).map(l => `
+        <div class="leccion"><span>•</span><div><div>${esc(l.texto)}</div>
+          <small style="color:var(--text3);">${esc(ORIGEN_LECCION[l.origen] || l.origen || "")}${l.soporte > 1 ? " · reforzada " + l.soporte + " veces" : ""}</small></div>
+          <button class="btn ghost sm x" onclick="retirarRegla(${arg(a)},${arg(l.id)})" aria-label="Retirar esta regla">${IC.x}</button></div>`).join("")
+        || `<div style="color:var(--text3);font-size:calc(12px * var(--font-scale));">Todavía no aprende reglas. Valora respuestas con 👍/👎 en el chat y vuelve aquí.</div>`;
+      const vers = (d.historial || []).slice().reverse().map(h => `
+        <div class="mj-fila"><span class="nm">Versión ${h.version}</span><span class="num">${h.cantidad} reglas activas</span>
+          ${h.version !== d.version ? `<button class="btn ghost sm" style="margin-left:auto;" onclick="revertirVersion(${arg(a)},${h.version})">Volver a esta versión</button>` : `<span class="num" style="margin-left:auto;">actual</span>`}</div>`).join("")
+        || `<div style="color:var(--text3);font-size:calc(12px * var(--font-scale));">Sin versiones todavía.</div>`;
+      const tv = ((t && t.versiones) || []).map(v => `<tr><td>v${v.version}</td><td>${v.interacciones}</td><td>${fmtPct(v.pct_verificada)}</td><td>${v.puntaje_promedio ?? "—"}</td><td>${fmtPct(v.pct_pulgar_arriba)}</td><td>${fmtPct(v.pct_pulgar_abajo)}</td></tr>`).join("");
+      const p1 = t && t.primera_mitad, p2 = t && t.segunda_mitad;
+      detalle = `
+      <div class="card" style="margin-top:18px;">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px;">
+          <div class="sec-title" style="margin:0;flex:1;">${esc(nombreAg(a))} · versión ${d.version} · ${d.interacciones} consultas, ${d.valoradas} valoradas</div>
+          <button class="btn sm" onclick="mejorarAhora(${arg(a)})">${IC.refresh} Que la IA proponga mejoras</button>
+        </div>
+        ${p1 && p2 ? `<div style="font-size:calc(12.5px * var(--font-scale));color:var(--text2);margin-bottom:10px;">Primera mitad de las consultas: ${fmtPct(p1.pct_verificada)} verificadas (puntaje ${p1.puntaje_promedio ?? "—"}). Segunda mitad: ${fmtPct(p2.pct_verificada)} (puntaje ${p2.puntaje_promedio ?? "—"}).</div>` : ""}
+        <div class="sec-title">Reglas que sigue hoy</div>${lecs}
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+          <input id="reglaNueva" type="text" maxlength="200" aria-label="Escribir una regla para este agente" placeholder="Ej.: Empieza siempre con la conclusión y luego el detalle" style="flex:1;min-width:240px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);color:var(--text);">
+          <button class="btn ghost" onclick="agregarRegla(${arg(a)})">${IC.plus} Agregar regla</button>
+        </div>
+        <div style="font-size:calc(11px * var(--font-scale));color:var(--text3);margin-top:4px;">Las reglas son indicaciones de forma de responder; no pueden contener cifras ni datos de documentos.</div>
+        ${tv ? `<div class="sec-title" style="margin-top:16px;">Calidad por versión</div>
+          <table style="width:100%;border-collapse:collapse;font-size:calc(12px * var(--font-scale));"><thead><tr style="text-align:left;color:var(--text3);"><th>Versión</th><th>Consultas</th><th>Verificadas</th><th>Puntaje prom.</th><th>👍</th><th>👎</th></tr></thead><tbody>${tv}</tbody></table>` : ""}
+        <div class="sec-title" style="margin-top:16px;">Historial de versiones</div>${vers}
+      </div>`;
+    }
+  }
+  return `
+  <div class="page-head">
+    <div><h2>Mejora de los agentes</h2>
+      <p>Cada agente aprende de tus 👍/👎 y de lo que la verificación detecta. Aprende reglas de forma (cómo responder), nunca datos. Puedes verlas, retirarlas, escribir las tuyas o volver a una versión anterior.</p></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn" onclick="descargarMejora('pdf')">${IC.dl} Informe PDF</button>
+      <button class="btn ghost" onclick="descargarMejora('md')">${IC.dl} Markdown</button>
+    </div>
+  </div>
+  ${avisoBackend()}
+  <div class="card">
+    <div class="sec-title">Los 14 agentes y el asistente general</div>
+    ${M.cargando && !res.length ? `<span class="spin"></span> Cargando…` : (filas || `<div style="color:var(--text3);">Aún no hay datos. Conversa con los agentes y valora sus respuestas.</div>`)}
+  </div>
+  ${detalle}`;
+}
+
+/* ==========================================================================
+   INICIO
+   ========================================================================== */
+async function init(){
+  await cargarAgentesBackend();
+  if(state.docActivo) cargarChat(state.docActivo);
+  await cargarDocumentos(true);      // elige/valida el documento activo y carga su análisis
+  if(state.docActivo && !state.analisis && state.backendOk) await cargarAnalisisGuardados(state.docActivo);
+  render();
+  cargarUltimaReunion();
+  cargarMotivos();
+  precargarModulos();
+}
+init();
+
+
+/* ---------- Guía de uso ---------- */
+(function(){
+  const SUG = ["¿Cómo subo un documento?", "¿Qué es el Dashboard?", "¿Para qué sirve Memoria Anual?", "¿Qué son KPI y KRI?", "¿Cómo comparo documentos?"];
+  const box = document.getElementById("guiaBox"), msgs = document.getElementById("guiaMsgs"), fab = document.getElementById("guiaFab");
+  document.getElementById("guiaSug").innerHTML = SUG.map(t => `<button type="button">${esc(t)}</button>`).join("");
+  const abrir = v => { box.classList.toggle("on", v); fab.setAttribute("aria-expanded", v ? "true" : "false"); if(v) document.getElementById("guiaQ").focus(); };
+  fab.onclick = () => abrir(!box.classList.contains("on"));
+  document.getElementById("guiaX").onclick = () => abrir(false);
+  async function preguntar(t){
+    t = (t || "").trim(); if(!t) return;
+    msgs.insertAdjacentHTML("beforeend", `<div class="g-u">${esc(t)}</div>`);
+    const w = document.createElement("div"); w.className = "g-a"; w.textContent = "Buscando…"; msgs.appendChild(w); msgs.scrollTop = msgs.scrollHeight;
+    try{
+      const r = await api("/api/guia/preguntar", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({pregunta: t, pantalla: state.view})});
+      w.textContent = r.ok ? r.texto : (r.error || "No pude responder.");
+    }catch(e){ w.textContent = "No hay conexión con el servidor."; }
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+  document.getElementById("guiaForm").onsubmit = e => { e.preventDefault(); const i = document.getElementById("guiaQ"); const v = i.value; i.value = ""; preguntar(v); };
+  document.getElementById("guiaSug").onclick = e => { const b = e.target.closest("button"); if(b) preguntar(b.textContent); };
+})();
+</script>
+</body>
+</html>

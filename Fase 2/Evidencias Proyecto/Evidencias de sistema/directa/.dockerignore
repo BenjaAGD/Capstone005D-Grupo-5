@@ -1,0 +1,18 @@
+# secretos: nunca entran a la imagen
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# datos y basura local
+datos_locales/
+reindexar_avance.json
+__pycache__/
+*.pyc
+.pytest_cache/
+.git/
+.gitignore
+tests/
+*.zip
+*.rar
