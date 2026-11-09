@@ -1,0 +1,79 @@
+DIRECTA V2 · MÓDULO GERENTE GENERAL · PAQUETE DE DIAGRAMAS
+
+Cada carpeta corresponde a un tipo de diagrama. Dentro hay imágenes PNG y, cuando existe, el vector (SVG) en la subcarpeta svg.
+AS-IS = estado verificable del MVP v2.9 (código revisado). TO-BE = propuesta de diseño, aún no construida. Plan = propuesta del Scrum Master para los sprints 5 a 8.
+
+
+01 Casos de uso — Diagrama de casos de uso · actores y funcionalidades
+  CU-01     Diagrama de casos de uso · Módulo Gerente General (MVP v2.9, 32 casos)  [AS-IS]
+  CU-02     Diagrama de casos de uso · Preparar la sesión (UC-01 a UC-10)  [TO-BE (propuesta)]
+  CU-03     Diagrama de casos de uso · Informes, memoria y competencia (UC-11 a UC-19)  [TO-BE (propuesta)]
+
+02 BPMN procesos — Diagrama BPMN · procesos del negocio
+  BPMN-01A  BPMN · Preparar la sesión de directorio (1 de 2): del documento al análisis  [MVP v2.9 + propuesta (naranja)]
+  BPMN-01B  BPMN · Preparar la sesión de directorio (2 de 2): revisar, decidir y enviar el pack  [MVP v2.9 + propuesta (naranja)]
+  BPMN-02   BPMN · Elaborar el informe de directorio  [MVP v2.9 + propuesta (naranja)]
+  BPMN-03   BPMN · Construir la memoria anual  [MVP v2.9 + propuesta (naranja)]
+  BPMN-04   BPMN · Revisar la competencia para el directorio  [MVP v2.9 + propuesta (naranja)]
+
+03 Actividades — Diagrama de actividades · flujos de las funciones críticas
+  AC-01     Diagrama de actividades · Subir e indexar un informe  [AS-IS]
+  AC-02     Diagrama de actividades · Analizar con 14 agentes en 5 olas  [AS-IS]
+  AC-03     Diagrama de actividades · Consultar al documento (chat con fuentes)  [AS-IS]
+  AC-04     Diagrama de actividades · Armar la memoria anual con apoyo de IA  [AS-IS]
+  AC-05     Diagrama de actividades · Preparar el informe y las preguntas del directorio  [MVP v2.9 + propuesta (naranja)]
+
+04 Arquitectura C4 — Diagrama de arquitectura C4 · contexto, contenedores y componentes
+  C4-1      C4 · Nivel 1 · Contexto del sistema  [MVP v2.9 + propuesta (naranja)]
+  C4-2      C4 · Nivel 2 · Contenedores del MVP v2.9  [AS-IS]
+  C4-2b     C4 · Nivel 2 · Contenedores de la arquitectura destino  [TO-BE (propuesta)]
+  C4-3      C4 · Nivel 3 · Componentes de la API REST del MVP v2.9  [AS-IS]
+
+05 Clases — Diagrama de clases · modelo orientado a objetos
+  CL-01     Diagrama de clases del backend · cada módulo Python modelado como clase (MVP v2.9)  [AS-IS]
+
+06 Secuencia — Diagrama de secuencia · interacciones de las funciones principales
+  SEQ-01    Diagrama de secuencia · Consulta RAG de extremo a extremo  [AS-IS]
+  SEQ-02    Diagrama de secuencia · Subir e indexar un documento  [AS-IS]
+  SEQ-03    Diagrama de secuencia · Analizar con 14 agentes en 5 olas (pausa, reanudación y detención)  [AS-IS]
+  SEQ-04    Diagrama de secuencia · Armar la memoria anual  [AS-IS]
+  SEQ-05    Diagrama de secuencia · Análisis pre-directorio con cola de trabajos  [TO-BE (propuesta)]
+
+07 Entidad relacion — Diagrama entidad-relación · estructura de datos
+  ER-01     Diagrama entidad-relación · Modelo destino (27 tablas, 7 grupos)  [TO-BE (propuesta)]
+  ER-02     ER detalle · A · Núcleo de la plataforma  [TO-BE (propuesta)]
+  ER-03     ER detalle · B · Análisis pre-directorio  [TO-BE (propuesta)]
+  ER-04     ER detalle · C · Pack de sesión  [TO-BE (propuesta)]
+  ER-05     ER detalle · D y E · Informes y memoria anual  [TO-BE (propuesta)]
+  ER-06     ER detalle · F y G · Competencia y soporte técnico  [TO-BE (propuesta)]
+
+08 Modelo fisico — Modelo físico de base de datos · tablas, claves e índices implementados
+  MF-01     Modelo físico de base de datos · MVP v2.9 (Supabase PostgreSQL + pgvector)  [AS-IS]
+
+09 Despliegue — Diagrama de despliegue · infraestructura y publicación
+  DEP-01    Diagrama de despliegue · MVP v2.9  [AS-IS]
+  DEP-02    Diagrama de despliegue · Versión destino  [TO-BE (propuesta)]
+  DEP-03    Ambientes y publicación · de la rama a producción  [TO-BE (propuesta)]
+
+10 Flujo de datos — Diagrama de flujo de datos · flujos de información y análisis de seguridad
+  DFD-0     Diagrama de flujo de datos · Nivel 0 (contexto)  [AS-IS]
+  DFD-1     Diagrama de flujo de datos · Nivel 1 con fronteras de confianza  [AS-IS]
+  DFD-1a    Diagrama de flujo de datos · Nivel 1a · Subir, indexar y analizar el documento  [AS-IS]
+  DFD-1b    Diagrama de flujo de datos · Nivel 1b · Consultar, generar el informe y usar los módulos  [AS-IS]
+
+11 Estados — Diagrama de estados · estados de entidades importantes
+  ST-01     Diagrama de estados · Procesamiento de un documento  [AS-IS]
+  ST-02     Diagrama de estados · Job de análisis (API)  [AS-IS]
+  ST-03     Diagrama de estados · Capítulo de la memoria e indicadores  [AS-IS]
+  ST-04     Diagrama de estados · Sesión, pack y corrida de análisis  [TO-BE (propuesta)]
+  ST-05     Diagrama de estados · Documento, señal, informe y memoria anual  [TO-BE (propuesta)]
+
+12 EDT cronograma — EDT y cronograma · organización y planificación del trabajo
+  EDT-01    EDT · Estructura de desglose del trabajo (niveles 1 y 2)  [Plan (propuesta)]
+  EDT-02    EDT · Detalle de la construcción del producto (rama 3)  [Plan (propuesta)]
+  GANTT-01  Carta Gantt (1 de 2) · Gestión, análisis y diseño, y construcción  [Plan (propuesta)]
+  GANTT-02  Carta Gantt (2 de 2) · Pruebas y calidad, despliegue y documentación  [Plan (propuesta)]
+  BURN-01   Burndown planificado de los sprints 5 a 8 (el real se registra en el Excel)  [Plan (propuesta)]
+  CAP-01    Carga comprometida contra capacidad neta, por persona y sprint  [Plan (propuesta)]
+
+Total: 48 imágenes.

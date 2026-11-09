@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2017" height="1696" viewBox="0 0 2017 1696" font-family="Arial, 'Liberation Sans', Helvetica, sans-serif">
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3F4A5C"/></marker><marker id="arrO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9" fill="none" stroke="#3F4A5C" stroke-width="1.4"/></marker></defs>
+<rect width="2017" height="1696" fill="#FFFFFF"/>
+<g transform="translate(0.0,0)">
+<text x="1008.5" y="26" text-anchor="middle" font-size="17" font-weight="700" fill="#1F3864">Diagrama de secuencia · Análisis pre-directorio con cola de trabajos (destino, propuesta)</text>
+<line x1="113.4" y1="118" x2="113.4" y2="1604" stroke="#A9B6C8" stroke-width="1.4"/>
+<line x1="490.7" y1="120" x2="490.7" y2="1604" stroke="#A9B6C8" stroke-width="1.4"/>
+<line x1="844.3" y1="120" x2="844.3" y2="1604" stroke="#A9B6C8" stroke-width="1.4"/>
+<line x1="1211.5" y1="120" x2="1211.5" y2="1604" stroke="#A9B6C8" stroke-width="1.4"/>
+<line x1="1583.3" y1="120" x2="1583.3" y2="1604" stroke="#A9B6C8" stroke-width="1.4"/>
+<line x1="1900.3" y1="120" x2="1900.3" y2="1604" stroke="#A9B6C8" stroke-width="1.4"/>
+<g stroke="#1F3864" stroke-width="2" fill="none"><circle cx="113.375" cy="72" r="9" fill="#fff"/><path d="M113.375,81 V102 M99.375,89 H127.375 M113.375,102 L102.375,116 M113.375,102 L124.375,116"/></g>
+<text x="113.375" y="130" text-anchor="middle" font-size="15" font-weight="700" fill="#1F3864">Gerente General</text>
+<rect x="419.0" y="58" width="143.3" height="62" rx="6" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.6"/>
+<text x="490.671875" y="85.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">SPA del módulo</text>
+<text x="490.671875" y="103.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">Vercel</text>
+<rect x="757.2" y="58" width="174.2" height="62" rx="6" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.6"/>
+<text x="844.328125" y="85.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">API directa-backend</text>
+<text x="844.328125" y="103.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">Vercel · TypeScript</text>
+<rect x="1108.5" y="58" width="206.0" height="62" rx="6" fill="#E2EFDA" stroke="#548235" stroke-width="1.6"/>
+<text x="1211.46875" y="85.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Supabase</text>
+<text x="1211.46875" y="103.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">Postgres · pgmq · Storage</text>
+<rect x="1500.8" y="58" width="165.1" height="62" rx="6" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.6"/>
+<text x="1583.296875" y="85.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Worker</text>
+<text x="1583.296875" y="103.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">Cloud Run · Node.js</text>
+<rect x="1823.6" y="58" width="153.4" height="62" rx="6" fill="#F2F2F2" stroke="#7F7F7F" stroke-width="1.6"/>
+<text x="1900.296875" y="85.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">DeepSeek V4 Pro</text>
+<text x="1900.296875" y="103.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">API de IA</text>
+<rect x="458.7" y="467" width="1473.6" height="619" fill="none" stroke="#BF9000" stroke-width="1.3" stroke-dasharray="5 3"/>
+<path d="M458.7,467 h38.2 v14 l-7,7 h-31.2 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="467.7" y="482" font-size="13" font-weight="700" fill="#1F2A44">par</text>
+<text x="506.9" y="483" font-size="13" fill="#1F2A44">[el worker ejecuta la corrida]</text>
+<line x1="458.7" y1="920" x2="1932.3" y2="920" stroke="#BF9000" stroke-width="1.3" stroke-dasharray="5 3"/>
+<text x="468.7" y="937" font-size="13" fill="#1F2A44">[al mismo tiempo, la web consulta]</text>
+<rect x="468.7" y="1286" width="1136.6" height="300" fill="none" stroke="#BF9000" stroke-width="1.3" stroke-dasharray="5 3"/>
+<path d="M468.7,1286 h38.2 v14 l-7,7 h-31.2 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="477.7" y="1301" font-size="13" font-weight="700" fill="#1F2A44">opt</text>
+<text x="516.9" y="1302" font-size="13" fill="#1F2A44">[informe de brechas]</text>
+<rect x="1561.3" y="550" width="361.0" height="120" fill="none" stroke="#BF9000" stroke-width="1.3" stroke-dasharray="5 3"/>
+<path d="M1561.3,550 h45.4 v14 l-7,7 h-38.4 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="1570.3" y="565" font-size="13" font-weight="700" fill="#1F2A44">loop</text>
+<text x="1616.7" y="566" font-size="13" fill="#1F2A44">[12 agentes productores, en paralelo]</text>
+<rect x="1561.3" y="690" width="361.0" height="120" fill="none" stroke="#BF9000" stroke-width="1.3" stroke-dasharray="5 3"/>
+<path d="M1561.3,690 h45.4 v14 l-7,7 h-38.4 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="1570.3" y="705" font-size="13" font-weight="700" fill="#1F2A44">loop</text>
+<text x="1616.7" y="706" font-size="13" fill="#1F2A44">[2 integradores: Riesgos y Estrategia («waiting_bus»)]</text>
+<rect x="468.7" y="954" width="397.7" height="120" fill="none" stroke="#BF9000" stroke-width="1.3" stroke-dasharray="5 3"/>
+<path d="M468.7,954 h45.4 v14 l-7,7 h-38.4 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="477.7" y="969" font-size="13" font-weight="700" fill="#1F2A44">loop</text>
+<text x="524.1" y="970" font-size="13" fill="#1F2A44">[cada 3 a 5 s hasta «completed»]</text>
+<path d="M101.4,142 h1800.9 l10,10 v19 h-1810.9 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="1006.8" y="160" text-anchor="middle" font-size="13" fill="#1F2A44">DESTINO (propuesta): nada de este flujo existe aún en el MVP v2.9</text>
+<line x1="124.4" y1="210" x2="489.7" y2="210" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="113.4" cy="210" r="9.5" fill="#1F3864"/>
+<text x="113.4" y="214" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">1</text>
+<text x="308.0" y="203" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">Elige los documentos del pack y pulsa «Analizar»</text>
+<line x1="501.7" y1="255" x2="843.3" y2="255" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="490.7" cy="255" r="9.5" fill="#1F3864"/>
+<text x="490.7" y="259" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">2</text>
+<text x="673.5" y="248" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">POST /preboard-analyses (Idempotency-Key)</text>
+<path d="M655.8,281 h367.2 l10,10 v19 h-377.2 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="844.3" y="299" text-anchor="middle" font-size="13" fill="#1F2A44">lib/auth.ts: valida el JWT (usuario, empresa, rol) → 401 o 403</text>
+<line x1="855.3" y1="349" x2="1210.5" y2="349" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="844.3" cy="349" r="9.5" fill="#1F3864"/>
+<text x="844.3" y="353" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">3</text>
+<text x="1033.9" y="342" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">crea analysis_runs (queued) e ítems por agente</text>
+<line x1="855.3" y1="394" x2="1210.5" y2="394" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="844.3" cy="394" r="9.5" fill="#1F3864"/>
+<text x="844.3" y="398" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">4</text>
+<text x="1033.9" y="387" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">encola el trabajo en agent_runs</text>
+<line x1="833.3" y1="439" x2="491.7" y2="439" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="844.3" cy="439" r="9.5" fill="#1F3864"/>
+<text x="844.3" y="443" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">5</text>
+<text x="661.5" y="432" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">202 {runId}</text>
+<line x1="1572.3" y1="522" x2="1212.5" y2="522" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1583.3" cy="522" r="9.5" fill="#1F3864"/>
+<text x="1583.3" y="526" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">6</text>
+<text x="1391.4" y="515" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">toma el trabajo (agent_runs); corrida «running»</text>
+<line x1="1594.3" y1="605" x2="1899.3" y2="605" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1583.3" cy="605" r="9.5" fill="#1F3864"/>
+<text x="1583.3" y="609" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">7</text>
+<text x="1747.8" y="598" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">documentos del pack + esquema JSON</text>
+<line x1="1889.3" y1="650" x2="1584.3" y2="650" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1900.3" cy="650" r="9.5" fill="#1F3864"/>
+<text x="1900.3" y="654" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">8</text>
+<text x="1735.8" y="643" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">JSON válido (1 reintento si no valida)</text>
+<line x1="1594.3" y1="745" x2="1899.3" y2="745" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1583.3" cy="745" r="9.5" fill="#1F3864"/>
+<text x="1583.3" y="749" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">9</text>
+<text x="1747.8" y="738" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">señales de los productores + esquema</text>
+<line x1="1889.3" y1="790" x2="1584.3" y2="790" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1900.3" cy="790" r="9.5" fill="#1F3864"/>
+<text x="1900.3" y="794" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">10</text>
+<text x="1735.8" y="783" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">JSON válido</text>
+<line x1="1572.3" y1="847" x2="1212.5" y2="847" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1583.3" cy="847" r="9.5" fill="#1F3864"/>
+<text x="1583.3" y="851" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">11</text>
+<text x="1391.4" y="840" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">guarda agent_signals; índice rs-v1; «completed»</text>
+<path d="M1379.0,873 h398.5 l10,10 v19 h-408.5 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="1583.3" y="891" text-anchor="middle" font-size="13" fill="#1F2A44">informa los tokens de la corrida a la Admin API (INT-08, pendiente)</text>
+<line x1="501.7" y1="1009" x2="843.3" y2="1009" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="490.7" cy="1009" r="9.5" fill="#1F3864"/>
+<text x="490.7" y="1013" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">12</text>
+<text x="673.5" y="1002" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">GET /preboard-analyses/{runId}/status</text>
+<line x1="833.3" y1="1054" x2="491.7" y2="1054" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="844.3" cy="1054" r="9.5" fill="#1F3864"/>
+<text x="844.3" y="1058" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">13</text>
+<text x="661.5" y="1047" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">{estado, progreso por agente}</text>
+<line x1="501.7" y1="1123" x2="843.3" y2="1123" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="490.7" cy="1123" r="9.5" fill="#1F3864"/>
+<text x="490.7" y="1127" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">14</text>
+<text x="673.5" y="1116" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">GET /preboard-analyses/{runId}</text>
+<line x1="855.3" y1="1168" x2="1210.5" y2="1168" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="844.3" cy="1168" r="9.5" fill="#1F3864"/>
+<text x="844.3" y="1172" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">15</text>
+<text x="1033.9" y="1161" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">lee agent_signals e índice</text>
+<line x1="833.3" y1="1213" x2="491.7" y2="1213" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="844.3" cy="1213" r="9.5" fill="#1F3864"/>
+<text x="844.3" y="1217" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">16</text>
+<text x="661.5" y="1206" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">señales, brechas, preguntas e índice</text>
+<line x1="479.7" y1="1258" x2="114.4" y2="1258" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="490.7" cy="1258" r="9.5" fill="#1F3864"/>
+<text x="490.7" y="1262" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">17</text>
+<text x="296.0" y="1251" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">Ve las señales y el índice de preparación</text>
+<line x1="501.7" y1="1341" x2="843.3" y2="1341" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="490.7" cy="1341" r="9.5" fill="#1F3864"/>
+<text x="490.7" y="1345" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">18</text>
+<text x="673.5" y="1334" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">GET /preboard-analyses/{runId}/report</text>
+<line x1="855.3" y1="1386" x2="1210.5" y2="1386" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="844.3" cy="1386" r="9.5" fill="#1F3864"/>
+<text x="844.3" y="1390" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">19</text>
+<text x="1033.9" y="1379" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">encola el trabajo en exports</text>
+<line x1="833.3" y1="1431" x2="491.7" y2="1431" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="844.3" cy="1431" r="9.5" fill="#1F3864"/>
+<text x="844.3" y="1435" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">20</text>
+<text x="661.5" y="1424" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">202</text>
+<line x1="1572.3" y1="1476" x2="1212.5" y2="1476" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1583.3" cy="1476" r="9.5" fill="#1F3864"/>
+<text x="1583.3" y="1480" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">21</text>
+<text x="1391.4" y="1469" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">arma el DOCX o PDF y lo sube a Storage</text>
+<line x1="501.7" y1="1521" x2="843.3" y2="1521" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="490.7" cy="1521" r="9.5" fill="#1F3864"/>
+<text x="490.7" y="1525" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">22</text>
+<text x="673.5" y="1514" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">consulta el avance de la exportación</text>
+<line x1="833.3" y1="1566" x2="491.7" y2="1566" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="844.3" cy="1566" r="9.5" fill="#1F3864"/>
+<text x="844.3" y="1570" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">23</text>
+<text x="661.5" y="1559" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">URL firmada de 15 minutos</text>
+<g stroke="#1F3864" stroke-width="2" fill="none"><circle cx="113.375" cy="1618" r="9" fill="#fff"/><path d="M113.375,1627 V1648 M99.375,1635 H127.375 M113.375,1648 L102.375,1662 M113.375,1648 L124.375,1662"/></g>
+<text x="113.375" y="1676" text-anchor="middle" font-size="15" font-weight="700" fill="#1F3864">Gerente General</text>
+<rect x="419.0" y="1604" width="143.3" height="62" rx="6" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.6"/>
+<text x="490.671875" y="1631.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">SPA del módulo</text>
+<text x="490.671875" y="1649.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">Vercel</text>
+<rect x="757.2" y="1604" width="174.2" height="62" rx="6" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.6"/>
+<text x="844.328125" y="1631.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">API directa-backend</text>
+<text x="844.328125" y="1649.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">Vercel · TypeScript</text>
+<rect x="1108.5" y="1604" width="206.0" height="62" rx="6" fill="#E2EFDA" stroke="#548235" stroke-width="1.6"/>
+<text x="1211.46875" y="1631.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Supabase</text>
+<text x="1211.46875" y="1649.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">Postgres · pgmq · Storage</text>
+<rect x="1500.8" y="1604" width="165.1" height="62" rx="6" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.6"/>
+<text x="1583.296875" y="1631.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Worker</text>
+<text x="1583.296875" y="1649.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">Cloud Run · Node.js</text>
+<rect x="1823.6" y="1604" width="153.4" height="62" rx="6" fill="#F2F2F2" stroke="#7F7F7F" stroke-width="1.6"/>
+<text x="1900.296875" y="1631.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">DeepSeek V4 Pro</text>
+<text x="1900.296875" y="1649.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">API de IA</text>
+</g></svg>
