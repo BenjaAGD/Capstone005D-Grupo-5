@@ -1,0 +1,187 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1788" height="685" viewBox="0 0 1788 685" font-family="Arial, 'Liberation Sans', Helvetica, sans-serif">
+<defs><marker id="as" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3F4A5C"/></marker><marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M1,1 L9,5 L1,9 z" fill="#fff" stroke="#3F4A5C" stroke-width="1.2"/></marker></defs>
+<rect width="1788" height="685" fill="#FFFFFF"/>
+<text x="894" y="32" text-anchor="middle" font-size="19" font-weight="700" fill="#1F3864">BPMN · Preparar la sesión de directorio (1 de 2): del documento al análisis</text>
+<text x="894" y="52" text-anchor="middle" font-size="12.5" fill="#566072">Proceso de negocio del Gerente General (UC-01 a UC-04 y UC-10). Cada tarea lleva el color de su estado en el MVP v2.9 verificado en el código; lo naranjo con borde punteado es propuesta del diseño. Continúa en BPMN-01B por el conector A.</text>
+<rect x="22" y="85" width="1744" height="456" fill="#fff" stroke="#44546A" stroke-width="1.8"/>
+<rect x="22" y="85" width="30" height="456" fill="#D9E1F2" stroke="#44546A" stroke-width="1.8"/>
+<text x="37.0" y="318.0" text-anchor="middle" font-size="14" font-weight="700" fill="#1F3864" transform="rotate(-90 37.0 313.0)">Preparación de la sesión de directorio</text>
+<rect x="52" y="85" width="1714" height="176" fill="#F9FBFE" stroke="#8497B0" stroke-width="1.2"/>
+<rect x="52" y="85" width="46" height="176" fill="#1F3864" stroke="#8497B0" stroke-width="1.2"/>
+<text x="69.0" y="178.0" text-anchor="middle" font-size="13.5" font-weight="700" fill="#fff" transform="rotate(-90 69.0 173.0)">Gerente General</text>
+<text x="86.0" y="177.0" text-anchor="middle" font-size="11" fill="#fff" transform="rotate(-90 86.0 173.0)">usuario del módulo</text>
+<rect x="52" y="261" width="1714" height="140" fill="#FFFFFF" stroke="#8497B0" stroke-width="1.2"/>
+<rect x="52" y="261" width="46" height="140" fill="#2E75B6" stroke="#8497B0" stroke-width="1.2"/>
+<text x="69.0" y="336.0" text-anchor="middle" font-size="13.5" font-weight="700" fill="#fff" transform="rotate(-90 69.0 331.0)">Plataforma Directa</text>
+<text x="86.0" y="335.0" text-anchor="middle" font-size="11" fill="#fff" transform="rotate(-90 86.0 331.0)">API y base de datos</text>
+<rect x="52" y="401" width="1714" height="140" fill="#F9FBFE" stroke="#8497B0" stroke-width="1.2"/>
+<rect x="52" y="401" width="46" height="140" fill="#548235" stroke="#8497B0" stroke-width="1.2"/>
+<text x="69.0" y="476.0" text-anchor="middle" font-size="13.5" font-weight="700" fill="#fff" transform="rotate(-90 69.0 471.0)">Motor de IA</text>
+<text x="86.0" y="475.0" text-anchor="middle" font-size="11" fill="#fff" transform="rotate(-90 86.0 471.0)">agentes · Groq / NVIDIA</text>
+<path d="M202.0,191.0 L273.0,191.0" fill="none" stroke="#3F4A5C" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#as)"/>
+<path d="M401.0,191.0 L423.0,191.0" fill="none" stroke="#3F4A5C" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#as)"/>
+<path d="M551.0,191.0 L573.0,191.0" fill="none" stroke="#3F4A5C" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#as)"/>
+<path d="M637.0,238.0 L637.0,284.0" fill="none" stroke="#3F4A5C" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#as)"/>
+<path d="M701.0,331.0 L787.0,331.0 L787.0,214.0" fill="none" stroke="#3F4A5C" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#as)"/>
+<path d="M810.0,191.0 L873.0,191.0" fill="none" stroke="#3F4A5C" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#as)"/>
+<path d="M787.0,168.0 L787.0,101.0 L655.0,101.0 L655.0,144.0" fill="none" stroke="#3F4A5C" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#as)"/>
+<path d="M538.0,119.0 L617.0,119.0 L617.0,144.0" fill="none" stroke="#3F4A5C" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#as)"/>
+<path d="M1001.0,191.0 L1023.0,191.0" fill="none" stroke="#3F4A5C" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#as)"/>
+<path d="M1087.0,233.0 L1087.0,289.0" fill="none" stroke="#3F4A5C" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#as)"/>
+<path d="M1087.0,373.0 L1087.0,416.5" fill="none" stroke="#3F4A5C" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#as)"/>
+<path d="M1151.0,471.0 L1173.0,471.0" fill="none" stroke="#3F4A5C" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#as)"/>
+<path d="M1301.0,471.0 L1387.0,471.0 L1387.0,373.0" fill="none" stroke="#3F4A5C" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#as)"/>
+<path d="M1451.0,331.0 L1537.0,331.0 L1537.0,238.0" fill="none" stroke="#3F4A5C" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#as)"/>
+<path d="M1601.0,191.0 L1672.0,191.0" fill="none" stroke="#3F4A5C" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#as)"/>
+<circle cx="187.0" cy="191.0" r="15" fill="#fff" stroke="#548235" stroke-width="2"/>
+<text x="187.0" y="221.0" text-anchor="middle" font-size="11.5" fill="#1F2A44">Se acerca la próxima</text>
+<text x="187.0" y="235.0" text-anchor="middle" font-size="11.5" fill="#1F2A44">sesión del directorio</text>
+<rect x="273.0" y="149.0" width="128.0" height="84.0" rx="10" fill="#FDE9D9" stroke="#C55A11" stroke-width="1.8" stroke-dasharray="6 3"/>
+<circle cx="287.0" cy="158.2" r="3.1" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/><path d="M281.0,168.0 Q281.0,162.5 287.0,162.5 Q293.0,162.5 293.0,168.0 Z" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/>
+<text x="337.0" y="187.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">Iniciar sesión con</text>
+<text x="337.0" y="202.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">su cuenta</text>
+<text x="337.0" y="221.5" text-anchor="middle" font-size="10.5" fill="#44546A">UC-01 · HU-15</text>
+<circle cx="401.0" cy="149.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="401.0" y="153.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">1</text>
+<rect x="423.0" y="149.0" width="128.0" height="84.0" rx="10" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.8"/>
+<circle cx="437.0" cy="158.2" r="3.1" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/><path d="M431.0,168.0 Q431.0,162.5 437.0,162.5 Q443.0,162.5 443.0,168.0 Z" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/>
+<text x="487.0" y="187.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">Ver el panel de</text>
+<text x="487.0" y="202.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">inicio</text>
+<text x="487.0" y="221.5" text-anchor="middle" font-size="10.5" fill="#44546A">UC-10 · HU-12</text>
+<circle cx="551.0" cy="149.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="551.0" y="153.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">2</text>
+<rect x="573.0" y="144.0" width="128.0" height="94.0" rx="10" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.8"/>
+<circle cx="587.0" cy="153.2" r="3.1" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/><path d="M581.0,163.0 Q581.0,157.5 587.0,157.5 Q593.0,157.5 593.0,163.0 Z" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/>
+<text x="637.0" y="179.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">Cargar los</text>
+<text x="637.0" y="194.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">documentos de la</text>
+<text x="637.0" y="209.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">sesión</text>
+<text x="637.0" y="229.0" text-anchor="middle" font-size="10.5" fill="#44546A">UC-02 · HU-16</text>
+<circle cx="701.0" cy="144.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="701.0" y="148.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">3</text>
+<polygon points="787.0,168.0 810.0,191.0 787.0,214.0 764.0,191.0" fill="#fff" stroke="#1F3864" stroke-width="1.8"/>
+<path d="M780.0,184.0 L794.0,198.0 M794.0,184.0 L780.0,198.0" stroke="#1F3864" stroke-width="3" stroke-linecap="round"/>
+<text x="814.0" y="162.0" text-anchor="start" font-size="11.5" font-weight="700" fill="#1F3864" stroke="#fff" stroke-width="3" paint-order="stroke">¿Listo?</text>
+<rect x="873.0" y="149.0" width="128.0" height="84.0" rx="10" fill="#FDE9D9" stroke="#C55A11" stroke-width="1.8" stroke-dasharray="6 3"/>
+<circle cx="887.0" cy="158.2" r="3.1" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/><path d="M881.0,168.0 Q881.0,162.5 887.0,162.5 Q893.0,162.5 893.0,168.0 Z" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/>
+<text x="937.0" y="187.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">Armar el pack de la</text>
+<text x="937.0" y="202.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">sesión</text>
+<text x="937.0" y="221.5" text-anchor="middle" font-size="10.5" fill="#44546A">UC-03 · HU-13</text>
+<circle cx="1001.0" cy="149.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="1001.0" y="153.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">5</text>
+<rect x="1023.0" y="149.0" width="128.0" height="84.0" rx="10" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.8"/>
+<circle cx="1037.0" cy="158.2" r="3.1" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/><path d="M1031.0,168.0 Q1031.0,162.5 1037.0,162.5 Q1043.0,162.5 1043.0,168.0 Z" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/>
+<text x="1087.0" y="187.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">Lanzar el análisis</text>
+<text x="1087.0" y="202.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">pre-directorio</text>
+<text x="1087.0" y="221.5" text-anchor="middle" font-size="10.5" fill="#44546A">UC-04 · HU-06</text>
+<circle cx="1151.0" cy="149.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="1151.0" y="153.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">6</text>
+<rect x="1473.0" y="144.0" width="128.0" height="94.0" rx="10" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.8"/>
+<circle cx="1487.0" cy="153.2" r="3.1" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/><path d="M1481.0,163.0 Q1481.0,157.5 1487.0,157.5 Q1493.0,157.5 1493.0,163.0 Z" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/>
+<text x="1537.0" y="179.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">Seguir el avance</text>
+<text x="1537.0" y="194.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">hasta tener el</text>
+<text x="1537.0" y="209.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">resultado</text>
+<text x="1537.0" y="229.0" text-anchor="middle" font-size="10.5" fill="#44546A">UC-04 · HU-06</text>
+<circle cx="1601.0" cy="144.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="1601.0" y="148.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">11</text>
+<circle cx="1687.0" cy="191.0" r="15" fill="#fff" stroke="#BF9000" stroke-width="1.8"/>
+<circle cx="1687.0" cy="191.0" r="11.5" fill="none" stroke="#BF9000" stroke-width="1.4"/>
+<path d="M1681.0,187.5 H1688.0 V184.0 L1694.0,191.0 L1688.0,198.0 V194.5 H1681.0 Z" fill="#1F2A44" stroke="#1F2A44" stroke-width="1.1"/>
+<text x="1687.0" y="221.0" text-anchor="middle" font-size="11.5" fill="#1F2A44">A: sigue en</text>
+<text x="1687.0" y="235.0" text-anchor="middle" font-size="11.5" fill="#1F2A44">BPMN-01B</text>
+<circle cx="523.0" cy="119.0" r="15" fill="#fff" stroke="#BF9000" stroke-width="1.8"/>
+<circle cx="523.0" cy="119.0" r="11.5" fill="none" stroke="#BF9000" stroke-width="1.4"/>
+<path d="M517.0,115.5 H524.0 V112.0 L530.0,119.0 L524.0,126.0 V122.5 H517.0 Z" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/>
+<text x="501.0" y="116.0" text-anchor="end" font-size="11.5" fill="#1F2A44">B: viene de</text>
+<text x="501.0" y="130.0" text-anchor="end" font-size="11.5" fill="#1F2A44">BPMN-01B</text>
+<rect x="573.0" y="284.0" width="128.0" height="94.0" rx="10" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.8"/>
+<text x="637.0" y="303.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">Leer, fragmentar e</text>
+<text x="637.0" y="318.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">indexar cada</text>
+<text x="637.0" y="333.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">documento</text>
+<text x="637.0" y="353.0" text-anchor="middle" font-size="10.5" fill="#44546A">AC-01 · HU-16</text>
+<rect x="631.0" y="360.0" width="12" height="12" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/><path d="M633.8,366.0 H640.2 M637.0,362.8 V369.2" stroke="#1F2A44" stroke-width="1.3"/>
+<circle cx="701.0" cy="284.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="701.0" y="288.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">4</text>
+<rect x="1023.0" y="289.0" width="128.0" height="84.0" rx="10" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.8"/>
+<line x1="1037.0" y1="301.5" x2="1043.3" y2="301.5" stroke="#1F2A44" stroke-width="2.2"/><line x1="1037.0" y1="301.5" x2="1041.5" y2="306.0" stroke="#1F2A44" stroke-width="2.2"/><line x1="1037.0" y1="301.5" x2="1037.0" y2="307.8" stroke="#1F2A44" stroke-width="2.2"/><line x1="1037.0" y1="301.5" x2="1032.5" y2="306.0" stroke="#1F2A44" stroke-width="2.2"/><line x1="1037.0" y1="301.5" x2="1030.7" y2="301.5" stroke="#1F2A44" stroke-width="2.2"/><line x1="1037.0" y1="301.5" x2="1032.5" y2="297.0" stroke="#1F2A44" stroke-width="2.2"/><line x1="1037.0" y1="301.5" x2="1037.0" y2="295.2" stroke="#1F2A44" stroke-width="2.2"/><line x1="1037.0" y1="301.5" x2="1041.5" y2="297.0" stroke="#1F2A44" stroke-width="2.2"/><circle cx="1037.0" cy="301.5" r="4.1" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/><circle cx="1037.0" cy="301.5" r="1.5" fill="#1F2A44"/>
+<text x="1087.0" y="327.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">Validar y crear la</text>
+<text x="1087.0" y="342.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">corrida de análisis</text>
+<text x="1087.0" y="361.5" text-anchor="middle" font-size="10.5" fill="#44546A">UC-04 · HU-06</text>
+<circle cx="1151.0" cy="289.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="1151.0" y="293.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">7</text>
+<rect x="1323.0" y="289.0" width="128.0" height="84.0" rx="10" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.8"/>
+<line x1="1337.0" y1="301.5" x2="1343.3" y2="301.5" stroke="#1F2A44" stroke-width="2.2"/><line x1="1337.0" y1="301.5" x2="1341.5" y2="306.0" stroke="#1F2A44" stroke-width="2.2"/><line x1="1337.0" y1="301.5" x2="1337.0" y2="307.8" stroke="#1F2A44" stroke-width="2.2"/><line x1="1337.0" y1="301.5" x2="1332.5" y2="306.0" stroke="#1F2A44" stroke-width="2.2"/><line x1="1337.0" y1="301.5" x2="1330.7" y2="301.5" stroke="#1F2A44" stroke-width="2.2"/><line x1="1337.0" y1="301.5" x2="1332.5" y2="297.0" stroke="#1F2A44" stroke-width="2.2"/><line x1="1337.0" y1="301.5" x2="1337.0" y2="295.2" stroke="#1F2A44" stroke-width="2.2"/><line x1="1337.0" y1="301.5" x2="1341.5" y2="297.0" stroke="#1F2A44" stroke-width="2.2"/><circle cx="1337.0" cy="301.5" r="4.1" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/><circle cx="1337.0" cy="301.5" r="1.5" fill="#1F2A44"/>
+<text x="1387.0" y="327.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">Guardar señales y</text>
+<text x="1387.0" y="342.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">calcular el índice</text>
+<text x="1387.0" y="361.5" text-anchor="middle" font-size="10.5" fill="#44546A">UC-04 · HU-06</text>
+<circle cx="1451.0" cy="289.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="1451.0" y="293.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">10</text>
+<rect x="1023.0" y="416.5" width="128.0" height="109.0" rx="10" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.8"/>
+<text x="1087.0" y="436.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">Agentes</text>
+<text x="1087.0" y="451.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">productores</text>
+<text x="1087.0" y="466.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">analizan en</text>
+<text x="1087.0" y="481.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">paralelo</text>
+<text x="1087.0" y="500.5" text-anchor="middle" font-size="10.5" fill="#44546A">AC-02 · HU-06</text>
+<rect x="1073.0" y="507.5" width="12" height="12" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/><path d="M1075.8,513.5 H1082.2 M1079.0,510.3 V516.7" stroke="#1F2A44" stroke-width="1.3"/>
+<path d="M1091.0,508.5 V518.5 M1095.0,508.5 V518.5 M1099.0,508.5 V518.5" stroke="#1F2A44" stroke-width="1.6"/>
+<circle cx="1151.0" cy="416.5" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="1151.0" y="420.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">8</text>
+<rect x="1173.0" y="416.5" width="128.0" height="109.0" rx="10" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.8"/>
+<text x="1237.0" y="436.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">Agentes</text>
+<text x="1237.0" y="451.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">integradores:</text>
+<text x="1237.0" y="466.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">Riesgos y</text>
+<text x="1237.0" y="481.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">Estrategia</text>
+<text x="1237.0" y="500.5" text-anchor="middle" font-size="10.5" fill="#44546A">AC-02 · HU-06</text>
+<rect x="1231.0" y="507.5" width="12" height="12" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/><path d="M1233.8,513.5 H1240.2 M1237.0,510.3 V516.7" stroke="#1F2A44" stroke-width="1.3"/>
+<circle cx="1301.0" cy="416.5" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="1301.0" y="420.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">9</text>
+<path d="M337.0,304.0 L337.0,233.0" stroke="#7F7F7F" stroke-width="1.2" stroke-dasharray="2 3" fill="none"/>
+<rect x="262.0" y="304.0" width="150" height="54.0" fill="#fff" fill-opacity="0.92" stroke="none"/>
+<path d="M271.0,304.0 H262.0 V358.0 H271.0" fill="none" stroke="#595959" stroke-width="1.4"/>
+<text x="271.0" y="319.0" font-size="11.5" fill="#1F2A44">Hoy no hay inicio de</text>
+<text x="271.0" y="333.0" font-size="11.5" fill="#1F2A44">sesión: la web abre</text>
+<text x="271.0" y="347.0" font-size="11.5" fill="#1F2A44">directo (H-01, crítico).</text>
+<path d="M929.0,297.0 L937.0,233.0" stroke="#7F7F7F" stroke-width="1.2" stroke-dasharray="2 3" fill="none"/>
+<rect x="854.0" y="297.0" width="150" height="68.0" fill="#fff" fill-opacity="0.92" stroke="none"/>
+<path d="M863.0,297.0 H854.0 V365.0 H863.0" fill="none" stroke="#595959" stroke-width="1.4"/>
+<text x="863.0" y="312.0" font-size="11.5" fill="#1F2A44">Hoy no existe el pack.</text>
+<text x="863.0" y="326.0" font-size="11.5" fill="#1F2A44">Cada documento se</text>
+<text x="863.0" y="340.0" font-size="11.5" fill="#1F2A44">analiza por separado y</text>
+<text x="863.0" y="354.0" font-size="11.5" fill="#1F2A44">solo al subirlo.</text>
+<path d="M902.0,471.0 L1023.0,471.0" stroke="#7F7F7F" stroke-width="1.2" stroke-dasharray="2 3" fill="none"/>
+<rect x="752.0" y="444.0" width="150" height="54.0" fill="#fff" fill-opacity="0.92" stroke="none"/>
+<path d="M761.0,444.0 H752.0 V498.0 H761.0" fill="none" stroke="#595959" stroke-width="1.4"/>
+<text x="761.0" y="459.0" font-size="11.5" fill="#1F2A44">El MVP corre los 14</text>
+<text x="761.0" y="473.0" font-size="11.5" fill="#1F2A44">agentes en 5 olas, una</text>
+<text x="761.0" y="487.0" font-size="11.5" fill="#1F2A44">tras otra.</text>
+<text x="840.0" y="184.0" text-anchor="middle" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">Sí</text>
+<text x="721.0" y="116.0" text-anchor="middle" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">No: recargar</text>
+<rect x="28" y="559" width="30" height="17" rx="5" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.6"/>
+<text x="66" y="572" font-size="12" fill="#1F2A44">Cubierto por el MVP v2.9</text>
+<rect x="221.8125" y="559" width="30" height="17" rx="5" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.6"/>
+<text x="259.8125" y="572" font-size="12" fill="#1F2A44">Parcial en el MVP v2.9</text>
+<rect x="402.953125" y="559" width="30" height="17" rx="5" fill="#FDE9D9" stroke="#C55A11" stroke-width="1.6" stroke-dasharray="6 3"/>
+<text x="440.953125" y="572" font-size="12" fill="#1F2A44">Pendiente (propuesta)</text>
+<circle cx="587.671875" cy="564" r="3" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/><path d="M581.671875,574 Q581.671875,568 587.671875,568 Q593.671875,568 593.671875,574 Z" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/>
+<text x="599.671875" y="572" font-size="12" fill="#1F2A44">Tarea de persona</text>
+<line x1="718.046875" y1="567" x2="725.0" y2="567.0" stroke="#1F2A44" stroke-width="2.2"/><line x1="718.046875" y1="567" x2="723.0" y2="571.9" stroke="#1F2A44" stroke-width="2.2"/><line x1="718.046875" y1="567" x2="718.0" y2="574.0" stroke="#1F2A44" stroke-width="2.2"/><line x1="718.046875" y1="567" x2="713.1" y2="571.9" stroke="#1F2A44" stroke-width="2.2"/><line x1="718.046875" y1="567" x2="711.0" y2="567.0" stroke="#1F2A44" stroke-width="2.2"/><line x1="718.046875" y1="567" x2="713.1" y2="562.1" stroke="#1F2A44" stroke-width="2.2"/><line x1="718.046875" y1="567" x2="718.0" y2="560.0" stroke="#1F2A44" stroke-width="2.2"/><line x1="718.046875" y1="567" x2="723.0" y2="562.1" stroke="#1F2A44" stroke-width="2.2"/><circle cx="718.046875" cy="567" r="4.4" fill="#fff" stroke="#1F2A44" stroke-width="1.1"/><circle cx="718.046875" cy="567" r="1.5" fill="#1F2A44"/>
+<text x="731.046875" y="572" font-size="12" fill="#1F2A44">Tarea del sistema</text>
+<rect x="843.078125" y="559" width="30" height="17" rx="5" fill="#fff" stroke="#1F2A44" stroke-width="1.4"/><rect x="853.078125" y="567" width="9" height="9" fill="#fff" stroke="#1F2A44" stroke-width="1"/><path d="M855.078125,571.5 H860.078125 M857.578125,569 V574" stroke="#1F2A44" stroke-width="1.1"/>
+<text x="879.078125" y="572" font-size="12" fill="#1F2A44">Subproceso (se detalla en otra figura)</text>
+<path d="M1101.8125,560 V575 M1105.8125,560 V575 M1109.8125,560 V575" stroke="#1F2A44" stroke-width="1.8"/>
+<text x="1117.8125" y="572" font-size="12" fill="#1F2A44">Se repite en paralelo (un agente por documento)</text>
+<circle cx="37" cy="603" r="8" fill="#fff" stroke="#548235" stroke-width="2"/>
+<text x="52" y="608" font-size="12" fill="#1F2A44">Inicio</text>
+<circle cx="105.015625" cy="603" r="8" fill="#fff" stroke="#C00000" stroke-width="3.6"/>
+<text x="120.015625" y="608" font-size="12" fill="#1F2A44">Fin</text>
+<circle cx="161.6875" cy="603" r="8" fill="#fff" stroke="#BF9000" stroke-width="1.7"/><circle cx="161.6875" cy="603" r="5" fill="none" stroke="#BF9000" stroke-width="1.2"/>
+<text x="176.6875" y="608" font-size="12" fill="#1F2A44">Evento intermedio (espera o enlace a otra figura)</text>
+<polygon points="462.4375,594 472.4375,603 462.4375,612 452.4375,603" fill="#fff" stroke="#1F3864" stroke-width="1.6"/><path d="M458.4375,599 L466.4375,607 M466.4375,599 L458.4375,607" stroke="#1F3864" stroke-width="2.4"/>
+<text x="479.4375" y="608" font-size="12" fill="#1F2A44">Compuerta exclusiva (un solo camino)</text>
+<line x1="699.515625" y1="603" x2="725.515625" y2="603" stroke="#3F4A5C" stroke-width="1.6" marker-end="url(#as)"/>
+<text x="733.515625" y="608" font-size="12" fill="#1F2A44">Flujo</text>
+<circle cx="778.53125" cy="603" r="3.4" fill="#fff" stroke="#3F4A5C" stroke-width="1.3"/><line x1="781.53125" y1="603" x2="803.53125" y2="603" stroke="#3F4A5C" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#am)"/>
+<text x="811.53125" y="608" font-size="12" fill="#1F2A44">Mensaje a otro participante</text>
+<circle cx="981.25" cy="603" r="9" fill="#1F3864"/><text x="981.25" y="607" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">n</text>
+<text x="996.25" y="608" font-size="12" fill="#1F2A44">Paso (ver tabla)</text>
+<text x="26" y="651" font-size="12" fill="#566072">Fuentes: Diseño técnico §2.1 (casos de uso), Requisitos (HU-06, HU-12, HU-13, HU-15, HU-16; RF-01 a RF-26), main.py (subir_informe, analizar_iniciar, ejecutar_analisis_completo, analizar_estado) y dashboard.py. Estados de los pasos verificados contra el código del MVP v2.9 (32 rutas, 14 agentes en 5 olas).</text>
+</svg>
