@@ -166,7 +166,7 @@ La arquitectura busca mantener una separación entre la interfaz, los servicios 
 
 ---
 
-## 📊 Metodología de trabajo
+##  Metodología de trabajo
 
 El proyecto utiliza la metodología ágil **Scrum**, organizada en sprints de dos semanas.
 
