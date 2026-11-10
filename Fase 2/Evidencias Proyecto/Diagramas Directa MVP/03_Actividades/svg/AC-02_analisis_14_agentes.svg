@@ -1,0 +1,251 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1132" height="1785" viewBox="0 0 1132 1785" font-family="Arial, 'Liberation Sans', Helvetica, sans-serif">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3F4A5C"/></marker><marker id="aro" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C55A11"/></marker></defs>
+<rect width="1132" height="1785" fill="#FFFFFF"/>
+<text x="566" y="30" text-anchor="middle" font-size="19" font-weight="700" fill="#1F3864">Diagrama de actividades · Analizar con 14 agentes en 5 olas</text>
+<text x="566" y="50" text-anchor="middle" font-size="12.5" fill="#566072">MVP v2.9 · POST /api/analizar-iniciar/ crea un job; un hilo worker recorre las 5 olas (financiero y ciberseguridad primero; riesgos y estrategia al final) y se puede pausar, reanudar o detener.</text>
+<text x="566" y="66" text-anchor="middle" font-size="12.5" fill="#566072">Hoy ninguna pantalla llama a estas rutas: la web analiza sola al subir el archivo (AC-01).</text>
+<rect x="26.0" y="134.0" width="270" height="1521.0" fill="#F7F9FC" stroke="#C9D2E0" stroke-width="1"/>
+<rect x="26.0" y="82" width="270" height="52" fill="#7F7F7F" stroke="#7F7F7F"/>
+<text x="161.0" y="104.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Cliente de la API</text>
+<text x="161.0" y="121.0" text-anchor="middle" font-size="12" font-weight="400" fill="#fff">Swagger /docs, Postman u otro</text>
+<rect x="296.0" y="134.0" width="270" height="1521.0" fill="#FFFFFF" stroke="#C9D2E0" stroke-width="1"/>
+<rect x="296.0" y="82" width="270" height="52" fill="#2E75B6" stroke="#2E75B6"/>
+<text x="431.0" y="104.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">API FastAPI</text>
+<text x="431.0" y="121.0" text-anchor="middle" font-size="12" font-weight="400" fill="#fff">rutas /api/analizar-*</text>
+<rect x="566.0" y="134.0" width="270" height="1521.0" fill="#F7F9FC" stroke="#C9D2E0" stroke-width="1"/>
+<rect x="566.0" y="82" width="270" height="52" fill="#2E75B6" stroke="#2E75B6"/>
+<text x="701.0" y="104.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Worker del job</text>
+<text x="701.0" y="121.0" text-anchor="middle" font-size="12" font-weight="400" fill="#fff">hilo daemon (main.py)</text>
+<rect x="836.0" y="134.0" width="270" height="1521.0" fill="#FFFFFF" stroke="#C9D2E0" stroke-width="1"/>
+<rect x="836.0" y="82" width="270" height="52" fill="#548235" stroke="#548235"/>
+<text x="971.0" y="104.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Servicios externos</text>
+<text x="971.0" y="121.0" text-anchor="middle" font-size="12" font-weight="400" fill="#fff">Supabase · Groq → NVIDIA</text>
+<rect x="569.0" y="574.0" width="534.0" height="925.0" rx="10" fill="none" stroke="#BF9000" stroke-width="1.5" stroke-dasharray="7 4"/>
+<rect x="980.7" y="565.0" width="112.3" height="18" rx="4" fill="#FFF2CC" stroke="#BF9000" stroke-width="1"/>
+<text x="988.7" y="578.0" font-size="12" font-weight="700" fill="#1F2A44">Por cada ola (×5)</text>
+<path d="M161.0,182.0 L161.0,210.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M271.0,243.0 L431.0,243.0 L431.0,302.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M306.0,349.5 L161.0,349.5 L161.0,423.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M161.0,489.0 L161.0,526.5" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M431.0,397.0 L431.0,423.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M431.0,489.0 L431.0,515.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M321.0,539.5 L296.0,539.5 L296.0,626.0 L271.0,626.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="6 4" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M541.0,539.5 L701.0,539.5 L701.0,590.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M161.0,659.0 L161.0,696.5" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M271.0,721.0 L321.0,721.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M541.0,721.0 L591.0,721.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="6 4" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M814.0,626.0 L971.0,626.0 L971.0,552.5" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M701.0,662.0 L701.0,696.5" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M701.0,745.5 L701.0,780.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M811.0,813.0 L861.0,813.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="6 4" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M701.0,846.0 L701.0,872.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M701.0,950.0 L701.0,976.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M588.0,911.0 L555.0,911.0 L555.0,1374.0 L701.0,1374.0 L701.0,1390.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M811.0,1017.5 L971.0,1017.5 L971.0,1085.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M861.0,1126.5 L701.0,1126.5 L701.0,1194.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M814.0,1233.0 L861.0,1233.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M971.0,1200.0 L971.0,1168.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="6 4" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M701.0,1272.0 L701.0,1298.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M811.0,1331.0 L861.0,1331.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="6 4" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M701.0,1364.0 L701.0,1390.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M588.0,1437.5 L578.0,1437.5 L578.0,626.0 L588.0,626.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M701.0,1485.0 L701.0,1519.5" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M701.0,1568.5 L701.0,1603.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M161.0,745.5 L161.0,1398.5" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M48.0,1437.5 L38.0,1437.5 L38.0,626.0 L51.0,626.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M161.0,1476.5 L161.0,1511.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M161.0,1577.0 L161.0,1603.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<circle cx="161.0" cy="172.0" r="10" fill="#1F3864"/>
+<rect x="51.0" y="210.0" width="220.0" height="66.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="161.0" y="230.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Envía el document_id y la lista</text>
+<text x="161.0" y="247.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">de agentes en JSON: POST</text>
+<text x="161.0" y="264.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">/api/analizar-iniciar/</text>
+<circle cx="52.0" cy="211.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="52.0" y="215.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">1</text>
+<polygon points="431.0,302.0 556.0,349.5 431.0,397.0 306.0,349.5" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.6"/>
+<text x="431.0" y="338.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">¿Lista válida, documento</text>
+<text x="431.0" y="353.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">ya procesado y sin otro job</text>
+<text x="431.0" y="368.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">en curso?</text>
+<circle cx="407.0" cy="314.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="407.0" y="318.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">2</text>
+<rect x="51.0" y="423.0" width="220.0" height="66.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="161.0" y="443.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Recibe el mensaje de error</text>
+<text x="161.0" y="460.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">(lista vacía, documento</text>
+<text x="161.0" y="477.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">procesándose o job en curso)</text>
+<circle cx="52.0" cy="424.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="52.0" y="428.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">3</text>
+<rect x="321.0" y="423.0" width="220.0" height="66.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="431.0" y="443.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Crea el job (uuid): corriendo =</text>
+<text x="431.0" y="460.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">true, pausado = false, detenido</text>
+<text x="431.0" y="477.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">= false; estima n olas × 63 s</text>
+<circle cx="322.0" cy="424.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="322.0" y="428.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">4</text>
+<rect x="321.0" y="515.0" width="220.0" height="49.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="431.0" y="535.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Lanza el hilo worker y responde</text>
+<text x="431.0" y="552.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">{job_id, estimado_seg}</text>
+<circle cx="322.0" cy="516.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="322.0" y="520.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">5</text>
+<circle cx="161.0" cy="539.5" r="12.5" fill="#fff" stroke="#1F3864" stroke-width="2"/><circle cx="161.0" cy="539.5" r="7" fill="#1F3864"/>
+<rect x="51.0" y="593.0" width="220.0" height="66.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="161.0" y="613.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Repite GET</text>
+<text x="161.0" y="630.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">/api/analizar-estado/{job_id} y</text>
+<text x="161.0" y="647.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">lee los resultados parciales</text>
+<circle cx="52.0" cy="594.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="52.0" y="598.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">6</text>
+<rect x="51.0" y="696.5" width="220.0" height="49.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="161.0" y="717.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">Si lo desea, pausa, reanuda o</text>
+<text x="161.0" y="734.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">detiene el análisis</text>
+<circle cx="52.0" cy="697.5" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="52.0" y="701.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">7</text>
+<rect x="321.0" y="688.0" width="220.0" height="66.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="431.0" y="708.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Rutas pausar, reanudar y</text>
+<text x="431.0" y="725.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">detener (POST con el job_id):</text>
+<text x="431.0" y="742.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">cambian la bandera del job</text>
+<circle cx="322.0" cy="689.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="322.0" y="693.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">8</text>
+<polygon points="701.0,590.0 814.0,626.0 701.0,662.0 588.0,626.0" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.6"/>
+<text x="701.0" y="630.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">¿Job detenido?</text>
+<circle cx="677.0" cy="602.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="677.0" y="606.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">9</text>
+<circle cx="971.0" cy="539.5" r="12.5" fill="#fff" stroke="#1F3864" stroke-width="2"/><circle cx="971.0" cy="539.5" r="7" fill="#1F3864"/>
+<rect x="591.0" y="696.5" width="220.0" height="49.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="701.0" y="717.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">Mientras el job esté «pausado»</text>
+<text x="701.0" y="734.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">espera 1 s</text>
+<circle cx="592.0" cy="697.5" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="592.0" y="701.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">10</text>
+<rect x="591.0" y="780.0" width="220.0" height="66.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="701.0" y="800.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Lee el análisis guardado de</text>
+<text x="701.0" y="817.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">cada agente de la ola; si es</text>
+<text x="701.0" y="834.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">válido lo reutiliza</text>
+<circle cx="592.0" cy="781.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="592.0" y="785.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">11</text>
+<rect x="861.0" y="788.5" width="220.0" height="49.0" rx="11" fill="#E2EFDA" stroke="#548235" stroke-width="1.7"/>
+<text x="971.0" y="809.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">analisis → SELECT (caché por</text>
+<text x="971.0" y="826.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">documento y agente)</text>
+<circle cx="862.0" cy="789.5" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="862.0" y="793.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">12</text>
+<polygon points="701.0,872.0 814.0,911.0 701.0,950.0 588.0,911.0" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.6"/>
+<text x="701.0" y="907.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">¿Quedan agentes sin</text>
+<text x="701.0" y="922.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">análisis válido?</text>
+<circle cx="677.0" cy="884.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="677.0" y="888.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">13</text>
+<rect x="591.0" y="976.0" width="220.0" height="83.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="701.0" y="996.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Elige hasta 30 fragmentos por</text>
+<text x="701.0" y="1013.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">palabras clave y arma el</text>
+<text x="701.0" y="1030.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">prompt (las olas 2 a 5 reciben</text>
+<text x="701.0" y="1047.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">resúmenes previos)</text>
+<circle cx="592.0" cy="977.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="592.0" y="981.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">14</text>
+<rect x="861.0" y="1085.0" width="220.0" height="83.0" rx="11" fill="#F2F2F2" stroke="#7F7F7F" stroke-width="1.7"/>
+<text x="971.0" y="1105.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">IA: Groq gpt-oss-120b (hasta 4</text>
+<text x="971.0" y="1122.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">claves) y, si falla, NVIDIA</text>
+<text x="971.0" y="1139.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">nemotron-3-super; responde un</text>
+<text x="971.0" y="1156.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">JSON con el panel</text>
+<circle cx="862.0" cy="1086.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="862.0" y="1090.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">15</text>
+<polygon points="701.0,1194.0 814.0,1233.0 701.0,1272.0 588.0,1233.0" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.6"/>
+<text x="701.0" y="1229.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">¿JSON legible y con</text>
+<text x="701.0" y="1244.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">todos los agentes?</text>
+<circle cx="677.0" cy="1206.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="677.0" y="1210.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">16</text>
+<rect x="861.0" y="1200.0" width="220.0" height="66.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="971.0" y="1220.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Reintento único: divide el grupo</text>
+<text x="971.0" y="1237.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">en dos mitades o repite solo los</text>
+<text x="971.0" y="1254.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">agentes que faltan</text>
+<circle cx="862.0" cy="1201.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="862.0" y="1205.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">17</text>
+<rect x="591.0" y="1298.0" width="220.0" height="66.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="701.0" y="1318.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Normaliza cada resultado,</text>
+<text x="701.0" y="1335.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">calcula el puntaje, lo guarda y</text>
+<text x="701.0" y="1352.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">registra los errores del grupo</text>
+<circle cx="592.0" cy="1299.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="592.0" y="1303.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">18</text>
+<rect x="861.0" y="1306.5" width="220.0" height="49.0" rx="11" fill="#E2EFDA" stroke="#548235" stroke-width="1.7"/>
+<text x="971.0" y="1327.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">analisis ← DELETE + INSERT</text>
+<text x="971.0" y="1344.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">por agente</text>
+<circle cx="862.0" cy="1307.5" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="862.0" y="1311.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">19</text>
+<polygon points="701.0,1390.0 814.0,1437.5 701.0,1485.0 588.0,1437.5" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.6"/>
+<text x="701.0" y="1426.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">¿Quedan olas por</text>
+<text x="701.0" y="1441.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">analizar? (pausa de 3 s</text>
+<text x="701.0" y="1456.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">entre olas)</text>
+<circle cx="677.0" cy="1402.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="677.0" y="1406.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">20</text>
+<rect x="591.0" y="1519.5" width="220.0" height="49.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="701.0" y="1540.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">Fin del job (bloque finally):</text>
+<text x="701.0" y="1557.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">corriendo = false</text>
+<circle cx="592.0" cy="1520.5" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="592.0" y="1524.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">21</text>
+<circle cx="701.0" cy="1616.0" r="12.5" fill="#fff" stroke="#1F3864" stroke-width="2"/><circle cx="701.0" cy="1616.0" r="7" fill="#1F3864"/>
+<polygon points="161.0,1398.5 274.0,1437.5 161.0,1476.5 48.0,1437.5" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.6"/>
+<text x="161.0" y="1434.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">¿Job con corriendo =</text>
+<text x="161.0" y="1449.0" text-anchor="middle" font-size="12.5" fill="#1F2A44">false?</text>
+<circle cx="137.0" cy="1410.5" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="137.0" y="1414.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">22</text>
+<rect x="51.0" y="1511.0" width="220.0" height="66.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="161.0" y="1531.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Lee señales, omisiones,</text>
+<text x="161.0" y="1548.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">preguntas y recomendaciones</text>
+<text x="161.0" y="1565.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">por agente, y los errores del job</text>
+<circle cx="52.0" cy="1512.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="52.0" y="1516.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">23</text>
+<circle cx="161.0" cy="1616.0" r="12.5" fill="#fff" stroke="#1F3864" stroke-width="2"/><circle cx="161.0" cy="1616.0" r="7" fill="#1F3864"/>
+<path d="M576.0,318.5 h240.0 l10,10 v52.0 h-250.0 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.2"/>
+<text x="586.0" y="337.5" font-size="12" fill="#1F2A44">Hoy ninguna pantalla llama a estas rutas:</text>
+<text x="586.0" y="353.5" font-size="12" fill="#1F2A44">la web analiza al subir el archivo (AC-01),</text>
+<text x="586.0" y="369.5" font-size="12" fill="#1F2A44">sin pausa ni detención.</text>
+<path d="M306.0,986.5 h180.0 l10,10 v52.0 h-190.0 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.2"/>
+<text x="316.0" y="1005.5" font-size="12" fill="#1F2A44">Un análisis guardado y válido</text>
+<text x="316.0" y="1021.5" font-size="12" fill="#1F2A44">no se vuelve a pedir a la IA</text>
+<text x="316.0" y="1037.5" font-size="12" fill="#1F2A44">(control C-08).</text>
+<path d="M301.0,1186.0 h190.0 l10,10 v84.0 h-200.0 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.2"/>
+<text x="311.0" y="1205.0" font-size="12" fill="#1F2A44">Una ola sin fragmentos</text>
+<text x="311.0" y="1221.0" font-size="12" fill="#1F2A44">relevantes se cuenta como error</text>
+<text x="311.0" y="1237.0" font-size="12" fill="#1F2A44">(«Sin fragmentos»): hoy deja el</text>
+<text x="311.0" y="1253.0" font-size="12" fill="#1F2A44">documento «Listo con errores»</text>
+<text x="311.0" y="1269.0" font-size="12" fill="#1F2A44">(H-10).</text>
+<path d="M306.0,782.0 h180.0 l10,10 v52.0 h-190.0 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.2"/>
+<text x="316.0" y="801.0" font-size="12" fill="#1F2A44">La pausa y la detención se leen</text>
+<text x="316.0" y="817.0" font-size="12" fill="#1F2A44">al empezar cada ola, no</text>
+<text x="316.0" y="833.0" font-size="12" fill="#1F2A44">durante una llamada a la IA.</text>
+<path d="M306.0,1406.5 h180.0 l10,10 v52.0 h-190.0 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.2"/>
+<text x="316.0" y="1425.5" font-size="12" fill="#1F2A44">Los jobs viven en la memoria</text>
+<text x="316.0" y="1441.5" font-size="12" fill="#1F2A44">del servidor: se pierden al</text>
+<text x="316.0" y="1457.5" font-size="12" fill="#1F2A44">reiniciar (H-11).</text>
+<text x="233.5" y="343.5" text-anchor="middle" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">No</text>
+<text x="438.0" y="414.0" text-anchor="start" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">Sí</text>
+<text x="621.0" y="533.5" text-anchor="middle" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">lanza el hilo</text>
+<text x="892.5" y="620.0" text-anchor="middle" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">Sí</text>
+<text x="708.0" y="683.2" text-anchor="start" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">No</text>
+<text x="708.0" y="967.0" text-anchor="start" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">Sí</text>
+<text x="548.0" y="998.3" text-anchor="end" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">No</text>
+<text x="781.0" y="1120.5" text-anchor="middle" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">respuesta</text>
+<text x="837.5" y="1227.0" text-anchor="middle" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">No</text>
+<text x="988.0" y="1192.0" text-anchor="start" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">repite la llamada</text>
+<text x="708.0" y="1289.0" text-anchor="start" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">Sí</text>
+<text x="577.0" y="1429.5" text-anchor="middle" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">Sí</text>
+<text x="708.0" y="1506.2" text-anchor="start" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">No</text>
+<text x="168.0" y="782.1" text-anchor="start" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">mientras el job corre</text>
+<text x="45.0" y="1035.8" text-anchor="start" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">No</text>
+<text x="168.0" y="1497.8" text-anchor="start" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">Sí</text>
+<circle cx="38" cy="1685" r="7" fill="#1F3864"/>
+<text x="52" y="1690" font-size="12" fill="#1F2A44">Inicio</text>
+<circle cx="111.015625" cy="1685" r="9" fill="#fff" stroke="#1F3864" stroke-width="1.6"/><circle cx="111.015625" cy="1685" r="5" fill="#1F3864"/>
+<text x="128.015625" y="1690" font-size="12" fill="#1F2A44">Fin</text>
+<rect x="166.6875" y="1678" width="26" height="15" rx="5" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.4"/>
+<text x="200.6875" y="1690" font-size="12" fill="#1F2A44">Actividad (MVP v2.9)</text>
+<rect x="334.484375" y="1678" width="26" height="15" rx="5" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.4"/>
+<rect x="337.484375" y="1681" width="20" height="9" rx="3" fill="none" stroke="#2E75B6" stroke-width="1"/>
+<text x="368.484375" y="1690" font-size="12" fill="#1F2A44">Subactividad</text>
+<polygon points="470.1875,1675 481.1875,1685 470.1875,1695 459.1875,1685" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.4"/>
+<text x="489.1875" y="1690" font-size="12" fill="#1F2A44">Decisión</text>
+<rect x="557.21875" y="1678" width="26" height="15" rx="5" fill="#E2EFDA" stroke="#548235" stroke-width="1.4"/>
+<text x="591.21875" y="1690" font-size="12" fill="#1F2A44">Base de datos</text>
+<rect x="689.90625" y="1678" width="26" height="15" rx="5" fill="#F2F2F2" stroke="#7F7F7F" stroke-width="1.4"/>
+<text x="723.90625" y="1690" font-size="12" fill="#1F2A44">API externa</text>
+<rect x="808.578125" y="1678" width="26" height="15" rx="5" fill="#FDE9D9" stroke="#C55A11" stroke-width="1.4" stroke-dasharray="4 2"/>
+<text x="842.578125" y="1690" font-size="12" fill="#1F2A44">Propuesto (aún no existe)</text>
+<circle cx="38" cy="1711" r="9" fill="#1F3864"/><text x="38" y="1715" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">n</text>
+<text x="54" y="1715" font-size="12" fill="#1F2A44">Número de paso (se explica en la tabla de pasos de la ficha)</text>
+<text x="30" y="1737" font-size="12" fill="#566072">Fuente: main.py (analizar_iniciar, analizar_estado, analizar_pausar, analizar_reanudar, analizar_detener, _analizar_grupo, _dividir_y_analizar, seleccionar_chunks_para_grupo, _guardar_analisis,</text>
+<text x="30" y="1755" font-size="12" fill="#566072">_obtener_analisis_guardado). Constantes: PAUSA_ENTRE_GRUPOS = 3 s; SEGUNDOS_POR_GRUPO = 60 s; hasta 30 fragmentos por ola.</text>
+</svg>

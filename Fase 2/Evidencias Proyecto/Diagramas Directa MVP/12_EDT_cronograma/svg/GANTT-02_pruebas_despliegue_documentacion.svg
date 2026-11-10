@@ -1,0 +1,285 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="581" viewBox="0 0 1180 581" font-family="Arial, 'Liberation Sans', Helvetica, sans-serif"><defs><pattern id="hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="4" stroke="#AEB6C4" stroke-width="1.3"/></pattern></defs><rect width="1180" height="581" fill="#FFFFFF"/><text x="10.0" y="19.0" font-size="15" fill="#1F3864" text-anchor="start" font-weight="bold">Carta Gantt (2 de 2) · Pruebas y calidad, despliegue y documentación</text>
+<text x="10.0" y="35.0" font-size="10.5" fill="#7F7F7F" text-anchor="start">Estado al 22-oct-2026 · semana 1 = lunes 24-ago · plan de los sprints 5 a 8 propuesto por el Scrum Master</text>
+<rect x="351.7" y="140.0" width="13.5" height="367.0" fill="#F6F7FA" />
+<rect x="398.8" y="140.0" width="13.5" height="367.0" fill="#F6F7FA" />
+<rect x="445.9" y="140.0" width="13.5" height="367.0" fill="#F6F7FA" />
+<rect x="493.0" y="140.0" width="13.5" height="367.0" fill="#F6F7FA" />
+<rect x="540.1" y="140.0" width="13.5" height="367.0" fill="#F6F7FA" />
+<rect x="587.2" y="140.0" width="13.5" height="367.0" fill="#F6F7FA" />
+<rect x="634.3" y="140.0" width="13.5" height="367.0" fill="#F6F7FA" />
+<rect x="681.4" y="140.0" width="13.5" height="367.0" fill="#F6F7FA" />
+<rect x="728.5" y="140.0" width="13.5" height="367.0" fill="#F6F7FA" />
+<rect x="775.7" y="140.0" width="13.5" height="367.0" fill="#F6F7FA" />
+<rect x="822.8" y="140.0" width="13.5" height="367.0" fill="#F6F7FA" />
+<rect x="869.9" y="140.0" width="13.5" height="367.0" fill="#F6F7FA" />
+<rect x="917.0" y="140.0" width="13.5" height="367.0" fill="#F6F7FA" />
+<rect x="964.1" y="140.0" width="13.5" height="367.0" fill="#F6F7FA" />
+<rect x="1011.2" y="140.0" width="13.5" height="367.0" fill="#F6F7FA" />
+<rect x="1058.3" y="140.0" width="13.5" height="367.0" fill="#F6F7FA" />
+<rect x="1105.4" y="140.0" width="13.5" height="367.0" fill="#F6F7FA" />
+<rect x="1152.5" y="140.0" width="13.5" height="367.0" fill="#F6F7FA" />
+<rect x="553.6" y="102.0" width="40.4" height="405.0" fill="#C55A11" fill-opacity="0.07" />
+<rect x="742.0" y="102.0" width="40.4" height="405.0" fill="#C55A11" fill-opacity="0.07" />
+<rect x="883.3" y="102.0" width="127.9" height="405.0" fill="#C55A11" fill-opacity="0.07" />
+<line x1="318.0" y1="46.0" x2="318.0" y2="507.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<line x1="365.1" y1="46.0" x2="365.1" y2="507.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<line x1="412.2" y1="46.0" x2="412.2" y2="507.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<line x1="459.3" y1="46.0" x2="459.3" y2="507.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<line x1="506.4" y1="46.0" x2="506.4" y2="507.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<line x1="553.6" y1="46.0" x2="553.6" y2="507.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<line x1="600.7" y1="46.0" x2="600.7" y2="507.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<line x1="647.8" y1="46.0" x2="647.8" y2="507.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<line x1="694.9" y1="46.0" x2="694.9" y2="507.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<line x1="742.0" y1="46.0" x2="742.0" y2="507.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<line x1="789.1" y1="46.0" x2="789.1" y2="507.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<line x1="836.2" y1="46.0" x2="836.2" y2="507.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<line x1="883.3" y1="46.0" x2="883.3" y2="507.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<line x1="930.4" y1="46.0" x2="930.4" y2="507.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<line x1="977.6" y1="46.0" x2="977.6" y2="507.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<line x1="1024.7" y1="46.0" x2="1024.7" y2="507.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<line x1="1071.8" y1="46.0" x2="1071.8" y2="507.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<line x1="1118.9" y1="46.0" x2="1118.9" y2="507.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<line x1="1166.0" y1="46.0" x2="1166.0" y2="507.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<rect x="486.3" y="140.0" width="6.7" height="367.0" fill="url(#hatch)" />
+<rect x="647.8" y="140.0" width="6.7" height="367.0" fill="url(#hatch)" />
+<rect x="1031.4" y="140.0" width="6.7" height="367.0" fill="url(#hatch)" />
+<rect x="1145.8" y="140.0" width="6.7" height="367.0" fill="url(#hatch)" />
+<rect x="0.0" y="140.0" width="1180.0" height="21.0" fill="#E4EBF7" />
+<line x1="0.0" y1="161.0" x2="1180.0" y2="161.0" stroke="#E8EBF1" stroke-width="0.6"/>
+<line x1="0.0" y1="180.0" x2="1180.0" y2="180.0" stroke="#E8EBF1" stroke-width="0.6"/>
+<line x1="0.0" y1="199.0" x2="1180.0" y2="199.0" stroke="#E8EBF1" stroke-width="0.6"/>
+<line x1="0.0" y1="218.0" x2="1180.0" y2="218.0" stroke="#E8EBF1" stroke-width="0.6"/>
+<line x1="0.0" y1="237.0" x2="1180.0" y2="237.0" stroke="#E8EBF1" stroke-width="0.6"/>
+<line x1="0.0" y1="256.0" x2="1180.0" y2="256.0" stroke="#E8EBF1" stroke-width="0.6"/>
+<line x1="0.0" y1="275.0" x2="1180.0" y2="275.0" stroke="#E8EBF1" stroke-width="0.6"/>
+<rect x="0.0" y="275.0" width="1180.0" height="21.0" fill="#E4EBF7" />
+<line x1="0.0" y1="296.0" x2="1180.0" y2="296.0" stroke="#E8EBF1" stroke-width="0.6"/>
+<line x1="0.0" y1="315.0" x2="1180.0" y2="315.0" stroke="#E8EBF1" stroke-width="0.6"/>
+<line x1="0.0" y1="334.0" x2="1180.0" y2="334.0" stroke="#E8EBF1" stroke-width="0.6"/>
+<line x1="0.0" y1="353.0" x2="1180.0" y2="353.0" stroke="#E8EBF1" stroke-width="0.6"/>
+<rect x="0.0" y="353.0" width="1180.0" height="21.0" fill="#E4EBF7" />
+<line x1="0.0" y1="374.0" x2="1180.0" y2="374.0" stroke="#E8EBF1" stroke-width="0.6"/>
+<line x1="0.0" y1="393.0" x2="1180.0" y2="393.0" stroke="#E8EBF1" stroke-width="0.6"/>
+<line x1="0.0" y1="412.0" x2="1180.0" y2="412.0" stroke="#E8EBF1" stroke-width="0.6"/>
+<line x1="0.0" y1="431.0" x2="1180.0" y2="431.0" stroke="#E8EBF1" stroke-width="0.6"/>
+<line x1="0.0" y1="450.0" x2="1180.0" y2="450.0" stroke="#E8EBF1" stroke-width="0.6"/>
+<line x1="0.0" y1="469.0" x2="1180.0" y2="469.0" stroke="#E8EBF1" stroke-width="0.6"/>
+<line x1="0.0" y1="488.0" x2="1180.0" y2="488.0" stroke="#E8EBF1" stroke-width="0.6"/>
+<line x1="0.0" y1="507.0" x2="1180.0" y2="507.0" stroke="#E8EBF1" stroke-width="0.6"/>
+<line x1="318.0" y1="46.0" x2="318.0" y2="507.0" stroke="#9AA5B8" stroke-width="1"/>
+<line x1="718.4" y1="99.0" x2="718.4" y2="511.0" stroke="#C00000" stroke-width="1.5" stroke-dasharray="5 3"/>
+<rect x="684.4" y="511.0" width="68.0" height="13.0" fill="#C00000" rx="3" />
+<text x="718.4" y="521.0" font-size="9.5" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Hoy 22-oct</text>
+<text x="8.0" y="154.5" font-size="11.5" fill="#1F3864" text-anchor="start" font-weight="bold">4</text>
+<text x="24.0" y="154.5" font-size="11.5" fill="#1F3864" text-anchor="start" font-weight="bold">Pruebas y calidad</text>
+<rect x="694.9" y="147.5" width="363.4" height="5.0" fill="#44546A" />
+<polygon points="694.9,152.5 699.9,152.5 694.9,157.5" fill="#44546A"/>
+<polygon points="1058.3,152.5 1053.3,152.5 1058.3,157.5" fill="#44546A"/>
+<text x="14.0" y="174.1" font-size="10" fill="#7F7F7F" text-anchor="start" font-weight="bold">4.1</text>
+<text x="32.9" y="174.1" font-size="10.5" fill="#1F2A44" text-anchor="start">Plan de pruebas y casos (Anexo 3)</text>
+<rect x="694.9" y="165.0" width="13.5" height="11.0" fill="#1F3864" stroke="#1F3864" stroke-width="0.9" rx="2.5" />
+<text x="712.3" y="173.4" font-size="8.6" fill="#7F7F7F" text-anchor="start" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" paint-order="stroke">19 y 20-oct</text>
+<text x="14.0" y="193.1" font-size="10" fill="#7F7F7F" text-anchor="start" font-weight="bold">4.2</text>
+<text x="32.9" y="193.1" font-size="10.5" fill="#1F2A44" text-anchor="start">Corrección de hallazgos y defectos</text>
+<rect x="694.9" y="184.0" width="33.7" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<rect x="762.2" y="184.0" width="13.5" height="11.0" fill="#FFFFFF" stroke="#C55A11" stroke-width="0.9" rx="2.5" stroke-dasharray="3 2" />
+<rect x="843.0" y="184.0" width="26.9" height="11.0" fill="#FFFFFF" stroke="#C55A11" stroke-width="0.9" rx="2.5" stroke-dasharray="3 2" />
+<rect x="943.9" y="184.0" width="20.2" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<rect x="977.6" y="184.0" width="80.8" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<text x="711.7" y="192.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">S5-01</text>
+<text x="779.7" y="192.4" font-size="8.6" fill="#7F7F7F" text-anchor="start" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" paint-order="stroke">S5-16</text>
+<text x="856.4" y="192.4" font-size="8.6" fill="#C55A11" text-anchor="middle" font-weight="bold">S6-19</text>
+<text x="917.0" y="192.4" font-size="8.6" fill="#7F7F7F" text-anchor="start" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" paint-order="stroke">S7-15</text>
+<text x="1017.9" y="192.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">S8-02·03 S8-09</text>
+<text x="14.0" y="212.1" font-size="10" fill="#7F7F7F" text-anchor="start" font-weight="bold">4.3</text>
+<text x="32.9" y="212.1" font-size="10.5" fill="#1F2A44" text-anchor="start">Casos manuales TC-53 a TC-61</text>
+<rect x="742.0" y="203.0" width="26.9" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<text x="755.5" y="211.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">S5-09</text>
+<text x="14.0" y="231.1" font-size="10" fill="#7F7F7F" text-anchor="start" font-weight="bold">4.4</text>
+<text x="32.9" y="231.1" font-size="10.5" fill="#1F2A44" text-anchor="start">Prueba de aislamiento entre empresas</text>
+<rect x="836.2" y="222.0" width="26.9" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<text x="849.7" y="230.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">S6-05</text>
+<text x="14.0" y="250.1" font-size="10" fill="#7F7F7F" text-anchor="start" font-weight="bold">4.5</text>
+<text x="32.9" y="250.1" font-size="10.5" fill="#1F2A44" text-anchor="start">Regresión, aceptación e integración</text>
+<rect x="836.2" y="241.0" width="33.7" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<rect x="930.4" y="241.0" width="33.7" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<rect x="977.6" y="241.0" width="20.2" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<text x="784.0" y="249.4" font-size="8.6" fill="#7F7F7F" text-anchor="start" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" paint-order="stroke">S6-09 S6-15</text>
+<text x="878.2" y="249.4" font-size="8.6" fill="#7F7F7F" text-anchor="start" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" paint-order="stroke">S7-09 S7-16</text>
+<text x="1001.7" y="249.4" font-size="8.6" fill="#7F7F7F" text-anchor="start" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" paint-order="stroke">S8-01</text>
+<text x="14.0" y="269.1" font-size="10" fill="#7F7F7F" text-anchor="start" font-weight="bold">4.6</text>
+<text x="32.9" y="269.1" font-size="10.5" fill="#1F2A44" text-anchor="start">Medición de metas</text>
+<rect x="742.0" y="260.0" width="26.9" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<rect x="789.1" y="260.0" width="80.8" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<rect x="937.2" y="260.0" width="26.9" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<rect x="977.6" y="260.0" width="26.9" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<text x="755.5" y="268.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">S5-11</text>
+<text x="829.5" y="268.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">S6-12</text>
+<text x="884.9" y="268.4" font-size="8.6" fill="#7F7F7F" text-anchor="start" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" paint-order="stroke">S7-08 S7-17</text>
+<text x="991.0" y="268.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">S8-08</text>
+<text x="8.0" y="289.5" font-size="11.5" fill="#1F3864" text-anchor="start" font-weight="bold">5</text>
+<text x="24.0" y="289.5" font-size="11.5" fill="#1F3864" text-anchor="start" font-weight="bold">Despliegue y entrega técnica</text>
+<rect x="708.3" y="282.5" width="302.9" height="5.0" fill="#44546A" />
+<polygon points="708.3,287.5 713.3,287.5 708.3,292.5" fill="#44546A"/>
+<polygon points="1011.2,287.5 1006.2,287.5 1011.2,292.5" fill="#44546A"/>
+<text x="14.0" y="309.1" font-size="10" fill="#7F7F7F" text-anchor="start" font-weight="bold">5.1</text>
+<text x="32.9" y="309.1" font-size="10.5" fill="#1F2A44" text-anchor="start">Proyecto en Docker (Hito 2)</text>
+<rect x="708.3" y="300.0" width="53.8" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<text x="735.3" y="308.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">S5-02</text>
+<text x="14.0" y="328.1" font-size="10" fill="#7F7F7F" text-anchor="start" font-weight="bold">5.2</text>
+<text x="32.9" y="328.1" font-size="10.5" fill="#1F2A44" text-anchor="start">Versión v1.0.0 y demostración desplegada</text>
+<rect x="997.7" y="319.0" width="13.5" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<text x="1015.2" y="327.4" font-size="8.6" fill="#7F7F7F" text-anchor="start" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" paint-order="stroke">S8-04</text>
+<text x="14.0" y="347.1" font-size="10" fill="#7F7F7F" text-anchor="start" font-weight="bold">5.3</text>
+<text x="32.9" y="347.1" font-size="10.5" fill="#1F2A44" text-anchor="start">Integración continua mínima</text>
+<rect x="896.8" y="338.0" width="53.8" height="11.0" fill="#FFFFFF" stroke="#C55A11" stroke-width="0.9" rx="2.5" stroke-dasharray="3 2" />
+<text x="923.7" y="346.4" font-size="8.6" fill="#C55A11" text-anchor="middle" font-weight="bold">S7-20</text>
+<text x="8.0" y="367.5" font-size="11.5" fill="#1F3864" text-anchor="start" font-weight="bold">6</text>
+<text x="24.0" y="367.5" font-size="11.5" fill="#1F3864" text-anchor="start" font-weight="bold">Documentación y cierre</text>
+<rect x="701.6" y="360.5" width="450.9" height="5.0" fill="#44546A" />
+<polygon points="701.6,365.5 706.6,365.5 701.6,370.5" fill="#44546A"/>
+<polygon points="1152.5,365.5 1147.5,365.5 1152.5,370.5" fill="#44546A"/>
+<text x="14.0" y="387.1" font-size="10" fill="#7F7F7F" text-anchor="start" font-weight="bold">6.1</text>
+<text x="32.9" y="387.1" font-size="10.5" fill="#1F2A44" text-anchor="start">Manual de usuario</text>
+<rect x="715.1" y="378.0" width="53.8" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<rect x="843.0" y="378.0" width="26.9" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<rect x="937.2" y="378.0" width="26.9" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<rect x="977.6" y="378.0" width="26.9" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<text x="742.0" y="386.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">S5-10</text>
+<text x="856.4" y="386.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">S6-11</text>
+<text x="950.6" y="386.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">S7-11</text>
+<text x="991.0" y="386.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">S8-06</text>
+<text x="14.0" y="406.1" font-size="10" fill="#7F7F7F" text-anchor="start" font-weight="bold">6.2</text>
+<text x="32.9" y="406.1" font-size="10.5" fill="#1F2A44" text-anchor="start">Manual de despliegue</text>
+<rect x="836.2" y="397.0" width="33.7" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<rect x="984.3" y="397.0" width="26.9" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<text x="853.0" y="405.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">S6-10</text>
+<text x="997.7" y="405.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">S8-05</text>
+<text x="14.0" y="425.1" font-size="10" fill="#7F7F7F" text-anchor="start" font-weight="bold">6.3</text>
+<text x="32.9" y="425.1" font-size="10.5" fill="#1F2A44" text-anchor="start">Registro de depuración y decisiones</text>
+<rect x="809.3" y="416.0" width="60.6" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<rect x="883.3" y="416.0" width="80.8" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<text x="839.6" y="424.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">S6-17</text>
+<text x="923.7" y="424.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">S7-12</text>
+<text x="14.0" y="444.1" font-size="10" fill="#7F7F7F" text-anchor="start" font-weight="bold">6.4</text>
+<text x="32.9" y="444.1" font-size="10.5" fill="#1F2A44" text-anchor="start">Documentación Scrum (Anexo 4)</text>
+<rect x="701.6" y="435.0" width="20.2" height="11.0" fill="#1F3864" stroke="#1F3864" stroke-width="0.9" rx="2.5" />
+<rect x="721.8" y="435.0" width="336.5" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<text x="606.4" y="443.4" font-size="8.6" fill="#7F7F7F" text-anchor="start" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" paint-order="stroke">v1 (20-oct) y v2 (22-oct)</text>
+<text x="890.1" y="443.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">Actualización por sprint</text>
+<text x="14.0" y="463.1" font-size="10" fill="#7F7F7F" text-anchor="start" font-weight="bold">6.5</text>
+<text x="32.9" y="463.1" font-size="10.5" fill="#1F2A44" text-anchor="start">Anexos 1 a 4 definitivos</text>
+<rect x="849.7" y="454.0" width="20.2" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<rect x="977.6" y="454.0" width="26.9" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<text x="873.9" y="462.4" font-size="8.6" fill="#7F7F7F" text-anchor="start" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" paint-order="stroke">S6-18</text>
+<text x="991.0" y="462.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">S8-07</text>
+<text x="14.0" y="482.1" font-size="10" fill="#7F7F7F" text-anchor="start" font-weight="bold">6.6</text>
+<text x="32.9" y="482.1" font-size="10.5" fill="#1F2A44" text-anchor="start">Entrega final (4-dic)</text>
+<rect x="997.7" y="473.0" width="13.5" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<text x="1015.2" y="481.4" font-size="8.6" fill="#7F7F7F" text-anchor="start" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round" paint-order="stroke">S8-12</text>
+<text x="14.0" y="501.1" font-size="10" fill="#7F7F7F" text-anchor="start" font-weight="bold">6.7</text>
+<text x="32.9" y="501.1" font-size="10.5" fill="#1F2A44" text-anchor="start">Presentación y defensa</text>
+<rect x="1024.7" y="492.0" width="33.7" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<rect x="1071.8" y="492.0" width="80.8" height="11.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<text x="1041.5" y="500.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">S8-10</text>
+<text x="1112.2" y="500.4" font-size="8.6" fill="#1F3864" text-anchor="middle" font-weight="bold">Defensa final</text>
+<text x="8.0" y="62.0" font-size="10.5" fill="#1F3864" text-anchor="start" font-weight="bold">Sprint</text>
+<rect x="318.5" y="46.0" width="93.2" height="26.0" fill="#1F3864" stroke="#1F3864" stroke-width="0.8" rx="2" />
+<text x="365.1" y="58.0" font-size="11" fill="#FFFFFF" text-anchor="middle" font-weight="bold">S1</text>
+<text x="365.1" y="68.5" font-size="8.6" fill="#FFFFFF" text-anchor="middle">Completado</text>
+<rect x="412.7" y="46.0" width="93.2" height="26.0" fill="#1F3864" stroke="#1F3864" stroke-width="0.8" rx="2" />
+<text x="459.3" y="58.0" font-size="11" fill="#FFFFFF" text-anchor="middle" font-weight="bold">S2</text>
+<text x="459.3" y="68.5" font-size="8.6" fill="#FFFFFF" text-anchor="middle">Completado</text>
+<rect x="506.9" y="46.0" width="93.2" height="26.0" fill="#1F3864" stroke="#1F3864" stroke-width="0.8" rx="2" />
+<text x="553.6" y="58.0" font-size="11" fill="#FFFFFF" text-anchor="middle" font-weight="bold">S3</text>
+<text x="553.6" y="68.5" font-size="8.6" fill="#FFFFFF" text-anchor="middle">Completado</text>
+<rect x="601.2" y="46.0" width="93.2" height="26.0" fill="#BF9000" stroke="#BF9000" stroke-width="0.8" rx="2" />
+<text x="647.8" y="58.0" font-size="11" fill="#FFFFFF" text-anchor="middle" font-weight="bold">S4</text>
+<text x="647.8" y="68.5" font-size="8.6" fill="#FFFFFF" text-anchor="middle">Parcial</text>
+<rect x="695.4" y="46.0" width="93.2" height="26.0" fill="#2E75B6" stroke="#2E75B6" stroke-width="0.8" rx="2" />
+<text x="742.0" y="58.0" font-size="11" fill="#FFFFFF" text-anchor="middle" font-weight="bold">S5</text>
+<text x="742.0" y="68.5" font-size="8.6" fill="#FFFFFF" text-anchor="middle">En curso</text>
+<rect x="789.6" y="46.0" width="93.2" height="26.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.8" rx="2" />
+<text x="836.2" y="58.0" font-size="11" fill="#1F3864" text-anchor="middle" font-weight="bold">S6</text>
+<text x="836.2" y="68.5" font-size="8.6" fill="#1F3864" text-anchor="middle">Planificado</text>
+<rect x="883.8" y="46.0" width="93.2" height="26.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.8" rx="2" />
+<text x="930.4" y="58.0" font-size="11" fill="#1F3864" text-anchor="middle" font-weight="bold">S7</text>
+<text x="930.4" y="68.5" font-size="8.6" fill="#1F3864" text-anchor="middle">Planificado</text>
+<rect x="978.1" y="46.0" width="93.2" height="26.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.8" rx="2" />
+<text x="1024.7" y="58.0" font-size="11" fill="#1F3864" text-anchor="middle" font-weight="bold">S8</text>
+<text x="1024.7" y="68.5" font-size="8.6" fill="#1F3864" text-anchor="middle">Planificado</text>
+<rect x="1072.3" y="46.0" width="93.2" height="26.0" fill="#5B4B8A" stroke="#5B4B8A" stroke-width="0.8" rx="2" />
+<text x="1118.9" y="58.0" font-size="11" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Defensa</text>
+<text x="1118.9" y="68.5" font-size="8.6" fill="#FFFFFF" text-anchor="middle">semanas 17-18</text>
+<text x="312.0" y="83.0" font-size="9.5" fill="#7F7F7F" text-anchor="end" font-weight="bold">Semana</text>
+<text x="312.0" y="95.5" font-size="9" fill="#7F7F7F" text-anchor="end">Lunes</text>
+<text x="341.6" y="83.0" font-size="9.5" fill="#1F3864" text-anchor="middle" font-weight="bold">1</text>
+<text x="341.6" y="95.5" font-size="8.6" fill="#7F7F7F" text-anchor="middle">24-ago</text>
+<text x="388.7" y="83.0" font-size="9.5" fill="#1F3864" text-anchor="middle" font-weight="bold">2</text>
+<text x="388.7" y="95.5" font-size="8.6" fill="#7F7F7F" text-anchor="middle">31-ago</text>
+<text x="435.8" y="83.0" font-size="9.5" fill="#1F3864" text-anchor="middle" font-weight="bold">3</text>
+<text x="435.8" y="95.5" font-size="8.6" fill="#7F7F7F" text-anchor="middle">7-sep</text>
+<text x="482.9" y="83.0" font-size="9.5" fill="#1F3864" text-anchor="middle" font-weight="bold">4</text>
+<text x="482.9" y="95.5" font-size="8.6" fill="#7F7F7F" text-anchor="middle">14-sep</text>
+<text x="530.0" y="83.0" font-size="9.5" fill="#1F3864" text-anchor="middle" font-weight="bold">5</text>
+<text x="530.0" y="95.5" font-size="8.6" fill="#7F7F7F" text-anchor="middle">21-sep</text>
+<text x="577.1" y="83.0" font-size="9.5" fill="#1F3864" text-anchor="middle" font-weight="bold">6</text>
+<text x="577.1" y="95.5" font-size="8.6" fill="#7F7F7F" text-anchor="middle">28-sep</text>
+<text x="624.2" y="83.0" font-size="9.5" fill="#1F3864" text-anchor="middle" font-weight="bold">7</text>
+<text x="624.2" y="95.5" font-size="8.6" fill="#7F7F7F" text-anchor="middle">5-oct</text>
+<text x="671.3" y="83.0" font-size="9.5" fill="#1F3864" text-anchor="middle" font-weight="bold">8</text>
+<text x="671.3" y="95.5" font-size="8.6" fill="#7F7F7F" text-anchor="middle">12-oct</text>
+<text x="718.4" y="83.0" font-size="9.5" fill="#1F3864" text-anchor="middle" font-weight="bold">9</text>
+<text x="718.4" y="95.5" font-size="8.6" fill="#7F7F7F" text-anchor="middle">19-oct</text>
+<text x="765.6" y="83.0" font-size="9.5" fill="#1F3864" text-anchor="middle" font-weight="bold">10</text>
+<text x="765.6" y="95.5" font-size="8.6" fill="#7F7F7F" text-anchor="middle">26-oct</text>
+<text x="812.7" y="83.0" font-size="9.5" fill="#1F3864" text-anchor="middle" font-weight="bold">11</text>
+<text x="812.7" y="95.5" font-size="8.6" fill="#7F7F7F" text-anchor="middle">2-nov</text>
+<text x="859.8" y="83.0" font-size="9.5" fill="#1F3864" text-anchor="middle" font-weight="bold">12</text>
+<text x="859.8" y="95.5" font-size="8.6" fill="#7F7F7F" text-anchor="middle">9-nov</text>
+<text x="906.9" y="83.0" font-size="9.5" fill="#1F3864" text-anchor="middle" font-weight="bold">13</text>
+<text x="906.9" y="95.5" font-size="8.6" fill="#7F7F7F" text-anchor="middle">16-nov</text>
+<text x="954.0" y="83.0" font-size="9.5" fill="#1F3864" text-anchor="middle" font-weight="bold">14</text>
+<text x="954.0" y="95.5" font-size="8.6" fill="#7F7F7F" text-anchor="middle">23-nov</text>
+<text x="1001.1" y="83.0" font-size="9.5" fill="#1F3864" text-anchor="middle" font-weight="bold">15</text>
+<text x="1001.1" y="95.5" font-size="8.6" fill="#7F7F7F" text-anchor="middle">30-nov</text>
+<text x="1048.2" y="83.0" font-size="9.5" fill="#1F3864" text-anchor="middle" font-weight="bold">16</text>
+<text x="1048.2" y="95.5" font-size="8.6" fill="#7F7F7F" text-anchor="middle">7-dic</text>
+<text x="1095.3" y="83.0" font-size="9.5" fill="#1F3864" text-anchor="middle" font-weight="bold">17</text>
+<text x="1095.3" y="95.5" font-size="8.6" fill="#7F7F7F" text-anchor="middle">14-dic</text>
+<text x="1142.4" y="83.0" font-size="9.5" fill="#1F3864" text-anchor="middle" font-weight="bold">18</text>
+<text x="1142.4" y="95.5" font-size="8.6" fill="#7F7F7F" text-anchor="middle">21-dic</text>
+<line x1="0.0" y1="72.0" x2="1180.0" y2="72.0" stroke="#FFFFFF" stroke-width="0"/>
+<line x1="0.0" y1="99.0" x2="1180.0" y2="99.0" stroke="#9AA5B8" stroke-width="0.8"/>
+<text x="8.0" y="115.0" font-size="10.5" fill="#1F3864" text-anchor="start" font-weight="bold">Hitos</text>
+<rect x="459.3" y="104.0" width="33.7" height="12.0" fill="#C55A11" rx="2.5" />
+<text x="476.2" y="130.0" font-size="9" fill="#C55A11" text-anchor="middle" font-weight="bold">Exposición</text>
+<rect x="553.6" y="104.0" width="40.4" height="12.0" fill="#C55A11" rx="2.5" />
+<text x="573.7" y="113.0" font-size="9" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Hito 1</text>
+<rect x="742.0" y="104.0" width="40.4" height="12.0" fill="#C55A11" rx="2.5" />
+<text x="762.2" y="113.0" font-size="9" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Hito 2</text>
+<rect x="883.3" y="104.0" width="127.9" height="12.0" fill="#C55A11" rx="2.5" />
+<text x="947.3" y="113.0" font-size="9" fill="#FFFFFF" text-anchor="middle" font-weight="bold">Hito 3 · 16-nov a 4-dic</text>
+<polygon points="1007.8,103.0 1014.3,110.0 1007.8,117.0 1001.3,110.0" fill="#C00000" stroke="#FFFFFF" stroke-width="0.8"/>
+<text x="1007.8" y="130.0" font-size="9" fill="#C00000" text-anchor="middle" font-weight="bold">Entrega 4-dic</text>
+<rect x="1071.8" y="104.0" width="80.8" height="12.0" fill="#5B4B8A" rx="2.5" />
+<text x="1112.2" y="130.0" font-size="9" fill="#5B4B8A" text-anchor="middle" font-weight="bold">Defensa 14 a 25-dic</text>
+<line x1="0.0" y1="136.0" x2="1180.0" y2="136.0" stroke="#9AA5B8" stroke-width="0.8"/>
+<rect x="10.0" y="525.0" width="20.0" height="10.0" fill="#1F3864" stroke="#1F3864" stroke-width="0.9" rx="2.5" />
+<text x="35.0" y="533.5" font-size="9.5" fill="#1F2A44" text-anchor="start">Completado</text>
+<rect x="102.2" y="525.0" width="20.0" height="10.0" fill="#BF9000" stroke="#BF9000" stroke-width="0.9" rx="2.5" />
+<text x="127.2" y="533.5" font-size="9.5" fill="#1F2A44" text-anchor="start">Parcial</text>
+<rect x="172.2" y="525.0" width="20.0" height="10.0" fill="#2E75B6" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<text x="197.2" y="533.5" font-size="9.5" fill="#1F2A44" text-anchor="start">En curso</text>
+<rect x="250.7" y="525.0" width="20.0" height="10.0" fill="#BDD7EE" stroke="#2E75B6" stroke-width="0.9" rx="2.5" />
+<text x="275.7" y="533.5" font-size="9.5" fill="#1F2A44" text-anchor="start">Planificado (plan, no avance)</text>
+<rect x="414.2" y="525.0" width="20.0" height="10.0" fill="#FFFFFF" stroke="#C55A11" stroke-width="0.9" rx="2.5" stroke-dasharray="3 2" />
+<text x="439.2" y="533.5" font-size="9.5" fill="#1F2A44" text-anchor="start">Si hay capacidad (no comprometido)</text>
+<polygon points="615.9,525.0 621.9,530.0 615.9,535.0 609.9,530.0" fill="#C55A11"/>
+<text x="626.9" y="533.5" font-size="9.5" fill="#1F2A44" text-anchor="start">Hito</text>
+<rect x="657.8" y="525.0" width="14.0" height="10.0" fill="url(#hatch)" stroke="#AEB6C4" stroke-width="0.6" />
+<text x="676.8" y="533.5" font-size="9.5" fill="#1F2A44" text-anchor="start">Feriado</text>
+<rect x="722.9" y="525.0" width="14.0" height="10.0" fill="#C55A11" stroke="#C55A11" stroke-width="0.5" fill-opacity="0.12" />
+<text x="741.9" y="533.5" font-size="9.5" fill="#1F2A44" text-anchor="start">Ventana de hito</text>
+<text x="10.0" y="551.0" font-size="9.2" fill="#7F7F7F" text-anchor="start">S1 a S4: tramos respaldados por entregables (Anexo 4, sección 2). S5 a S8: plan del Scrum Master; no es avance real. El estado de las tareas del S5 se confirma con el tablero.</text>
+<text x="10.0" y="564.0" font-size="9.2" fill="#7F7F7F" text-anchor="start">Los códigos dentro de las barras (S5-01, S6-03…) son tareas del Sprint Backlog (Anexo 4, sección 3). Semana 1 = lunes 24-ago-2026. Feriados hábiles: 18-sep, 12-oct, 8-dic y 25-dic.</text></svg>

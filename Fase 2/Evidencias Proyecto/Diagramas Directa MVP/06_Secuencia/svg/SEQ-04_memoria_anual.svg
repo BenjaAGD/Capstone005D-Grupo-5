@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1782" height="1409" viewBox="0 0 1782 1409" font-family="Arial, 'Liberation Sans', Helvetica, sans-serif">
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3F4A5C"/></marker><marker id="arrO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9" fill="none" stroke="#3F4A5C" stroke-width="1.4"/></marker></defs>
+<rect width="1782" height="1409" fill="#FFFFFF"/>
+<g transform="translate(0.0,0)">
+<text x="891.2" y="26" text-anchor="middle" font-size="17" font-weight="700" fill="#1F3864">Diagrama de secuencia · Armar la memoria anual (cobertura, borrador con IA y PDF)</text>
+<line x1="113.4" y1="118" x2="113.4" y2="1317" stroke="#A9B6C8" stroke-width="1.4"/>
+<line x1="525.7" y1="120" x2="525.7" y2="1317" stroke="#A9B6C8" stroke-width="1.4"/>
+<line x1="1014.3" y1="120" x2="1014.3" y2="1317" stroke="#A9B6C8" stroke-width="1.4"/>
+<line x1="1400.8" y1="120" x2="1400.8" y2="1317" stroke="#A9B6C8" stroke-width="1.4"/>
+<line x1="1638.6" y1="120" x2="1638.6" y2="1317" stroke="#A9B6C8" stroke-width="1.4"/>
+<g stroke="#1F3864" stroke-width="2" fill="none"><circle cx="113.375" cy="72" r="9" fill="#fff"/><path d="M113.375,81 V102 M99.375,89 H127.375 M113.375,102 L102.375,116 M113.375,102 L124.375,116"/></g>
+<text x="113.375" y="130" text-anchor="middle" font-size="15" font-weight="700" fill="#1F3864">Gerente General</text>
+<rect x="434.8" y="58" width="181.7" height="62" rx="6" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.6"/>
+<text x="525.671875" y="93.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Página memoria.html</text>
+<rect x="930.9" y="58" width="166.7" height="62" rx="6" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.6"/>
+<text x="1014.265625" y="85.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Router memoria.py</text>
+<text x="1014.265625" y="103.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">API FastAPI</text>
+<rect x="1282.8" y="58" width="236.0" height="62" rx="6" fill="#E2EFDA" stroke="#548235" stroke-width="1.6"/>
+<text x="1400.796875" y="85.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Supabase</text>
+<text x="1400.796875" y="103.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">documentos · chunks · analisis</text>
+<rect x="1534.8" y="58" width="207.6" height="62" rx="6" fill="#F2F2F2" stroke="#7F7F7F" stroke-width="1.6"/>
+<text x="1638.578125" y="85.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Proveedores de IA</text>
+<text x="1638.578125" y="103.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">Groq → NVIDIA (respaldo)</text>
+<rect x="720.5" y="234" width="702.3" height="248" fill="none" stroke="#BF9000" stroke-width="1.3" stroke-dasharray="5 3"/>
+<path d="M720.5,234 h33.2 v14 l-7,7 h-26.2 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="729.5" y="249" font-size="13" font-weight="700" fill="#1F2A44">alt</text>
+<text x="763.7" y="250" font-size="13" fill="#1F2A44">[hay resultado en caché de menos de 10 minutos]</text>
+<line x1="720.5" y1="317" x2="1422.8" y2="317" stroke="#BF9000" stroke-width="1.3" stroke-dasharray="5 3"/>
+<text x="730.5" y="334" font-size="13" fill="#1F2A44">[sin caché o con «Actualizar datos»]</text>
+<rect x="91.4" y="592" width="1579.2" height="429" fill="none" stroke="#BF9000" stroke-width="1.3" stroke-dasharray="5 3"/>
+<path d="M91.4,592 h38.2 v14 l-7,7 h-31.2 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="100.4" y="607" font-size="13" font-weight="700" fill="#1F2A44">opt</text>
+<text x="139.6" y="608" font-size="13" fill="#1F2A44">[pide un borrador con IA]</text>
+<rect x="503.7" y="814" width="1156.9" height="195" fill="none" stroke="#BF9000" stroke-width="1.3" stroke-dasharray="5 3"/>
+<path d="M503.7,814 h33.2 v14 l-7,7 h-26.2 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="512.7" y="829" font-size="13" font-weight="700" fill="#1F2A44">alt</text>
+<text x="546.8" y="830" font-size="13" fill="#1F2A44">[la IA respondió]</text>
+<line x1="503.7" y1="938" x2="1660.6" y2="938" stroke="#BF9000" stroke-width="1.3" stroke-dasharray="5 3"/>
+<text x="513.7" y="955" font-size="13" fill="#1F2A44">[la IA no respondió]</text>
+<line x1="124.4" y1="161" x2="524.7" y2="161" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="113.4" cy="161" r="9.5" fill="#1F3864"/>
+<text x="113.4" y="165" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">1</text>
+<text x="325.5" y="154" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">Abre «Memoria Anual» y elige los documentos de base</text>
+<line x1="536.7" y1="206" x2="1013.3" y2="206" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="525.7" cy="206" r="9.5" fill="#1F3864"/>
+<text x="525.7" y="210" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">2</text>
+<text x="776.0" y="199" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">GET /api/memoria/cobertura?docs=…</text>
+<path d="M848.7,270 h321.2 l10,10 v19 h-331.2 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="1014.3" y="288" text-anchor="middle" font-size="13" fill="#1F2A44">construir_cobertura_cacheada(): reutiliza el resultado</text>
+<line x1="1025.3" y1="368" x2="1399.8" y2="368" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1014.3" cy="368" r="9.5" fill="#1F3864"/>
+<text x="1014.3" y="372" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">3</text>
+<text x="1213.5" y="361" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">cargar_chunks() y cargar_analisis() por documento</text>
+<line x1="1389.8" y1="413" x2="1015.3" y2="413" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1400.8" cy="413" r="9.5" fill="#1F3864"/>
+<text x="1400.8" y="417" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">4</text>
+<text x="1201.5" y="406" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">fragmentos y análisis</text>
+<path d="M742.5,439 h533.5 l10,10 v19 h-543.5 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="1014.3" y="457" text-anchor="middle" font-size="13" fill="#1F2A44">buscar_evidencia(): palabras clave de los 11 capítulos → evidencia fuerte, débil o ninguna</text>
+<line x1="1003.3" y1="519" x2="526.7" y2="519" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1014.3" cy="519" r="9.5" fill="#1F3864"/>
+<text x="1014.3" y="523" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">5</text>
+<text x="764.0" y="512" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">{capítulos, temas con evidencia, señales y puntaje por agente}</text>
+<line x1="514.7" y1="564" x2="114.4" y2="564" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="525.7" cy="564" r="9.5" fill="#1F3864"/>
+<text x="525.7" y="568" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">6</text>
+<text x="313.5" y="557" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">Muestra cada capítulo con su evidencia y página</text>
+<line x1="124.4" y1="647" x2="524.7" y2="647" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="113.4" cy="647" r="9.5" fill="#1F3864"/>
+<text x="113.4" y="651" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">7</text>
+<text x="325.5" y="640" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">Pulsa «Sugerir borrador con IA» en un capítulo</text>
+<line x1="536.7" y1="692" x2="1013.3" y2="692" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="525.7" cy="692" r="9.5" fill="#1F3864"/>
+<text x="525.7" y="696" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">8</text>
+<text x="776.0" y="685" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">POST /api/memoria/sugerir (docs, capitulo)</text>
+<path d="M736.7,718 h545.2 l10,10 v19 h-555.2 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="1014.3" y="736" text-anchor="middle" font-size="13" fill="#1F2A44">sugerir_borrador(): contexto mínimo (300 caracteres por tema y hasta 3 señales por agente)</text>
+<line x1="1025.3" y1="786" x2="1637.6" y2="786" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1014.3" cy="786" r="9.5" fill="#1F3864"/>
+<text x="1014.3" y="790" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">9</text>
+<text x="1332.4" y="779" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">llamar_llm_chat(temperatura 0,2 · máx. 1.200 tokens · JSON)</text>
+<line x1="1627.6" y1="869" x2="1015.3" y2="869" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1638.6" cy="869" r="9.5" fill="#1F3864"/>
+<text x="1638.6" y="873" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">10</text>
+<text x="1320.4" y="862" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">borrador de 2 párrafos y hasta 5 datos pendientes</text>
+<line x1="1003.3" y1="914" x2="526.7" y2="914" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1014.3" cy="914" r="9.5" fill="#1F3864"/>
+<text x="1014.3" y="918" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">11</text>
+<text x="764.0" y="907" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">{ok: true, texto, pendientes}</text>
+<line x1="1003.3" y1="989" x2="526.7" y2="989" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1014.3" cy="989" r="9.5" fill="#1F3864"/>
+<text x="1014.3" y="993" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">12</text>
+<text x="764.0" y="982" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">{ok: false, «La IA no respondió. Intenta de nuevo en un momento.»}</text>
+<path d="M224.9,1039 h591.6 l10,10 v19 h-601.6 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="525.7" y="1057" text-anchor="middle" font-size="13" fill="#1F2A44">las notas y el estado de cada capítulo (Pendiente · En redacción · Listo) se guardan en localStorage</text>
+<line x1="124.4" y1="1107" x2="524.7" y2="1107" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="113.4" cy="1107" r="9.5" fill="#1F3864"/>
+<text x="113.4" y="1111" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">13</text>
+<text x="325.5" y="1100" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">Pulsa «Descargar PDF»</text>
+<line x1="536.7" y1="1152" x2="1013.3" y2="1152" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="525.7" cy="1152" r="9.5" fill="#1F3864"/>
+<text x="525.7" y="1156" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">14</text>
+<text x="776.0" y="1145" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">POST /api/memoria/pdf (docs, caps, solo_marcados)</text>
+<path d="M863.2,1178 h292.2 l10,10 v19 h-302.2 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="1014.3" y="1196" text-anchor="middle" font-size="13" fill="#1F2A44">html_pdf_memoria() → html_a_pdf() (xhtml2pdf)</text>
+<line x1="1003.3" y1="1246" x2="526.7" y2="1246" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1014.3" cy="1246" r="9.5" fill="#1F3864"/>
+<text x="1014.3" y="1250" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">15</text>
+<text x="764.0" y="1239" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">PDF Directa_Memoria_Anual_&lt;fecha&gt;</text>
+<line x1="514.7" y1="1291" x2="114.4" y2="1291" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="525.7" cy="1291" r="9.5" fill="#1F3864"/>
+<text x="525.7" y="1295" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">16</text>
+<text x="313.5" y="1284" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">Descarga el PDF y sigue redactando fuera del sistema</text>
+<g stroke="#1F3864" stroke-width="2" fill="none"><circle cx="113.375" cy="1331" r="9" fill="#fff"/><path d="M113.375,1340 V1361 M99.375,1348 H127.375 M113.375,1361 L102.375,1375 M113.375,1361 L124.375,1375"/></g>
+<text x="113.375" y="1389" text-anchor="middle" font-size="15" font-weight="700" fill="#1F3864">Gerente General</text>
+<rect x="434.8" y="1317" width="181.7" height="62" rx="6" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.6"/>
+<text x="525.671875" y="1352.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Página memoria.html</text>
+<rect x="930.9" y="1317" width="166.7" height="62" rx="6" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.6"/>
+<text x="1014.265625" y="1344.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Router memoria.py</text>
+<text x="1014.265625" y="1362.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">API FastAPI</text>
+<rect x="1282.8" y="1317" width="236.0" height="62" rx="6" fill="#E2EFDA" stroke="#548235" stroke-width="1.6"/>
+<text x="1400.796875" y="1344.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Supabase</text>
+<text x="1400.796875" y="1362.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">documentos · chunks · analisis</text>
+<rect x="1534.8" y="1317" width="207.6" height="62" rx="6" fill="#F2F2F2" stroke="#7F7F7F" stroke-width="1.6"/>
+<text x="1638.578125" y="1344.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Proveedores de IA</text>
+<text x="1638.578125" y="1362.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">Groq → NVIDIA (respaldo)</text>
+</g></svg>

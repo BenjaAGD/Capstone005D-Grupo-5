@@ -1,0 +1,213 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2341" height="2141" viewBox="0 0 2341 2141" font-family="Arial, 'Liberation Sans', Helvetica, sans-serif">
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3F4A5C"/></marker><marker id="arrO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9" fill="none" stroke="#3F4A5C" stroke-width="1.4"/></marker></defs>
+<rect width="2341" height="2141" fill="#FFFFFF"/>
+<g transform="translate(0.0,0)">
+<text x="1170.6" y="26" text-anchor="middle" font-size="17" font-weight="700" fill="#1F3864">Diagrama de secuencia · Consulta RAG de extremo a extremo (POST /api/consultar-stream/)</text>
+<line x1="113.4" y1="118" x2="113.4" y2="2049" stroke="#A9B6C8" stroke-width="1.4"/>
+<line x1="470.4" y1="120" x2="470.4" y2="2049" stroke="#A9B6C8" stroke-width="1.4"/>
+<line x1="1100.9" y1="120" x2="1100.9" y2="2049" stroke="#A9B6C8" stroke-width="1.4"/>
+<line x1="1395.7" y1="120" x2="1395.7" y2="2049" stroke="#A9B6C8" stroke-width="1.4"/>
+<line x1="1560.4" y1="120" x2="1560.4" y2="2049" stroke="#A9B6C8" stroke-width="1.4"/>
+<line x1="1774.6" y1="120" x2="1774.6" y2="2049" stroke="#A9B6C8" stroke-width="1.4"/>
+<line x1="2047.9" y1="120" x2="2047.9" y2="2049" stroke="#A9B6C8" stroke-width="1.4"/>
+<line x1="2242.4" y1="120" x2="2242.4" y2="2049" stroke="#A9B6C8" stroke-width="1.4"/>
+<g stroke="#1F3864" stroke-width="2" fill="none"><circle cx="113.375" cy="72" r="9" fill="#fff"/><path d="M113.375,81 V102 M99.375,89 H127.375 M113.375,102 L102.375,116 M113.375,102 L124.375,116"/></g>
+<text x="113.375" y="130" text-anchor="middle" font-size="15" font-weight="700" fill="#1F3864">Gerente General</text>
+<rect x="413.7" y="58" width="113.4" height="62" rx="6" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.6"/>
+<text x="470.40625" y="85.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Cliente web</text>
+<text x="470.40625" y="103.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">index.html</text>
+<rect x="1043.4" y="58" width="115.0" height="62" rx="6" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.6"/>
+<text x="1100.875" y="85.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">API FastAPI</text>
+<text x="1100.875" y="103.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">main.py</text>
+<rect x="1307.3" y="58" width="176.7" height="62" rx="6" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.6"/>
+<text x="1395.671875" y="85.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Catálogo de agentes</text>
+<text x="1395.671875" y="103.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">agentes.py</text>
+<rect x="1500.0" y="58" width="120.9" height="62" rx="6" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.6"/>
+<text x="1560.4453125" y="85.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Cliente de IA</text>
+<text x="1560.4453125" y="103.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">ia_config.py</text>
+<rect x="1681.6" y="58" width="185.8" height="62" rx="6" fill="#E2EFDA" stroke="#548235" stroke-width="1.6"/>
+<text x="1774.55078125" y="85.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Supabase</text>
+<text x="1774.55078125" y="103.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">PostgreSQL + pgvector</text>
+<rect x="1928.2" y="58" width="239.3" height="62" rx="6" fill="#F2F2F2" stroke="#7F7F7F" stroke-width="1.6"/>
+<text x="2047.8984375" y="85.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">NVIDIA NIM API</text>
+<text x="2047.8984375" y="103.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">embeddings y LLM de respaldo</text>
+<rect x="2183.6" y="58" width="117.6" height="62" rx="6" fill="#F2F2F2" stroke="#7F7F7F" stroke-width="1.6"/>
+<text x="2242.359375" y="85.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Groq API</text>
+<text x="2242.359375" y="103.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">gpt-oss-120b</text>
+<rect x="1078.9" y="750" width="717.7" height="120" fill="none" stroke="#BF9000" stroke-width="1.3" stroke-dasharray="5 3"/>
+<path d="M1078.9,750 h38.2 v14 l-7,7 h-31.2 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="1087.9" y="765" font-size="13" font-weight="700" fill="#1F2A44">opt</text>
+<text x="1127.1" y="766" font-size="13" fill="#1F2A44">[pregunta general (_es_pregunta_general)]</text>
+<rect x="81.4" y="980" width="2193.0" height="1002" fill="none" stroke="#BF9000" stroke-width="1.3" stroke-dasharray="5 3"/>
+<path d="M81.4,980 h33.2 v14 l-7,7 h-26.2 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="90.4" y="995" font-size="13" font-weight="700" fill="#1F2A44">alt</text>
+<text x="124.5" y="996" font-size="13" fill="#1F2A44">[sin fragmentos y sin análisis previos]</text>
+<line x1="81.4" y1="1059" x2="2274.4" y2="1059" stroke="#BF9000" stroke-width="1.3" stroke-dasharray="5 3"/>
+<text x="91.4" y="1076" font-size="13" fill="#1F2A44">[hay contexto]</text>
+<rect x="1538.4" y="1281" width="725.9" height="195" fill="none" stroke="#BF9000" stroke-width="1.3" stroke-dasharray="5 3"/>
+<path d="M1538.4,1281 h33.2 v14 l-7,7 h-26.2 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="1547.4" y="1296" font-size="13" font-weight="700" fill="#1F2A44">alt</text>
+<text x="1581.6" y="1297" font-size="13" fill="#1F2A44">[Groq responde]</text>
+<line x1="1538.4" y1="1360" x2="2264.4" y2="1360" stroke="#BF9000" stroke-width="1.3" stroke-dasharray="5 3"/>
+<text x="1548.4" y="1377" font-size="13" fill="#1F2A44">[Groq agota claves y ciclos: 401, 403, 429, 5xx o timeout]</text>
+<rect x="91.4" y="1496" width="1491.1" height="474" fill="none" stroke="#BF9000" stroke-width="1.3" stroke-dasharray="5 3"/>
+<path d="M91.4,1496 h33.2 v14 l-7,7 h-26.2 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="100.4" y="1511" font-size="13" font-weight="700" fill="#1F2A44">alt</text>
+<text x="134.5" y="1512" font-size="13" fill="#1F2A44">[algún proveedor respondió]</text>
+<line x1="91.4" y1="1809" x2="1582.4" y2="1809" stroke="#BF9000" stroke-width="1.3" stroke-dasharray="5 3"/>
+<text x="101.4" y="1826" font-size="13" fill="#1F2A44">[ambos proveedores fallan]</text>
+<rect x="448.4" y="1628" width="674.5" height="75" fill="none" stroke="#BF9000" stroke-width="1.3" stroke-dasharray="5 3"/>
+<path d="M448.4,1628 h45.4 v14 l-7,7 h-38.4 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="457.4" y="1643" font-size="13" font-weight="700" fill="#1F2A44">loop</text>
+<text x="503.8" y="1644" font-size="13" fill="#1F2A44">[cada 15 caracteres (la respuesta ya está completa)]</text>
+<line x1="124.4" y1="161" x2="469.4" y2="161" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="113.4" cy="161" r="9.5" fill="#1F3864"/>
+<text x="113.4" y="165" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">1</text>
+<text x="297.9" y="154" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">Escribe la pregunta y elige el agente</text>
+<line x1="481.4" y1="223" x2="1099.9" y2="223" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="470.4" cy="223" r="9.5" fill="#1F3864"/>
+<text x="470.4" y="227" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">2</text>
+<text x="791.6" y="199" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">enviarPregunta() → POST /api/consultar-stream/</text>
+<text x="791.6" y="216" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">(pregunta, document_id, agente, historial)</text>
+<line x1="1111.9" y1="268" x2="1394.7" y2="268" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1100.9" cy="268" r="9.5" fill="#1F3864"/>
+<text x="1100.9" y="272" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">3</text>
+<text x="1254.3" y="261" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">obtener_agente(agente)</text>
+<line x1="1384.7" y1="313" x2="1101.9" y2="313" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1395.7" cy="313" r="9.5" fill="#1F3864"/>
+<text x="1395.7" y="317" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">4</text>
+<text x="1242.3" y="306" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">config del agente (nombre, rol_chat)</text>
+<path d="M944.6,339 h302.5 l10,10 v19 h-312.5 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="1100.9" y="357" text-anchor="middle" font-size="13" fill="#1F2A44">_parsear_historial() · _pregunta_para_busqueda()</text>
+<line x1="1111.9" y1="407" x2="1559.4" y2="407" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1100.9" cy="407" r="9.5" fill="#1F3864"/>
+<text x="1100.9" y="411" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">5</text>
+<text x="1336.7" y="400" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">generar_embedding_pregunta(pregunta)</text>
+<line x1="1571.4" y1="452" x2="2046.9" y2="452" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1560.4" cy="452" r="9.5" fill="#1F3864"/>
+<text x="1560.4" y="456" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">6</text>
+<text x="1810.2" y="445" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">POST /embeddings (nemotron-3-embed-1b)</text>
+<line x1="2036.9" y1="497" x2="1561.4" y2="497" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="2047.9" cy="497" r="9.5" fill="#1F3864"/>
+<text x="2047.9" y="501" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">7</text>
+<text x="1798.2" y="490" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">vector de 2.048 dimensiones</text>
+<line x1="1549.4" y1="542" x2="1101.9" y2="542" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1560.4" cy="542" r="9.5" fill="#1F3864"/>
+<text x="1560.4" y="546" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">8</text>
+<text x="1324.7" y="535" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">embedding</text>
+<line x1="1111.9" y1="587" x2="1773.6" y2="587" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1100.9" cy="587" r="9.5" fill="#1F3864"/>
+<text x="1100.9" y="591" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">9</text>
+<text x="1443.7" y="580" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">rpc match_document_chunks(embedding, umbral 0,05, 8, document_id)</text>
+<line x1="1763.6" y1="632" x2="1101.9" y2="632" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1774.6" cy="632" r="9.5" fill="#1F3864"/>
+<text x="1774.6" y="636" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">10</text>
+<text x="1431.7" y="625" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">fragmentos (content, page_number, similarity)</text>
+<line x1="1111.9" y1="677" x2="1773.6" y2="677" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1100.9" cy="677" r="9.5" fill="#1F3864"/>
+<text x="1100.9" y="681" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">11</text>
+<text x="1443.7" y="670" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">ampliar_chunks(): término clave (ilike) y fragmento siguiente</text>
+<line x1="1763.6" y1="722" x2="1101.9" y2="722" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1774.6" cy="722" r="9.5" fill="#1F3864"/>
+<text x="1774.6" y="726" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">12</text>
+<text x="1431.7" y="715" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">fragmentos adicionales (hasta 10 en total)</text>
+<line x1="1111.9" y1="805" x2="1773.6" y2="805" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1100.9" cy="805" r="9.5" fill="#1F3864"/>
+<text x="1100.9" y="809" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">13</text>
+<text x="1443.7" y="798" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">_agregar_inicio_documento(): primeros 4 fragmentos</text>
+<line x1="1763.6" y1="850" x2="1101.9" y2="850" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1774.6" cy="850" r="9.5" fill="#1F3864"/>
+<text x="1774.6" y="854" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">14</text>
+<text x="1431.7" y="843" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">portada e índice del documento</text>
+<line x1="1111.9" y1="907" x2="1773.6" y2="907" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1100.9" cy="907" r="9.5" fill="#1F3864"/>
+<text x="1100.9" y="911" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">15</text>
+<text x="1443.7" y="900" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">_obtener_todos_los_analisis(document_id)</text>
+<line x1="1763.6" y1="952" x2="1101.9" y2="952" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1774.6" cy="952" r="9.5" fill="#1F3864"/>
+<text x="1774.6" y="956" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">16</text>
+<text x="1431.7" y="945" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">resultados de los agentes (tabla analisis)</text>
+<line x1="1089.9" y1="1035" x2="471.4" y2="1035" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1100.9" cy="1035" r="9.5" fill="#1F3864"/>
+<text x="1100.9" y="1039" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">17</text>
+<text x="779.6" y="1028" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">SSE: «No encontré información.» y [DONE]</text>
+<path d="M874.2,1091 h443.3 l10,10 v19 h-453.3 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="1100.9" y="1109" text-anchor="middle" font-size="13" fill="#1F2A44">construir_prompt_chat(): reglas del sistema + [Página N] + análisis previos</text>
+<line x1="1111.9" y1="1159" x2="1559.4" y2="1159" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1100.9" cy="1159" r="9.5" fill="#1F3864"/>
+<text x="1100.9" y="1163" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">18</text>
+<text x="1336.7" y="1152" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">llamar_llm_chat(temperatura 0,2 · máx. 1.000 tokens)</text>
+<path d="M1340.5,1185 h429.8 l10,10 v19 h-439.8 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="1560.4" y="1203" text-anchor="middle" font-size="13" fill="#1F2A44">_llamar_llm_unificado(): orden según LLM_PRIMARY (groq por defecto)</text>
+<line x1="1571.4" y1="1253" x2="2241.4" y2="1253" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1560.4" cy="1253" r="9.5" fill="#1F3864"/>
+<text x="1560.4" y="1257" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">19</text>
+<text x="1907.4" y="1246" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">POST /chat/completions (rotación de hasta 4 claves)</text>
+<line x1="2231.4" y1="1336" x2="1561.4" y2="1336" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="2242.4" cy="1336" r="9.5" fill="#1F3864"/>
+<text x="2242.4" y="1340" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">20</text>
+<text x="1895.4" y="1329" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">texto de la respuesta</text>
+<line x1="1571.4" y1="1411" x2="2046.9" y2="1411" stroke="#3F4A5C" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1560.4" cy="1411" r="9.5" fill="#1F3864"/>
+<text x="1560.4" y="1415" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">21</text>
+<text x="1810.2" y="1404" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">POST /chat/completions (nemotron-3-super-120b, hasta 3 intentos)</text>
+<line x1="2036.9" y1="1456" x2="1561.4" y2="1456" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="2047.9" cy="1456" r="9.5" fill="#1F3864"/>
+<text x="2047.9" y="1460" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">22</text>
+<text x="1798.2" y="1449" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">texto de la respuesta (o error)</text>
+<line x1="1549.4" y1="1551" x2="1101.9" y2="1551" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1560.4" cy="1551" r="9.5" fill="#1F3864"/>
+<text x="1560.4" y="1555" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">23</text>
+<text x="1324.7" y="1544" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">respuesta</text>
+<path d="M931.6,1577 h328.5 l10,10 v19 h-338.5 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="1100.9" y="1595" text-anchor="middle" font-size="13" fill="#1F2A44">_quitar_pedido_de_pagina() · extraer_fuentes(chunks)</text>
+<line x1="1089.9" y1="1683" x2="471.4" y2="1683" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1100.9" cy="1683" r="9.5" fill="#1F3864"/>
+<text x="1100.9" y="1687" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">24</text>
+<text x="779.6" y="1676" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">SSE: data {chunk}</text>
+<line x1="1089.9" y1="1740" x2="471.4" y2="1740" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1100.9" cy="1740" r="9.5" fill="#1F3864"/>
+<text x="1100.9" y="1744" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">25</text>
+<text x="779.6" y="1733" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">SSE: data {fuentes, agente} y [DONE]</text>
+<line x1="459.4" y1="1785" x2="114.4" y2="1785" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="470.4" cy="1785" r="9.5" fill="#1F3864"/>
+<text x="470.4" y="1789" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">26</text>
+<text x="285.9" y="1778" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">Muestra la respuesta con sus fuentes (pág. N)</text>
+<line x1="1549.4" y1="1860" x2="1101.9" y2="1860" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1560.4" cy="1860" r="9.5" fill="#1F3864"/>
+<text x="1560.4" y="1864" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">27</text>
+<text x="1324.7" y="1853" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">Exception «Todos los proveedores LLM fallaron»</text>
+<line x1="1089.9" y1="1905" x2="471.4" y2="1905" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="1100.9" cy="1905" r="9.5" fill="#1F3864"/>
+<text x="1100.9" y="1909" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">28</text>
+<text x="779.6" y="1898" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">SSE: data {error} y [DONE]</text>
+<line x1="459.4" y1="1950" x2="114.4" y2="1950" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrO)"/>
+<circle cx="470.4" cy="1950" r="9.5" fill="#1F3864"/>
+<text x="470.4" y="1954" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">29</text>
+<text x="285.9" y="1943" text-anchor="middle" font-size="14" fill="#1F2A44" stroke="#fff" stroke-width="4" paint-order="stroke">Muestra «No se pudo obtener respuesta»</text>
+<path d="M458.4,2000 h644.5 l10,10 v19 h-654.5 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.3"/>
+<text x="785.6" y="2018" text-anchor="middle" font-size="13" fill="#1F2A44">Si el streaming falla, el cliente repite la consulta con POST /api/consultar/ (mismo flujo, respuesta JSON)</text>
+<g stroke="#1F3864" stroke-width="2" fill="none"><circle cx="113.375" cy="2063" r="9" fill="#fff"/><path d="M113.375,2072 V2093 M99.375,2080 H127.375 M113.375,2093 L102.375,2107 M113.375,2093 L124.375,2107"/></g>
+<text x="113.375" y="2121" text-anchor="middle" font-size="15" font-weight="700" fill="#1F3864">Gerente General</text>
+<rect x="413.7" y="2049" width="113.4" height="62" rx="6" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.6"/>
+<text x="470.40625" y="2076.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Cliente web</text>
+<text x="470.40625" y="2094.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">index.html</text>
+<rect x="1043.4" y="2049" width="115.0" height="62" rx="6" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.6"/>
+<text x="1100.875" y="2076.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">API FastAPI</text>
+<text x="1100.875" y="2094.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">main.py</text>
+<rect x="1307.3" y="2049" width="176.7" height="62" rx="6" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.6"/>
+<text x="1395.671875" y="2076.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Catálogo de agentes</text>
+<text x="1395.671875" y="2094.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">agentes.py</text>
+<rect x="1500.0" y="2049" width="120.9" height="62" rx="6" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.6"/>
+<text x="1560.4453125" y="2076.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Cliente de IA</text>
+<text x="1560.4453125" y="2094.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">ia_config.py</text>
+<rect x="1681.6" y="2049" width="185.8" height="62" rx="6" fill="#E2EFDA" stroke="#548235" stroke-width="1.6"/>
+<text x="1774.55078125" y="2076.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Supabase</text>
+<text x="1774.55078125" y="2094.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">PostgreSQL + pgvector</text>
+<rect x="1928.2" y="2049" width="239.3" height="62" rx="6" fill="#F2F2F2" stroke="#7F7F7F" stroke-width="1.6"/>
+<text x="2047.8984375" y="2076.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">NVIDIA NIM API</text>
+<text x="2047.8984375" y="2094.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">embeddings y LLM de respaldo</text>
+<rect x="2183.6" y="2049" width="117.6" height="62" rx="6" fill="#F2F2F2" stroke="#7F7F7F" stroke-width="1.6"/>
+<text x="2242.359375" y="2076.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Groq API</text>
+<text x="2242.359375" y="2094.0" text-anchor="middle" font-size="14" font-weight="400" fill="#1F2A44">gpt-oss-120b</text>
+</g></svg>

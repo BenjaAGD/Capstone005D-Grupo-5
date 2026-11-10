@@ -1,0 +1,172 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="342" viewBox="0 0 1180 342" font-family="Arial, 'Liberation Sans', Helvetica, sans-serif"><defs><pattern id="hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="4" stroke="#AEB6C4" stroke-width="1.3"/></pattern></defs><rect width="1180" height="342" fill="#FFFFFF"/><text x="10.0" y="19.0" font-size="15" fill="#1F3864" text-anchor="start" font-weight="bold">Burndown planificado de los sprints 5 a 8 (horas)</text>
+<text x="10.0" y="35.0" font-size="10.5" fill="#7F7F7F" text-anchor="start">Línea ideal = horas comprometidas repartidas en forma pareja por día hábil. No es avance real: la serie «real» se registra en cada Daily.</text>
+<text x="12.0" y="58.0" font-size="11.5" fill="#1F3864" text-anchor="start" font-weight="bold">S5 · 19-oct a 30-oct</text>
+<text x="276.0" y="58.0" font-size="10" fill="#7F7F7F" text-anchor="end">45,5 h comprometidas</text>
+<line x1="42.0" y1="238.0" x2="270.0" y2="238.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="38.0" y="241.4" font-size="9" fill="#7F7F7F" text-anchor="end">0</text>
+<line x1="42.0" y1="204.4" x2="270.0" y2="204.4" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="38.0" y="207.8" font-size="9" fill="#7F7F7F" text-anchor="end">10</text>
+<line x1="42.0" y1="170.8" x2="270.0" y2="170.8" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="38.0" y="174.2" font-size="9" fill="#7F7F7F" text-anchor="end">20</text>
+<line x1="42.0" y1="137.2" x2="270.0" y2="137.2" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="38.0" y="140.6" font-size="9" fill="#7F7F7F" text-anchor="end">30</text>
+<line x1="42.0" y1="103.6" x2="270.0" y2="103.6" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="38.0" y="107.0" font-size="9" fill="#7F7F7F" text-anchor="end">40</text>
+<line x1="42.0" y1="70.0" x2="270.0" y2="70.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="38.0" y="73.4" font-size="9" fill="#7F7F7F" text-anchor="end">50</text>
+<line x1="42.0" y1="70.0" x2="42.0" y2="238.0" stroke="#9AA5B8" stroke-width="1"/>
+<line x1="42.0" y1="238.0" x2="270.0" y2="238.0" stroke="#9AA5B8" stroke-width="1"/>
+<polyline points="50.0,85.1 92.8,115.7 135.6,146.3 157.0,161.4 199.8,192.0 242.6,222.9 264.0,238.0" fill="none" stroke="#1F3864" stroke-width="2"/>
+<circle cx="50.0" cy="85.1" r="3" fill="#1F3864"/>
+<circle cx="92.8" cy="115.7" r="3" fill="#1F3864"/>
+<circle cx="135.6" cy="146.3" r="3" fill="#1F3864"/>
+<circle cx="157.0" cy="161.4" r="3" fill="#1F3864"/>
+<circle cx="199.8" cy="192.0" r="3" fill="#1F3864"/>
+<circle cx="242.6" cy="222.9" r="3" fill="#1F3864"/>
+<circle cx="264.0" cy="238.0" r="3" fill="#1F3864"/>
+<text x="50.0" y="250.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">19-oct</text>
+<text x="54.0" y="79.1" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">45,5</text>
+<text x="92.8" y="261.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">21-oct</text>
+<text x="96.8" y="109.7" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">36,4</text>
+<text x="135.6" y="250.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">23-oct</text>
+<text x="139.6" y="140.3" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">27,3</text>
+<text x="157.0" y="261.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">26-oct</text>
+<text x="161.0" y="155.4" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">22,8</text>
+<text x="199.8" y="250.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">28-oct</text>
+<text x="203.8" y="186.0" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">13,7</text>
+<text x="242.6" y="261.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">30-oct</text>
+<text x="246.6" y="216.9" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">4,5</text>
+<text x="264.0" y="250.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle" font-weight="bold">Review</text>
+<rect x="148.0" y="76.0" width="120.0" height="30.0" fill="#FFFFFF" stroke="#9AA5B8" stroke-width="0.8" rx="3" stroke-dasharray="3 2" />
+<text x="208.0" y="88.5" font-size="9" fill="#7F7F7F" text-anchor="middle" font-weight="bold">Real: por registrar</text>
+<text x="208.0" y="100.0" font-size="9" fill="#7F7F7F" text-anchor="middle">en cada Daily</text>
+<line x1="114.2" y1="70.0" x2="114.2" y2="238.0" stroke="#C00000" stroke-width="1.3" stroke-dasharray="4 3"/>
+<text x="110.2" y="230.0" font-size="8.8" fill="#C00000" text-anchor="end" font-weight="bold">Hoy 22-oct</text>
+<text x="304.0" y="58.0" font-size="11.5" fill="#1F3864" text-anchor="start" font-weight="bold">S6 · 2-nov a 13-nov</text>
+<text x="568.0" y="58.0" font-size="10" fill="#7F7F7F" text-anchor="end">45,5 h comprometidas</text>
+<line x1="334.0" y1="238.0" x2="562.0" y2="238.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="330.0" y="241.4" font-size="9" fill="#7F7F7F" text-anchor="end">0</text>
+<line x1="334.0" y1="204.4" x2="562.0" y2="204.4" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="330.0" y="207.8" font-size="9" fill="#7F7F7F" text-anchor="end">10</text>
+<line x1="334.0" y1="170.8" x2="562.0" y2="170.8" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="330.0" y="174.2" font-size="9" fill="#7F7F7F" text-anchor="end">20</text>
+<line x1="334.0" y1="137.2" x2="562.0" y2="137.2" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="330.0" y="140.6" font-size="9" fill="#7F7F7F" text-anchor="end">30</text>
+<line x1="334.0" y1="103.6" x2="562.0" y2="103.6" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="330.0" y="107.0" font-size="9" fill="#7F7F7F" text-anchor="end">40</text>
+<line x1="334.0" y1="70.0" x2="562.0" y2="70.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="330.0" y="73.4" font-size="9" fill="#7F7F7F" text-anchor="end">50</text>
+<line x1="334.0" y1="70.0" x2="334.0" y2="238.0" stroke="#9AA5B8" stroke-width="1"/>
+<line x1="334.0" y1="238.0" x2="562.0" y2="238.0" stroke="#9AA5B8" stroke-width="1"/>
+<polyline points="342.0,85.1 384.8,115.7 427.6,146.3 449.0,161.4 491.8,192.0 534.6,222.9 556.0,238.0" fill="none" stroke="#1F3864" stroke-width="2"/>
+<circle cx="342.0" cy="85.1" r="3" fill="#1F3864"/>
+<circle cx="384.8" cy="115.7" r="3" fill="#1F3864"/>
+<circle cx="427.6" cy="146.3" r="3" fill="#1F3864"/>
+<circle cx="449.0" cy="161.4" r="3" fill="#1F3864"/>
+<circle cx="491.8" cy="192.0" r="3" fill="#1F3864"/>
+<circle cx="534.6" cy="222.9" r="3" fill="#1F3864"/>
+<circle cx="556.0" cy="238.0" r="3" fill="#1F3864"/>
+<text x="342.0" y="250.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">2-nov</text>
+<text x="346.0" y="79.1" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">45,5</text>
+<text x="384.8" y="261.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">4-nov</text>
+<text x="388.8" y="109.7" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">36,4</text>
+<text x="427.6" y="250.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">6-nov</text>
+<text x="431.6" y="140.3" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">27,3</text>
+<text x="449.0" y="261.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">9-nov</text>
+<text x="453.0" y="155.4" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">22,8</text>
+<text x="491.8" y="250.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">11-nov</text>
+<text x="495.8" y="186.0" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">13,7</text>
+<text x="534.6" y="261.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">13-nov</text>
+<text x="538.6" y="216.9" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">4,5</text>
+<text x="556.0" y="250.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle" font-weight="bold">Review</text>
+<rect x="440.0" y="76.0" width="120.0" height="30.0" fill="#FFFFFF" stroke="#9AA5B8" stroke-width="0.8" rx="3" stroke-dasharray="3 2" />
+<text x="500.0" y="88.5" font-size="9" fill="#7F7F7F" text-anchor="middle" font-weight="bold">Real: por registrar</text>
+<text x="500.0" y="100.0" font-size="9" fill="#7F7F7F" text-anchor="middle">en cada Daily</text>
+<text x="596.0" y="58.0" font-size="11.5" fill="#1F3864" text-anchor="start" font-weight="bold">S7 · 16-nov a 27-nov</text>
+<text x="860.0" y="58.0" font-size="10" fill="#7F7F7F" text-anchor="end">44 h comprometidas</text>
+<line x1="626.0" y1="238.0" x2="854.0" y2="238.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="622.0" y="241.4" font-size="9" fill="#7F7F7F" text-anchor="end">0</text>
+<line x1="626.0" y1="204.4" x2="854.0" y2="204.4" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="622.0" y="207.8" font-size="9" fill="#7F7F7F" text-anchor="end">10</text>
+<line x1="626.0" y1="170.8" x2="854.0" y2="170.8" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="622.0" y="174.2" font-size="9" fill="#7F7F7F" text-anchor="end">20</text>
+<line x1="626.0" y1="137.2" x2="854.0" y2="137.2" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="622.0" y="140.6" font-size="9" fill="#7F7F7F" text-anchor="end">30</text>
+<line x1="626.0" y1="103.6" x2="854.0" y2="103.6" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="622.0" y="107.0" font-size="9" fill="#7F7F7F" text-anchor="end">40</text>
+<line x1="626.0" y1="70.0" x2="854.0" y2="70.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="622.0" y="73.4" font-size="9" fill="#7F7F7F" text-anchor="end">50</text>
+<line x1="626.0" y1="70.0" x2="626.0" y2="238.0" stroke="#9AA5B8" stroke-width="1"/>
+<line x1="626.0" y1="238.0" x2="854.0" y2="238.0" stroke="#9AA5B8" stroke-width="1"/>
+<polyline points="634.0,90.2 676.8,119.7 719.6,149.3 741.0,164.1 783.8,193.6 826.6,223.2 848.0,238.0" fill="none" stroke="#1F3864" stroke-width="2"/>
+<circle cx="634.0" cy="90.2" r="3" fill="#1F3864"/>
+<circle cx="676.8" cy="119.7" r="3" fill="#1F3864"/>
+<circle cx="719.6" cy="149.3" r="3" fill="#1F3864"/>
+<circle cx="741.0" cy="164.1" r="3" fill="#1F3864"/>
+<circle cx="783.8" cy="193.6" r="3" fill="#1F3864"/>
+<circle cx="826.6" cy="223.2" r="3" fill="#1F3864"/>
+<circle cx="848.0" cy="238.0" r="3" fill="#1F3864"/>
+<text x="634.0" y="250.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">16-nov</text>
+<text x="638.0" y="84.2" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">44</text>
+<text x="676.8" y="261.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">18-nov</text>
+<text x="680.8" y="113.7" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">35,2</text>
+<text x="719.6" y="250.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">20-nov</text>
+<text x="723.6" y="143.3" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">26,4</text>
+<text x="741.0" y="261.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">23-nov</text>
+<text x="745.0" y="158.1" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">22</text>
+<text x="783.8" y="250.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">25-nov</text>
+<text x="787.8" y="187.6" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">13,2</text>
+<text x="826.6" y="261.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">27-nov</text>
+<text x="830.6" y="217.2" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">4,4</text>
+<text x="848.0" y="250.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle" font-weight="bold">Review</text>
+<rect x="732.0" y="76.0" width="120.0" height="30.0" fill="#FFFFFF" stroke="#9AA5B8" stroke-width="0.8" rx="3" stroke-dasharray="3 2" />
+<text x="792.0" y="88.5" font-size="9" fill="#7F7F7F" text-anchor="middle" font-weight="bold">Real: por registrar</text>
+<text x="792.0" y="100.0" font-size="9" fill="#7F7F7F" text-anchor="middle">en cada Daily</text>
+<text x="888.0" y="58.0" font-size="11.5" fill="#1F3864" text-anchor="start" font-weight="bold">S8 · 30-nov a 11-dic</text>
+<text x="1152.0" y="58.0" font-size="10" fill="#7F7F7F" text-anchor="end">39 h comprometidas</text>
+<line x1="918.0" y1="238.0" x2="1146.0" y2="238.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="914.0" y="241.4" font-size="9" fill="#7F7F7F" text-anchor="end">0</text>
+<line x1="918.0" y1="204.4" x2="1146.0" y2="204.4" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="914.0" y="207.8" font-size="9" fill="#7F7F7F" text-anchor="end">10</text>
+<line x1="918.0" y1="170.8" x2="1146.0" y2="170.8" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="914.0" y="174.2" font-size="9" fill="#7F7F7F" text-anchor="end">20</text>
+<line x1="918.0" y1="137.2" x2="1146.0" y2="137.2" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="914.0" y="140.6" font-size="9" fill="#7F7F7F" text-anchor="end">30</text>
+<line x1="918.0" y1="103.6" x2="1146.0" y2="103.6" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="914.0" y="107.0" font-size="9" fill="#7F7F7F" text-anchor="end">40</text>
+<line x1="918.0" y1="70.0" x2="1146.0" y2="70.0" stroke="#D9DEE7" stroke-width="0.7"/>
+<text x="914.0" y="73.4" font-size="9" fill="#7F7F7F" text-anchor="end">50</text>
+<line x1="918.0" y1="70.0" x2="918.0" y2="238.0" stroke="#9AA5B8" stroke-width="1"/>
+<line x1="918.0" y1="238.0" x2="1146.0" y2="238.0" stroke="#9AA5B8" stroke-width="1"/>
+<polyline points="926.0,107.0 973.6,136.2 1021.1,165.1 1044.9,179.9 1068.7,194.3 1116.2,223.6 1140.0,238.0" fill="none" stroke="#1F3864" stroke-width="2"/>
+<circle cx="926.0" cy="107.0" r="3" fill="#1F3864"/>
+<circle cx="973.6" cy="136.2" r="3" fill="#1F3864"/>
+<circle cx="1021.1" cy="165.1" r="3" fill="#1F3864"/>
+<circle cx="1044.9" cy="179.9" r="3" fill="#1F3864"/>
+<circle cx="1068.7" cy="194.3" r="3" fill="#1F3864"/>
+<circle cx="1116.2" cy="223.6" r="3" fill="#1F3864"/>
+<circle cx="1140.0" cy="238.0" r="3" fill="#1F3864"/>
+<text x="926.0" y="250.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">30-nov</text>
+<text x="930.0" y="101.0" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">39</text>
+<text x="973.6" y="261.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">2-dic</text>
+<text x="977.6" y="130.2" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">30,3</text>
+<text x="1021.1" y="250.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">4-dic</text>
+<text x="1025.1" y="159.1" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">21,7</text>
+<text x="1044.9" y="261.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">7-dic</text>
+<text x="1048.9" y="173.9" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">17,3</text>
+<text x="1068.7" y="250.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">9-dic</text>
+<text x="1072.7" y="188.3" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">13</text>
+<text x="1116.2" y="261.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle">11-dic</text>
+<text x="1120.2" y="217.6" font-size="8.8" fill="#1F3864" text-anchor="start" font-weight="bold">4,3</text>
+<text x="1140.0" y="250.0" font-size="8.6" fill="#7F7F7F" text-anchor="middle" font-weight="bold">Review</text>
+<rect x="1024.0" y="76.0" width="120.0" height="30.0" fill="#FFFFFF" stroke="#9AA5B8" stroke-width="0.8" rx="3" stroke-dasharray="3 2" />
+<text x="1084.0" y="88.5" font-size="9" fill="#7F7F7F" text-anchor="middle" font-weight="bold">Real: por registrar</text>
+<text x="1084.0" y="100.0" font-size="9" fill="#7F7F7F" text-anchor="middle">en cada Daily</text>
+<line x1="10" y1="284" x2="26" y2="284" stroke="#1F3864" stroke-width="2"/><circle cx="18" cy="284" r="3" fill="#1F3864"/>
+<text x="32.0" y="287.5" font-size="9.8" fill="#1F2A44" text-anchor="start">Ideal (plan)</text>
+<rect x="112.0" y="278.0" width="28.0" height="12.0" fill="#FFFFFF" stroke="#9AA5B8" stroke-width="0.8" rx="3" stroke-dasharray="3 2" />
+<text x="146.0" y="287.5" font-size="9.8" fill="#1F2A44" text-anchor="start">Real (se completa durante el sprint, nunca antes)</text>
+<line x1="430.0" y1="284.0" x2="450.0" y2="284.0" stroke="#C00000" stroke-width="1.3" stroke-dasharray="4 3"/>
+<text x="456.0" y="287.5" font-size="9.8" fill="#1F2A44" text-anchor="start">Hoy</text>
+<text x="10.0" y="310.0" font-size="9.4" fill="#7F7F7F" text-anchor="start">Los puntos son las 6 Daily de cada sprint (lunes, miércoles y viernes) y el cierre con el Review. Valor de cada punto: horas pendientes si el trabajo avanza en forma pareja.</text>
+<text x="10.0" y="324.0" font-size="9.4" fill="#7F7F7F" text-anchor="start">Horas comprometidas = tareas «comprometidas» del Sprint Backlog (Anexo 4, sección 3); las tareas «si hay capacidad» no entran en el burndown. Misma escala (0 a 50 h) en los cuatro sprints.</text></svg>

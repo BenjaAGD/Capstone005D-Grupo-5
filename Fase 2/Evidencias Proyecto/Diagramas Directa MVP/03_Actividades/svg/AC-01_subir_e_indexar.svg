@@ -1,0 +1,222 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1132" height="1641" viewBox="0 0 1132 1641" font-family="Arial, 'Liberation Sans', Helvetica, sans-serif">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3F4A5C"/></marker><marker id="aro" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C55A11"/></marker></defs>
+<rect width="1132" height="1641" fill="#FFFFFF"/>
+<text x="566" y="30" text-anchor="middle" font-size="19" font-weight="700" fill="#1F3864">Diagrama de actividades · Subir e indexar un informe</text>
+<text x="566" y="50" text-anchor="middle" font-size="12.5" fill="#566072">MVP v2.9 · POST /api/subir-informe/ → hilo _procesar_documento_bg. El estado final queda en «Listo», «Listo con errores» o «Error».</text>
+<rect x="26.0" y="134.0" width="270" height="1377.0" fill="#F7F9FC" stroke="#C9D2E0" stroke-width="1"/>
+<rect x="26.0" y="82" width="270" height="52" fill="#1F3864" stroke="#1F3864"/>
+<text x="161.0" y="104.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Gerente General</text>
+<text x="161.0" y="121.0" text-anchor="middle" font-size="12" font-weight="400" fill="#fff">navegador (index.html)</text>
+<rect x="296.0" y="134.0" width="270" height="1377.0" fill="#FFFFFF" stroke="#C9D2E0" stroke-width="1"/>
+<rect x="296.0" y="82" width="270" height="52" fill="#2E75B6" stroke="#2E75B6"/>
+<text x="431.0" y="104.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">API FastAPI</text>
+<text x="431.0" y="121.0" text-anchor="middle" font-size="12" font-weight="400" fill="#fff">hilo de la solicitud (main.py)</text>
+<rect x="566.0" y="134.0" width="270" height="1377.0" fill="#F7F9FC" stroke="#C9D2E0" stroke-width="1"/>
+<rect x="566.0" y="82" width="270" height="52" fill="#2E75B6" stroke="#2E75B6"/>
+<text x="701.0" y="104.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Hilo en segundo plano</text>
+<text x="701.0" y="121.0" text-anchor="middle" font-size="12" font-weight="400" fill="#fff">_procesar_documento_bg</text>
+<rect x="836.0" y="134.0" width="270" height="1377.0" fill="#FFFFFF" stroke="#C9D2E0" stroke-width="1"/>
+<rect x="836.0" y="82" width="270" height="52" fill="#548235" stroke="#548235"/>
+<text x="971.0" y="104.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Servicios externos</text>
+<text x="971.0" y="121.0" text-anchor="middle" font-size="12" font-weight="400" fill="#fff">NVIDIA NIM · Supabase</text>
+<rect x="569.0" y="613.0" width="534.0" height="188.0" rx="10" fill="none" stroke="#BF9000" stroke-width="1.5" stroke-dasharray="7 4"/>
+<rect x="899.0" y="604.0" width="194.0" height="18" rx="4" fill="#FFF2CC" stroke="#BF9000" stroke-width="1"/>
+<text x="907.0" y="617.0" font-size="12" font-weight="700" fill="#1F2A44">Por cada lote de 50 fragmentos</text>
+<path d="M161.0,182.0 L161.0,210.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M271.0,251.5 L431.0,251.5 L431.0,319.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M431.0,402.0 L431.0,436.5" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M541.0,360.5 L701.0,360.5 L701.0,428.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M321.0,469.5 L271.0,469.5" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="6 4" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M811.0,469.5 L971.0,469.5 L971.0,537.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="6 4" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M701.0,511.0 L701.0,537.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M701.0,603.0 L701.0,637.5" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M811.0,662.0 L861.0,662.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M971.0,695.0 L971.0,721.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M861.0,754.0 L811.0,754.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M591.0,754.0 L578.0,754.0 L578.0,662.0 L591.0,662.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M701.0,787.0 L701.0,813.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M588.0,852.0 L431.0,852.0 L431.0,917.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M701.0,891.0 L701.0,917.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M701.0,966.0 L701.0,992.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M811.0,1025.0 L861.0,1025.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="6 4" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M701.0,1058.0 L701.0,1084.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M701.0,1162.0 L701.0,1201.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M588.0,1123.0 L431.0,1123.0 L431.0,1188.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M701.0,1241.0 L701.0,1294.5" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M431.0,1254.0 L431.0,1319.0 L591.0,1319.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M701.0,1343.5 L701.0,1395.5" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M431.0,966.0 L431.0,1012.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M161.0,502.5 L161.0,1280.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M48.0,1319.0 L38.0,1319.0 L38.0,469.5 L51.0,469.5" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M161.0,1358.0 L161.0,1384.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<path d="M161.0,1433.0 L161.0,1459.0" fill="none" stroke="#3F4A5C" stroke-width="1.5" stroke-linejoin="round" marker-end="url(#ar)"/>
+<circle cx="161.0" cy="172.0" r="10" fill="#1F3864"/>
+<rect x="51.0" y="210.0" width="220.0" height="83.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="161.0" y="230.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Elige el archivo (PDF, Word o</text>
+<text x="161.0" y="247.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Excel) en «Documentos»; la</text>
+<text x="161.0" y="264.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">web genera el document_id y</text>
+<text x="161.0" y="281.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">envía POST /api/subir-informe/</text>
+<circle cx="52.0" cy="211.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="52.0" y="215.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">1</text>
+<rect x="321.0" y="319.0" width="220.0" height="83.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="431.0" y="339.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Crea progreso_documentos[id]</text>
+<text x="431.0" y="356.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">(fase «iniciando»), guarda el</text>
+<text x="431.0" y="373.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">archivo temporal con nombre</text>
+<text x="431.0" y="390.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">saneado y lanza el hilo</text>
+<circle cx="322.0" cy="320.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="322.0" y="324.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">2</text>
+<rect x="321.0" y="436.5" width="220.0" height="66.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="431.0" y="457.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">Responde {ok: true,</text>
+<text x="431.0" y="474.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">«Documento recibido.»} sin</text>
+<text x="431.0" y="491.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">esperar el procesamiento</text>
+<circle cx="322.0" cy="437.5" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="322.0" y="441.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">3</text>
+<rect x="51.0" y="436.5" width="220.0" height="66.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="161.0" y="457.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">Muestra la barra de progreso y</text>
+<text x="161.0" y="474.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">repite GET /api/progreso/{id}</text>
+<text x="161.0" y="491.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">(polling)</text>
+<circle cx="52.0" cy="437.5" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="52.0" y="441.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">4</text>
+<rect x="591.0" y="428.0" width="220.0" height="83.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="701.0" y="448.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Estado «Leyendo archivo»:</text>
+<text x="701.0" y="465.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">extrae el texto por página</text>
+<text x="701.0" y="482.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">(PyPDFLoader · python-docx ·</text>
+<text x="701.0" y="499.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">openpyxl)</text>
+<circle cx="592.0" cy="429.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="592.0" y="433.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">5</text>
+<rect x="861.0" y="537.0" width="220.0" height="66.0" rx="11" fill="#E2EFDA" stroke="#548235" stroke-width="1.7"/>
+<text x="971.0" y="557.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">documentos ← INSERT</text>
+<text x="971.0" y="574.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">(estado «Procesando»,</text>
+<text x="971.0" y="591.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">total_paginas)</text>
+<circle cx="862.0" cy="538.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="862.0" y="542.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">6</text>
+<rect x="591.0" y="537.0" width="220.0" height="66.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="701.0" y="557.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Estado «Generando chunks»:</text>
+<text x="701.0" y="574.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">fragmentos de 1.000 caracteres</text>
+<text x="701.0" y="591.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">con solape de 150</text>
+<circle cx="592.0" cy="538.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="592.0" y="542.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">7</text>
+<rect x="591.0" y="637.5" width="220.0" height="49.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="701.0" y="658.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">Fase «embeddings»: toma el</text>
+<text x="701.0" y="675.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">siguiente lote de 50 fragmentos</text>
+<circle cx="592.0" cy="638.5" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="592.0" y="642.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">8</text>
+<rect x="861.0" y="629.0" width="220.0" height="66.0" rx="11" fill="#F2F2F2" stroke="#7F7F7F" stroke-width="1.7"/>
+<text x="971.0" y="649.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">NVIDIA NIM: embeddings del</text>
+<text x="971.0" y="666.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">lote (vectores de 2.048</text>
+<text x="971.0" y="683.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">dimensiones)</text>
+<circle cx="862.0" cy="630.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="862.0" y="634.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">9</text>
+<rect x="861.0" y="721.0" width="220.0" height="66.0" rx="11" fill="#E2EFDA" stroke="#548235" stroke-width="1.7"/>
+<text x="971.0" y="741.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">document_chunks ← INSERT</text>
+<text x="971.0" y="758.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">del lote (hasta 3 intentos, con</text>
+<text x="971.0" y="775.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">reconexión)</text>
+<circle cx="862.0" cy="722.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="862.0" y="726.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">10</text>
+<rect x="591.0" y="721.0" width="220.0" height="66.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="701.0" y="741.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Actualiza «procesados»; si el</text>
+<text x="701.0" y="758.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">lote falló suma «errores» y</text>
+<text x="701.0" y="775.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">continúa</text>
+<circle cx="592.0" cy="722.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="592.0" y="726.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">11</text>
+<polygon points="701.0,813.0 814.0,852.0 701.0,891.0 588.0,852.0" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.6"/>
+<text x="701.0" y="848.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">¿Se guardó al menos</text>
+<text x="701.0" y="863.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">un fragmento?</text>
+<circle cx="677.0" cy="825.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="677.0" y="829.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">12</text>
+<rect x="321.0" y="917.0" width="220.0" height="49.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="431.0" y="937.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Estado «Error» en documentos</text>
+<text x="431.0" y="954.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">y en el progreso</text>
+<circle cx="322.0" cy="918.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="322.0" y="922.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">13</text>
+<rect x="591.0" y="917.0" width="220.0" height="49.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="701.0" y="937.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Estado «Analizando», fase</text>
+<text x="701.0" y="954.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">«analisis» (total = 14 agentes)</text>
+<circle cx="592.0" cy="918.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="592.0" y="922.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">14</text>
+<rect x="591.0" y="992.0" width="220.0" height="66.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<rect x="595.0" y="996.0" width="212.0" height="58.0" rx="8" fill="none" stroke="#2E75B6" stroke-width="1"/>
+<text x="701.0" y="1012.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Ejecuta los 14 agentes en 5</text>
+<text x="701.0" y="1029.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">olas (el detalle de cada ola está</text>
+<text x="701.0" y="1046.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">en AC-02)</text>
+<circle cx="592.0" cy="993.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="592.0" y="997.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">15</text>
+<rect x="861.0" y="992.0" width="220.0" height="66.0" rx="11" fill="#E2EFDA" stroke="#548235" stroke-width="1.7"/>
+<text x="971.0" y="1012.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">analisis ← DELETE + INSERT</text>
+<text x="971.0" y="1029.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">por agente (único por</text>
+<text x="971.0" y="1046.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">documento y agente)</text>
+<circle cx="862.0" cy="993.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="862.0" y="997.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">16</text>
+<polygon points="701.0,1084.0 814.0,1123.0 701.0,1162.0 588.0,1123.0" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.6"/>
+<text x="701.0" y="1119.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">¿14 de 14 agentes y</text>
+<text x="701.0" y="1134.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">ningún lote con error?</text>
+<circle cx="677.0" cy="1096.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="677.0" y="1100.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">17</text>
+<rect x="591.0" y="1201.0" width="220.0" height="40.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="701.0" y="1225.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Estado «Listo»</text>
+<circle cx="592.0" cy="1202.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="592.0" y="1206.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">18</text>
+<rect x="321.0" y="1188.0" width="220.0" height="66.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="431.0" y="1208.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Estado «Listo con errores»</text>
+<text x="431.0" y="1225.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">(conserva los análisis que</text>
+<text x="431.0" y="1242.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">terminaron)</text>
+<circle cx="322.0" cy="1189.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="322.0" y="1193.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">19</text>
+<rect x="591.0" y="1294.5" width="220.0" height="49.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="701.0" y="1315.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">Fase «listo»; el bloque finally</text>
+<text x="701.0" y="1332.0" text-anchor="middle" font-size="13.5" fill="#1F2A44">borra el archivo temporal</text>
+<circle cx="592.0" cy="1295.5" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="592.0" y="1299.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">20</text>
+<polygon points="161.0,1280.0 274.0,1319.0 161.0,1358.0 48.0,1319.0" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.6"/>
+<text x="161.0" y="1315.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">¿Fase «listo» o estado</text>
+<text x="161.0" y="1330.5" text-anchor="middle" font-size="12.5" fill="#1F2A44">«Error»?</text>
+<circle cx="137.0" cy="1292.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="137.0" y="1296.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">21</text>
+<rect x="51.0" y="1384.0" width="220.0" height="49.0" rx="11" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.7"/>
+<text x="161.0" y="1404.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">Ve el documento en la lista con</text>
+<text x="161.0" y="1421.5" text-anchor="middle" font-size="13.5" fill="#1F2A44">su estado y número de páginas</text>
+<circle cx="52.0" cy="1385.0" r="10" fill="#1F3864" stroke="#fff" stroke-width="1.5"/>
+<text x="52.0" y="1389.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">22</text>
+<circle cx="701.0" cy="1408.5" r="12.5" fill="#fff" stroke="#1F3864" stroke-width="2"/><circle cx="701.0" cy="1408.5" r="7" fill="#1F3864"/>
+<circle cx="431.0" cy="1025.0" r="12.5" fill="#fff" stroke="#1F3864" stroke-width="2"/><circle cx="431.0" cy="1025.0" r="7" fill="#1F3864"/>
+<circle cx="161.0" cy="1472.0" r="12.5" fill="#fff" stroke="#1F3864" stroke-width="2"/><circle cx="161.0" cy="1472.0" r="7" fill="#1F3864"/>
+<path d="M313.0,547.0 h226.0 l10,10 v36.0 h-236.0 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.2"/>
+<text x="323.0" y="566.0" font-size="12" fill="#1F2A44">Subir dos veces el mismo identificador</text>
+<text x="323.0" y="582.0" font-size="12" fill="#1F2A44">duplica los fragmentos (H-12).</text>
+<path d="M300.0,715.0 h176.0 l10,10 v68.0 h-186.0 z" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.2"/>
+<text x="310.0" y="734.0" font-size="12" fill="#1F2A44">El avance vive en memoria</text>
+<text x="310.0" y="750.0" font-size="12" fill="#1F2A44">(progreso_documentos): se</text>
+<text x="310.0" y="766.0" font-size="12" fill="#1F2A44">pierde si el servidor se reinicia</text>
+<text x="310.0" y="782.0" font-size="12" fill="#1F2A44">(H-11).</text>
+<text x="351.0" y="245.5" text-anchor="middle" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">HTTP</text>
+<text x="621.0" y="354.5" text-anchor="middle" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">lanza el hilo</text>
+<text x="571.0" y="712.0" text-anchor="end" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">quedan lotes</text>
+<text x="509.5" y="846.0" text-anchor="middle" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">No</text>
+<text x="708.0" y="908.0" text-anchor="start" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">Sí</text>
+<text x="708.0" y="1185.5" text-anchor="start" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">Sí</text>
+<text x="509.5" y="1117.0" text-anchor="middle" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">No</text>
+<text x="168.0" y="545.4" text-anchor="start" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">mientras el hilo trabaja</text>
+<text x="45.0" y="898.2" text-anchor="start" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">No</text>
+<text x="168.0" y="1375.0" text-anchor="start" font-size="12" font-weight="700" fill="#3F4A5C" stroke="#fff" stroke-width="4" paint-order="stroke">Sí</text>
+<circle cx="38" cy="1541" r="7" fill="#1F3864"/>
+<text x="52" y="1546" font-size="12" fill="#1F2A44">Inicio</text>
+<circle cx="111.015625" cy="1541" r="9" fill="#fff" stroke="#1F3864" stroke-width="1.6"/><circle cx="111.015625" cy="1541" r="5" fill="#1F3864"/>
+<text x="128.015625" y="1546" font-size="12" fill="#1F2A44">Fin</text>
+<rect x="166.6875" y="1534" width="26" height="15" rx="5" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.4"/>
+<text x="200.6875" y="1546" font-size="12" fill="#1F2A44">Actividad (MVP v2.9)</text>
+<rect x="334.484375" y="1534" width="26" height="15" rx="5" fill="#EAF1FB" stroke="#2E75B6" stroke-width="1.4"/>
+<rect x="337.484375" y="1537" width="20" height="9" rx="3" fill="none" stroke="#2E75B6" stroke-width="1"/>
+<text x="368.484375" y="1546" font-size="12" fill="#1F2A44">Subactividad</text>
+<polygon points="470.1875,1531 481.1875,1541 470.1875,1551 459.1875,1541" fill="#FFF2CC" stroke="#BF9000" stroke-width="1.4"/>
+<text x="489.1875" y="1546" font-size="12" fill="#1F2A44">Decisión</text>
+<rect x="557.21875" y="1534" width="26" height="15" rx="5" fill="#E2EFDA" stroke="#548235" stroke-width="1.4"/>
+<text x="591.21875" y="1546" font-size="12" fill="#1F2A44">Base de datos</text>
+<rect x="689.90625" y="1534" width="26" height="15" rx="5" fill="#F2F2F2" stroke="#7F7F7F" stroke-width="1.4"/>
+<text x="723.90625" y="1546" font-size="12" fill="#1F2A44">API externa</text>
+<rect x="808.578125" y="1534" width="26" height="15" rx="5" fill="#FDE9D9" stroke="#C55A11" stroke-width="1.4" stroke-dasharray="4 2"/>
+<text x="842.578125" y="1546" font-size="12" fill="#1F2A44">Propuesto (aún no existe)</text>
+<circle cx="38" cy="1567" r="9" fill="#1F3864"/><text x="38" y="1571" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">n</text>
+<text x="54" y="1571" font-size="12" fill="#1F2A44">Número de paso (se explica en la tabla de pasos de la ficha)</text>
+<text x="30" y="1593" font-size="12" fill="#566072">Fuente: main.py (subir_informe, _procesar_documento_bg, _extraer_texto_archivo, guardar_documento, guardar_chunks_batch, actualizar_estado, consultar_progreso). Parámetros: fragmentos de</text>
+<text x="30" y="1611" font-size="12" fill="#566072">1.000 caracteres con solape de 150; lotes de 50; hace falta al menos un lote guardado para continuar.</text>
+</svg>

@@ -1,0 +1,230 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2279" height="1799" viewBox="0 0 2279 1799" font-family="Arial, 'Liberation Sans', Helvetica, sans-serif">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#3F4A5C" stroke-width="1.5"/></marker></defs>
+<rect width="2279" height="1799" fill="#fff"/>
+<text x="1139.5" y="44" text-anchor="middle" font-size="26" font-weight="700" fill="#1F3864">Diagrama de casos de uso · Módulo Gerente General (Directa MVP v2.9)</text>
+<text x="1139.5" y="70" text-anchor="middle" font-size="14" fill="#5B6678">32 casos de uso agrupados por módulo · cada caso muestra la ruta o función real del código · «include» solo donde la ejecución del caso base siempre invoca al incluido</text>
+<rect x="300" y="120" width="1660" height="1434" rx="10" fill="#fff" stroke="#3F4A5C" stroke-width="2"/>
+<text x="320" y="150" font-size="16" font-weight="700" fill="#1F2A44">Sistema Directa MVP v2.9 — FastAPI + frontend HTML (Supabase como persistencia transversal)</text>
+<rect x="324" y="182" width="1612" height="404" rx="8" fill="#F2F6FC" stroke="#1F3864" stroke-width="1.4"/>
+<text x="338" y="205" font-size="15" font-weight="700" fill="#1F3864">Documentos y análisis con agentes de IA</text>
+<text x="645.09375" y="205" font-size="12.5" fill="#5B6678">«módulo» index.html · main.py</text>
+<rect x="324" y="604" width="1612" height="176" rx="8" fill="#F2F6FC" stroke="#1F3864" stroke-width="1.4"/>
+<text x="338" y="627" font-size="15" font-weight="700" fill="#1F3864">Chat con el informe (RAG) e informe en PDF</text>
+<text x="665.0625" y="627" font-size="12.5" fill="#5B6678">«módulo» index.html · main.py</text>
+<rect x="324" y="798" width="1612" height="158" rx="8" fill="#EFF7F7" stroke="#2F6F73" stroke-width="1.4"/>
+<text x="338" y="821" font-size="15" font-weight="700" fill="#2F6F73">Dashboard de riesgos</text>
+<text x="507.53125" y="821" font-size="12.5" fill="#5B6678">«módulo» dashboard.html · dashboard.py</text>
+<rect x="324" y="974" width="1612" height="176" rx="8" fill="#EFF7F7" stroke="#2F6F73" stroke-width="1.4"/>
+<text x="338" y="997" font-size="15" font-weight="700" fill="#2F6F73">Memoria anual</text>
+<text x="455.046875" y="997" font-size="12.5" fill="#5B6678">«módulo» memoria.html · memoria.py</text>
+<rect x="324" y="1168" width="1612" height="176" rx="8" fill="#EFF7F7" stroke="#2F6F73" stroke-width="1.4"/>
+<text x="338" y="1191" font-size="15" font-weight="700" fill="#2F6F73">Indicadores KPI / KRI</text>
+<text x="501.703125" y="1191" font-size="12.5" fill="#5B6678">«módulo» indicadores.html · indicadores.py</text>
+<rect x="324" y="1362" width="1612" height="176" rx="8" fill="#EFF7F7" stroke="#2F6F73" stroke-width="1.4"/>
+<text x="338" y="1385" font-size="15" font-weight="700" fill="#2F6F73">Ayuda y navegación</text>
+<text x="494.46875" y="1385" font-size="12.5" fill="#5B6678">«módulo» guia.py · index.html</text>
+<path d="M245 226 H1456" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M804 226 V242" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M1456 226 V242" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M2004 336 H478" stroke="#7A4FA0" stroke-width="1.5" fill="none"/>
+<path d="M478 322 V336" stroke="#7A4FA0" stroke-width="1.5" fill="none"/>
+<path d="M1130 322 V336" stroke="#7A4FA0" stroke-width="1.5" fill="none"/>
+<path d="M245 358 H1782" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M478 358 V374" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M804 358 V374" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M1130 358 V374" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M1456 358 V374" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M1782 358 V374" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M245 472 H1782" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M478 472 V488" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M804 472 V488" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M1130 472 V488" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M1456 472 V488" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M1782 472 V488" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M245 648 H1782" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M478 648 V664" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M804 648 V664" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M1456 648 V664" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M1782 648 V664" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M2004 758 H804" stroke="#7A4FA0" stroke-width="1.5" fill="none"/>
+<path d="M804 744 V758" stroke="#7A4FA0" stroke-width="1.5" fill="none"/>
+<path d="M1130 744 V758" stroke="#7A4FA0" stroke-width="1.5" fill="none"/>
+<path d="M1456 744 V758" stroke="#7A4FA0" stroke-width="1.5" fill="none"/>
+<path d="M245 842 H1782" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M478 842 V858" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M804 842 V858" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M1130 842 V858" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M1456 842 V858" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M1782 842 V858" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M245 1018 H1130" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M478 1018 V1034" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M804 1018 V1034" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M1130 1018 V1034" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M2004 1128 H804" stroke="#7A4FA0" stroke-width="1.5" fill="none"/>
+<path d="M804 1114 V1128" stroke="#7A4FA0" stroke-width="1.5" fill="none"/>
+<path d="M245 1212 H1130" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M478 1212 V1228" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M804 1212 V1228" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M1130 1212 V1228" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M2004 1322 H804" stroke="#7A4FA0" stroke-width="1.5" fill="none"/>
+<path d="M804 1308 V1322" stroke="#7A4FA0" stroke-width="1.5" fill="none"/>
+<path d="M245 1406 H804" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M478 1406 V1422" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M804 1406 V1422" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M2004 1516 H478" stroke="#7A4FA0" stroke-width="1.5" fill="none"/>
+<path d="M478 1502 V1516" stroke="#7A4FA0" stroke-width="1.5" fill="none"/>
+<path d="M245 226 V1406" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M139 816.0 H245" stroke="#3F4A5C" stroke-width="1.5" fill="none"/>
+<path d="M2004 336 V1516" stroke="#7A4FA0" stroke-width="1.5" fill="none"/>
+<path d="M2004 926.0 H2095" stroke="#7A4FA0" stroke-width="1.5" fill="none"/>
+<ellipse cx="478" cy="282" rx="130" ry="40" fill="#E6EBF3" stroke="#6F7F9C" stroke-width="1.6"/>
+<text x="478" y="273.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Procesar documento</text>
+<text x="478" y="288.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">(chunks + embeddings)</text>
+<text x="478" y="304.0" text-anchor="middle" font-size="10.5" fill="#5B6678">_procesar_documento_bg()</text>
+<ellipse cx="804" cy="282" rx="130" ry="40" fill="#fff" stroke="#1F3864" stroke-width="1.8"/>
+<text x="804" y="280.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Subir informe</text>
+<text x="804" y="296.5" text-anchor="middle" font-size="10.5" fill="#5B6678">POST /api/subir-informe/</text>
+<ellipse cx="1130" cy="282" rx="130" ry="40" fill="#E6EBF3" stroke="#6F7F9C" stroke-width="1.6"/>
+<text x="1130" y="273.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Analizar con agentes</text>
+<text x="1130" y="288.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">de IA (5 olas)</text>
+<text x="1130" y="304.0" text-anchor="middle" font-size="10.5" fill="#5B6678">_analizar_grupo()</text>
+<ellipse cx="1456" cy="282" rx="130" ry="40" fill="#fff" stroke="#1F3864" stroke-width="1.8" stroke-dasharray="7 5"/>
+<text x="1456" y="273.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Iniciar análisis</text>
+<text x="1456" y="288.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">por agentes</text>
+<text x="1456" y="304.0" text-anchor="middle" font-size="10.5" fill="#5B6678">POST /api/analizar-iniciar/</text>
+<ellipse cx="478" cy="414" rx="130" ry="40" fill="#fff" stroke="#1F3864" stroke-width="1.8"/>
+<text x="478" y="412.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Listar documentos</text>
+<text x="478" y="428.5" text-anchor="middle" font-size="10.5" fill="#5B6678">GET /api/documentos</text>
+<ellipse cx="804" cy="414" rx="130" ry="40" fill="#fff" stroke="#1F3864" stroke-width="1.8"/>
+<text x="804" y="412.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Eliminar documento</text>
+<text x="804" y="428.5" text-anchor="middle" font-size="10.5" fill="#5B6678">DELETE /api/documentos/{id}</text>
+<ellipse cx="1130" cy="414" rx="130" ry="40" fill="#fff" stroke="#1F3864" stroke-width="1.8"/>
+<text x="1130" y="405.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Consultar progreso</text>
+<text x="1130" y="420.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">del procesamiento</text>
+<text x="1130" y="436.0" text-anchor="middle" font-size="10.5" fill="#5B6678">GET /api/progreso/{id}</text>
+<ellipse cx="1456" cy="414" rx="130" ry="40" fill="#fff" stroke="#1F3864" stroke-width="1.8" stroke-dasharray="7 5"/>
+<text x="1456" y="405.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Diagnosticar</text>
+<text x="1456" y="420.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">documento</text>
+<text x="1456" y="436.0" text-anchor="middle" font-size="10.5" fill="#5B6678">GET /api/diagnostico/{id}</text>
+<ellipse cx="1782" cy="414" rx="130" ry="40" fill="#fff" stroke="#1F3864" stroke-width="1.8"/>
+<text x="1782" y="405.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Listar agentes</text>
+<text x="1782" y="420.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">de análisis</text>
+<text x="1782" y="436.0" text-anchor="middle" font-size="10.5" fill="#5B6678">GET /api/agentes</text>
+<ellipse cx="478" cy="528" rx="130" ry="40" fill="#fff" stroke="#1F3864" stroke-width="1.8" stroke-dasharray="7 5"/>
+<text x="478" y="519.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Consultar estado</text>
+<text x="478" y="534.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">del análisis</text>
+<text x="478" y="550.0" text-anchor="middle" font-size="10.5" fill="#5B6678">GET /api/analizar-estado/{id}</text>
+<ellipse cx="804" cy="528" rx="130" ry="40" fill="#fff" stroke="#1F3864" stroke-width="1.8" stroke-dasharray="7 5"/>
+<text x="804" y="526.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Pausar análisis</text>
+<text x="804" y="542.5" text-anchor="middle" font-size="10.5" fill="#5B6678">POST /api/analizar-pausar/{id}</text>
+<ellipse cx="1130" cy="528" rx="130" ry="40" fill="#fff" stroke="#1F3864" stroke-width="1.8" stroke-dasharray="7 5"/>
+<text x="1130" y="526.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Reanudar análisis</text>
+<text x="1130" y="542.5" text-anchor="middle" font-size="10.5" fill="#5B6678">POST /api/analizar-reanudar/{id}</text>
+<ellipse cx="1456" cy="528" rx="130" ry="40" fill="#fff" stroke="#1F3864" stroke-width="1.8" stroke-dasharray="7 5"/>
+<text x="1456" y="526.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Detener análisis</text>
+<text x="1456" y="542.5" text-anchor="middle" font-size="10.5" fill="#5B6678">POST /api/analizar-detener/{id}</text>
+<ellipse cx="1782" cy="528" rx="130" ry="40" fill="#fff" stroke="#1F3864" stroke-width="1.8"/>
+<text x="1782" y="519.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Ver resultados</text>
+<text x="1782" y="534.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">del análisis</text>
+<text x="1782" y="550.0" text-anchor="middle" font-size="10.5" fill="#5B6678">GET /api/analisis-completos/{id}</text>
+<ellipse cx="478" cy="704" rx="130" ry="40" fill="#fff" stroke="#1F3864" stroke-width="1.8"/>
+<text x="478" y="695.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Obtener preguntas</text>
+<text x="478" y="710.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">sugeridas</text>
+<text x="478" y="726.0" text-anchor="middle" font-size="10.5" fill="#5B6678">POST /api/sugerencias/</text>
+<ellipse cx="804" cy="704" rx="130" ry="40" fill="#fff" stroke="#1F3864" stroke-width="1.8"/>
+<text x="804" y="695.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Consultar al</text>
+<text x="804" y="710.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">asistente</text>
+<text x="804" y="726.0" text-anchor="middle" font-size="10.5" fill="#5B6678">POST /api/consultar/</text>
+<ellipse cx="1130" cy="704" rx="130" ry="40" fill="#E6EBF3" stroke="#6F7F9C" stroke-width="1.6"/>
+<text x="1130" y="695.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Recuperar contexto</text>
+<text x="1130" y="710.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">(búsqueda vectorial)</text>
+<text x="1130" y="726.0" text-anchor="middle" font-size="10.5" fill="#5B6678">buscar_chunks() + ampliar_chunks()</text>
+<ellipse cx="1456" cy="704" rx="130" ry="40" fill="#fff" stroke="#1F3864" stroke-width="1.8"/>
+<text x="1456" y="695.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Consultar con</text>
+<text x="1456" y="710.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">respuesta en streaming</text>
+<text x="1456" y="726.0" text-anchor="middle" font-size="10.5" fill="#5B6678">POST /api/consultar-stream/</text>
+<ellipse cx="1782" cy="704" rx="130" ry="40" fill="#fff" stroke="#1F3864" stroke-width="1.8"/>
+<text x="1782" y="695.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Generar informe</text>
+<text x="1782" y="710.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">en PDF</text>
+<text x="1782" y="726.0" text-anchor="middle" font-size="10.5" fill="#5B6678">POST /api/informe/</text>
+<ellipse cx="478" cy="898" rx="130" ry="40" fill="#fff" stroke="#2F6F73" stroke-width="1.8"/>
+<text x="478" y="889.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Ver dashboard</text>
+<text x="478" y="904.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">de riesgos</text>
+<text x="478" y="920.0" text-anchor="middle" font-size="10.5" fill="#5B6678">GET /api/dashboard/{id}</text>
+<ellipse cx="804" cy="898" rx="130" ry="40" fill="#fff" stroke="#2F6F73" stroke-width="1.8"/>
+<text x="804" y="889.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Comparar dos</text>
+<text x="804" y="904.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">documentos</text>
+<text x="804" y="920.0" text-anchor="middle" font-size="10.5" fill="#5B6678">GET /api/dashboard-comparar/{a}/{b}</text>
+<ellipse cx="1130" cy="898" rx="130" ry="40" fill="#fff" stroke="#2F6F73" stroke-width="1.8"/>
+<text x="1130" y="889.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Exportar dashboard</text>
+<text x="1130" y="904.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">a PDF</text>
+<text x="1130" y="920.0" text-anchor="middle" font-size="10.5" fill="#5B6678">POST /api/dashboard/{id}/pdf</text>
+<ellipse cx="1456" cy="898" rx="130" ry="40" fill="#fff" stroke="#2F6F73" stroke-width="1.8"/>
+<text x="1456" y="889.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Exportar comparación</text>
+<text x="1456" y="904.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">a PDF</text>
+<text x="1456" y="920.0" text-anchor="middle" font-size="10.5" fill="#5B6678">POST /api/dashboard-comparar/…/pdf</text>
+<ellipse cx="1782" cy="898" rx="130" ry="40" fill="#fff" stroke="#2F6F73" stroke-width="1.8"/>
+<text x="1782" y="889.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Exportar plan de</text>
+<text x="1782" y="904.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">acción a Excel</text>
+<text x="1782" y="920.0" text-anchor="middle" font-size="10.5" fill="#5B6678">POST /api/dashboard/{id}/excel</text>
+<ellipse cx="478" cy="1074" rx="130" ry="40" fill="#fff" stroke="#2F6F73" stroke-width="1.8"/>
+<text x="478" y="1065.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Ver cobertura de</text>
+<text x="478" y="1080.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">capítulos de la memoria</text>
+<text x="478" y="1096.0" text-anchor="middle" font-size="10.5" fill="#5B6678">GET /api/memoria/cobertura</text>
+<ellipse cx="804" cy="1074" rx="130" ry="40" fill="#fff" stroke="#2F6F73" stroke-width="1.8"/>
+<text x="804" y="1065.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Sugerir borrador</text>
+<text x="804" y="1080.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">de capítulo</text>
+<text x="804" y="1096.0" text-anchor="middle" font-size="10.5" fill="#5B6678">POST /api/memoria/sugerir</text>
+<ellipse cx="1130" cy="1074" rx="130" ry="40" fill="#fff" stroke="#2F6F73" stroke-width="1.8"/>
+<text x="1130" y="1065.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Exportar memoria</text>
+<text x="1130" y="1080.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">a PDF</text>
+<text x="1130" y="1096.0" text-anchor="middle" font-size="10.5" fill="#5B6678">POST /api/memoria/pdf</text>
+<ellipse cx="478" cy="1268" rx="130" ry="40" fill="#fff" stroke="#2F6F73" stroke-width="1.8"/>
+<text x="478" y="1259.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Ver indicadores</text>
+<text x="478" y="1274.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">sugeridos (KPI/KRI)</text>
+<text x="478" y="1290.0" text-anchor="middle" font-size="10.5" fill="#5B6678">GET /api/indicadores/sugeridos/{id}</text>
+<ellipse cx="804" cy="1268" rx="130" ry="40" fill="#fff" stroke="#2F6F73" stroke-width="1.8"/>
+<text x="804" y="1259.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Sugerir indicador</text>
+<text x="804" y="1274.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">o solución</text>
+<text x="804" y="1290.0" text-anchor="middle" font-size="10.5" fill="#5B6678">POST /api/indicadores/sugerir</text>
+<ellipse cx="1130" cy="1268" rx="130" ry="40" fill="#fff" stroke="#2F6F73" stroke-width="1.8"/>
+<text x="1130" y="1259.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Exportar indicadores</text>
+<text x="1130" y="1274.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">a PDF</text>
+<text x="1130" y="1290.0" text-anchor="middle" font-size="10.5" fill="#5B6678">POST /api/indicadores/pdf</text>
+<ellipse cx="478" cy="1462" rx="130" ry="40" fill="#fff" stroke="#2F6F73" stroke-width="1.8"/>
+<text x="478" y="1453.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Preguntar a la</text>
+<text x="478" y="1468.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">guía de ayuda</text>
+<text x="478" y="1484.0" text-anchor="middle" font-size="10.5" fill="#5B6678">POST /api/guia/preguntar</text>
+<ellipse cx="804" cy="1462" rx="130" ry="40" fill="#fff" stroke="#2F6F73" stroke-width="1.8"/>
+<text x="804" y="1453.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">Abrir módulos</text>
+<text x="804" y="1468.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1F2A44">(Dashboard, Memoria, KPI)</text>
+<text x="804" y="1484.0" text-anchor="middle" font-size="10.5" fill="#5B6678">GET /dashboard.html · …</text>
+<path d="M673 282 L613 282" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="6 4" fill="none" marker-end="url(#ah)"/>
+<text x="643.0" y="274" text-anchor="middle" font-size="11" font-style="italic" fill="#3F4A5C">«include»</text>
+<path d="M935 282 L995 282" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="6 4" fill="none" marker-end="url(#ah)"/>
+<text x="965.0" y="274" text-anchor="middle" font-size="11" font-style="italic" fill="#3F4A5C">«include»</text>
+<path d="M1325 282 L1265 282" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="6 4" fill="none" marker-end="url(#ah)"/>
+<text x="1295.0" y="274" text-anchor="middle" font-size="11" font-style="italic" fill="#3F4A5C">«include»</text>
+<path d="M935 704 L995 704" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="6 4" fill="none" marker-end="url(#ah)"/>
+<text x="965.0" y="696" text-anchor="middle" font-size="11" font-style="italic" fill="#3F4A5C">«include»</text>
+<path d="M1325 704 L1265 704" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="6 4" fill="none" marker-end="url(#ah)"/>
+<text x="1295.0" y="696" text-anchor="middle" font-size="11" font-style="italic" fill="#3F4A5C">«include»</text>
+<g stroke="#1F3864" stroke-width="2.4" fill="none" stroke-linecap="round"><circle cx="105" cy="770.0" r="15" fill="#fff"/><path d="M105 785.0 V826.0 M75 798.0 H135 M105 826.0 L81 864.0 M105 826.0 L129 864.0"/></g><text x="105" y="888.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Gerente General</text><text x="105" y="905.0" text-anchor="middle" font-size="12"  fill="#5B6678">«actor principal»</text><text x="105" y="922.0" text-anchor="middle" font-size="11.5"  fill="#5B6678">usuario único: el código</text><text x="105" y="939.0" text-anchor="middle" font-size="11.5"  fill="#5B6678">no tiene autenticación</text>
+<g stroke="#7A4FA0" stroke-width="2.4" fill="none" stroke-linecap="round"><circle cx="2129" cy="880.0" r="15" fill="#fff"/><path d="M2129 895.0 V936.0 M2099 908.0 H2159 M2129 936.0 L2105 974.0 M2129 936.0 L2153 974.0"/></g><text x="2129" y="998.0" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2A44">Proveedor de IA</text><text x="2129" y="1015.0" text-anchor="middle" font-size="12"  fill="#5B6678">«actor secundario»</text><text x="2129" y="1032.0" text-anchor="middle" font-size="11.5"  fill="#5B6678">Groq (LLM principal)</text><text x="2129" y="1049.0" text-anchor="middle" font-size="11.5"  fill="#5B6678">NVIDIA (embeddings y respaldo)</text>
+<rect x="300" y="1582" width="1660" height="205" rx="8" fill="#FAFBFD" stroke="#C9D2E0" stroke-width="1.2"/>
+<text x="318" y="1608" font-size="14.5" font-weight="700" fill="#1F2A44">Cómo leer el diagrama</text>
+<ellipse cx="350" cy="1640" rx="30" ry="14" fill="#fff" stroke="#1F3864" stroke-width="1.8"/>
+<text x="396" y="1645.0" font-size="13" fill="#1F2A44">Caso de uso con pantalla en el frontend actual</text>
+<ellipse cx="350" cy="1674" rx="30" ry="14" fill="#fff" stroke="#1F3864" stroke-width="1.8" stroke-dasharray="6 4"/>
+<text x="396" y="1679.0" font-size="13" fill="#1F2A44">Caso de uso disponible solo por API (ninguna pantalla lo llama hoy)</text>
+<ellipse cx="350" cy="1708" rx="30" ry="14" fill="#E6EBF3" stroke="#6F7F9C" stroke-width="1.6"/>
+<text x="396" y="1713.0" font-size="13" fill="#1F2A44">Caso incluido: no lo inicia el actor, lo invoca otro caso de uso</text>
+<path d="M318 1742 H382" stroke="#3F4A5C" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#ah)"/>
+<text x="396" y="1747" font-size="13" fill="#1F2A44">«include»: el caso base siempre ejecuta el incluido</text>
+<text x="1000" y="1640" font-size="13" fill="#1F2A44">• Las líneas con ramales unen al actor con cada caso (troncal compartida, solo para evitar cruces).</text>
+<text x="1000" y="1664" font-size="13" fill="#1F2A44">• Lo morado indica los casos que llaman a un modelo de IA (ia_config.py): Groq primero, NVIDIA como respaldo.</text>
+<text x="1000" y="1688" font-size="13" fill="#1F2A44">• Subir informe dispara solo, en segundo plano, el procesamiento y el análisis con los 14 agentes.</text>
+<text x="1000" y="1712" font-size="13" fill="#1F2A44">• consultar-stream genera la respuesta completa y luego la envía en trozos de 15 caracteres (streaming simulado).</text>
+<text x="1000" y="1736" font-size="13" fill="#1F2A44">• Supabase participa en casi todos los casos; se muestra en el diagrama de arquitectura, no como actor.</text>
+<text x="1000" y="1760" font-size="13" fill="#1F2A44">• «Abrir módulos» agrupa GET /dashboard.html, /memoria.html e /indicadores.html; index.html se abre aparte (GET / solo responde un estado).</text>
+</svg>
