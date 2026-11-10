@@ -1,0 +1,22 @@
+# Llaves: nunca subir
+backend/.env
+**/.env
+
+# Python
+__pycache__/
+*.pyc
+backend/temp_*
+backend/datos_locales/
+backend/.graficos_tmp/
+
+# Flutter
+app/.dart_tool/
+app/build/
+app/.flutter-plugins-dependencies
+app/android/.gradle/
+app/android/build/
+app/android/local.properties
+app/ios/Pods/
+*.iml
+.idea/
+.DS_Store

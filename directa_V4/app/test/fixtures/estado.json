@@ -1,0 +1,1 @@
+{"ok": true, "version": "3.0", "verificador": {"chat": true, "analisis": true, "subagentes": "unificado", "modelo_escritor": "groq", "modelo_verificador": "nvidia"}, "persistencia": {"valoraciones": "supabase", "lecciones": "supabase", "perfiles_tono": "supabase", "aviso": ""}}

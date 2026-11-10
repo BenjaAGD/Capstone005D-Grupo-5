@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>DIRECTA — Módulo Gerencia General</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/index.css?v=3fea67f7">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="iso"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="#062b31" stroke-width="2"/><path d="M9 12l2 2 4-4" stroke="#062b31" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div><h1>DIRECTA</h1><p>Gerencia General</p></div>
+    </div>
+    <nav id="nav" aria-label="Navegación principal"></nav>
+    <div class="sidebar-foot">
+      <div class="profile">
+        <div class="avatar">GG</div>
+        <div><div class="nm">Gerente General</div><div class="rl">Sesión activa</div></div>
+      </div>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div class="crumbs" id="crumbs"></div>
+      <div class="doc-quick" id="docQuickWrap"><label for="docQuick">Documento</label><select class="sel" id="docQuick" aria-label="Documento activo" onchange="cambiarDocQuick(this.value)"></select></div>
+      <div class="tb-right">
+        <button class="tb-btn text-btn" onclick="cambiarFuente(-1)" aria-label="Reducir tamaño de letra" data-tip="A-::Reduce el tamaño de la letra.">A-</button>
+        <button class="tb-btn text-btn" onclick="resetFuente()" aria-label="Tamaño de letra normal" data-tip="A::Vuelve al tamaño normal.">A</button>
+        <button class="tb-btn text-btn" onclick="cambiarFuente(1)" aria-label="Aumentar tamaño de letra" data-tip="A+::Aumenta el tamaño de la letra.">A+</button>
+        <button class="tb-btn" id="themeBtn" aria-label="Cambiar tema claro u oscuro" data-tip="Tema::Cambia entre modo claro y oscuro." onclick="toggleTheme()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </header>
+    <div class="content"><div class="view" id="view"></div><div class="mod-host" id="modHost"></div></div>
+    <div id="bannerRoot"></div>
+  </main>
+</div>
+<div id="modalRoot"></div>
+<button class="guia-fab" id="guiaFab" aria-expanded="false" aria-controls="guiaBox">¿Necesitas ayuda?</button>
+<div class="guia-box" id="guiaBox" role="dialog" aria-label="Guía de uso">
+  <div class="guia-h"><span>Guía de DIRECTA</span><button id="guiaX" aria-label="Cerrar">×</button></div>
+  <div class="guia-msgs" id="guiaMsgs" aria-live="polite"><div class="g-a">Hola, te explico cómo usar cada pantalla. Pregúntame lo que necesites o elige una duda frecuente.</div></div>
+  <div class="guia-sug" id="guiaSug"></div>
+  <form class="guia-in" id="guiaForm"><input id="guiaQ" placeholder="Ej: ¿cómo comparo dos documentos?" maxlength="250" aria-label="Tu pregunta"><button type="submit">Enviar</button></form>
+</div>
+<div id="toastRoot" aria-live="polite"></div>
+
+<script src="js/index.js?v=5dc51e02"></script>
+</body>
+</html>

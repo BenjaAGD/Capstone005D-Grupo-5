@@ -1,0 +1,7 @@
+.env
+__pycache__/
+*.pyc
+temp_*
+datos_locales/
+.graficos_tmp/
+pruebas/resultados/

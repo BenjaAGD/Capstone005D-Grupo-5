@@ -1,0 +1,34 @@
+# ${BACKEND_URL} lo completa la imagen de nginx al arrancar (variable de entorno).
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Documentos grandes (PDF / Word / Excel)
+    client_max_body_size 60m;
+
+    # Resuelve el nombre del backend en cada pedido: nginx arranca aunque el backend aún no esté listo.
+    resolver ${NGINX_LOCAL_RESOLVERS} valid=10s ipv6=off;
+
+    # API del backend FastAPI (incluye el chat en streaming)
+    location /api/ {
+        set $backend ${BACKEND_URL};
+        proxy_pass $backend;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_buffering off;
+        proxy_read_timeout 600s;
+    }
+
+    # Archivos de la app que siempre deben ir frescos
+    location ~* (index\.html|flutter_bootstrap\.js|flutter_service_worker\.js|version\.json)$ {
+        add_header Cache-Control "no-cache";
+    }
+
+    # Navegación de la app (SPA)
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
