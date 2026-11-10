@@ -1,0 +1,60 @@
+data: {"chunk": "**Modo demo** ("}
+
+data: {"chunk": "respuesta simul"}
+
+data: {"chunk": "ada, sin IA rea"}
+
+data: {"chunk": "l). Seg\u00fan los f"}
+
+data: {"chunk": "ragmentos revis"}
+
+data: {"chunk": "ados:\n\n- Gesti\u00f3"}
+
+data: {"chunk": "n de riesgos. L"}
+
+data: {"chunk": "a matriz de rie"}
+
+data: {"chunk": "sgos corporativ"}
+
+data: {"chunk": "os se actualiz\u00f3"}
+
+data: {"chunk": " en septiembre "}
+
+data: {"chunk": "de 2024. Los fa"}
+
+data: {"chunk": "ctores de\u2026\n- Pe"}
+
+data: {"chunk": "rfil de la enti"}
+
+data: {"chunk": "dad. Nuestra mi"}
+
+data: {"chunk": "si\u00f3n es abastec"}
+
+data: {"chunk": "er de insumos i"}
+
+data: {"chunk": "ndustriales a l"}
+
+data: {"chunk": "a zona norte de"}
+
+data: {"chunk": "l pa\u00eds con\u2026\n\nCo"}
+
+data: {"chunk": "n las llaves co"}
+
+data: {"chunk": "nfiguradas, el "}
+
+data: {"chunk": "agente elegido "}
+
+data: {"chunk": "redacta aqu\u00ed la"}
+
+data: {"chunk": " respuesta comp"}
+
+data: {"chunk": "leta."}
+
+data: {"fuentes": [{"pagina": 4, "preview": "Gesti\u00f3n de riesgos. La matriz de riesgos corporativos se actualiz\u00f3 en septiembre de 2024. Los factores de\nriesgo principales son riesgo de liquidez, riesgo de mercado por tipo de cambio, cibersegurida...", "similarity": 0.232}, {"pagina": 2, "preview": "Perfil de la entidad. Nuestra misi\u00f3n es abastecer de insumos industriales a la zona norte del pa\u00eds con\nseguridad y eficiencia. Nuestra visi\u00f3n es ser el proveedor regional de referencia. Nuestros valor...", "similarity": 0.124}, {"pagina": 5, "preview": "Personas. La dotaci\u00f3n al 31 de diciembre de 2024 es de 1.240 trabajadores (32% mujeres), con contrato\nindefinido el 88%. La rotaci\u00f3n anual fue de 18% (promedio hist\u00f3rico 11%). Brecha salarial por g\u00e9ne...", "similarity": 0.0}, {"pagina": 3, "preview": "Gobierno corporativo. El directorio est\u00e1 compuesto por siete miembros, dos de ellos directores\nindependientes. El presidente del directorio es el Sr. Tom\u00e1s R\u00edos. Durante 2024 hubo 12 sesiones del dire...", "similarity": 0.0}], "agente": "Asistente General"}
+
+data: {"verificando": true}
+
+data: {"verificacion": {"version": 1, "fecha": "2026-10-15T20:25:06", "capas": ["codigo", "ia"], "estado": "verificada", "etiqueta": "Verificada", "resumen": "2 de 2 afirmaciones respaldadas por el documento.", "afirmaciones": [{"texto": "La matriz de riesgos corporativos se actualizó en septiembre de 2024.", "revisor": "cifras", "estado": "respaldada", "fragmento": "F1", "pagina": 4, "cita": "Gestión de riesgos. La matriz de riesgos corporativos se actualizó en septiembre de 2024. Los factores de\nriesgo principales son riesgo de l", "correccion": ""}, {"texto": "Nuestra misión es abastecer de insumos industriales a la zona norte del país con", "revisor": "evidencia", "estado": "respaldada", "fragmento": "F2", "pagina": 2, "cita": "Perfil de la entidad. Nuestra misión es abastecer de insumos industriales a la zona norte del país con\nseguridad y eficiencia. Nuestra visió", "correccion": ""}], "capa1": {"cifras": [{"cifra": "2024", "estado": "encontrada", "pagina": 4}], "problemas": [], "fecha_corte": "2024-12-31"}, "modelo_verificador": "demo", "mismo_modelo": false, "segundos": 0.0}}
+
+data: [DONE]
+

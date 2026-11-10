@@ -1,0 +1,1 @@
+{"ok": true, "total": 3, "por_agente": {"financiero": {"positivas": 0, "negativas": 3, "negativas_nuevas": 0, "motivos": {"falta_contexto": 3}, "puede_generar": false}}, "minimo_para_lecciones": 3, "motivos": {"cifra_incorrecta": "Cifra incorrecta", "no_responde": "No responde lo que pregunté", "muy_larga": "Demasiado larga", "falta_contexto": "Falta contexto", "otro": "Otro"}}

@@ -1,0 +1,5 @@
+# MODO DEMO: el mismo main.py, pero con base de datos en memoria e IA simulada.
+# No necesita llaves. Carga dos memorias ficticias (2023 y 2024) al iniciar.
+services:
+  backend:
+    command: ["python", "demo/demo_server.py"]
