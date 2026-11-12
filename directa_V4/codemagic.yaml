@@ -9,7 +9,7 @@ workflows:
       flutter: stable
       vars:
         # Dirección del backend que usará la app por defecto (también se puede cambiar dentro de la app)
-        API_BASE_URL: https://tu-backend.ejemplo.com
+        API_BASE_URL: https://directa-backend.onrender.com
     scripts:
       - name: Dependencias
         script: cd app && flutter pub get
