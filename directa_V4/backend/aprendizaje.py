@@ -33,10 +33,9 @@ MOTIVOS = {
     "falta_contexto": "Falta contexto",
     "otro": "Otro",
 }
-from acceso import TenantMap, bound_worker
-_CACHE_CTX = TenantMap()
+_CACHE_CTX = {}
 _TTL_CTX = 60
-jobs_prueba = TenantMap()
+jobs_prueba = {}
 
 
 def _norm(t):
@@ -333,7 +332,7 @@ def iniciar_prueba(get_sb, id_, document_id, responder):
             job["error"] = str(e)[:300]
         finally:
             job["corriendo"] = False
-    threading.Thread(target=bound_worker(worker), daemon=True).start()
+    threading.Thread(target=worker, daemon=True).start()
     return job
 
 

@@ -17,9 +17,9 @@ RUN pip install -r requirements.txt
 COPY . .
 
 EXPOSE 8000
-# Salud pública mínima; los datos de /api requieren una sesión verificada.
+# Comprueba que el servidor responde (GET / devuelve un mensaje JSON)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD python -c "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s/healthz' % os.getenv('PORT', '8000'))" || exit 1
+  CMD python -c "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s/' % os.getenv('PORT', '8000'))" || exit 1
 
 # El puerto sale de la variable PORT (la usan Render, Railway, Cloud Run, etc.); por defecto 8000.
 ENV PORT=8000

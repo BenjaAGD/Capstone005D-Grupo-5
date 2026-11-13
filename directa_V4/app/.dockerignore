@@ -1,7 +1,4 @@
 .dart_tool/
-.env
-.env.*
-*.local.json
 build/
 .idea/
 android/.gradle/

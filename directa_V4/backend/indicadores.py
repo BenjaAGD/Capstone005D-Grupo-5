@@ -142,8 +142,7 @@ def html_pdf_indicadores(doc_nombre, indicadores):
     return pagina_pdf("Indicadores de Gestión", "KPI, KRI y soluciones para la Gerencia General", cuerpo, meta, "Indicadores de Gestión")
 
 
-from acceso import TenantMap
-_CACHE_SUG = TenantMap()
+_CACHE_SUG = {}
 
 
 def sugerir_indicador(sb, p):

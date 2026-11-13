@@ -14,7 +14,6 @@ import 'package:directa_gg_app/core/store.dart';
 import 'package:directa_gg_app/main.dart';
 import 'package:directa_gg_app/screens/indicadores_screen.dart' show semaforo;
 import 'package:directa_gg_app/state/app_state.dart';
-import 'support/fake_auth.dart';
 
 /// Respuestas guardadas del backend real (main.py en modo demo).
 String fx(String n) => File('test/fixtures/$n').readAsStringSync();
@@ -110,11 +109,11 @@ void main() {
 }
 
 Future<void> _recorrido(WidgetTester tester, Store store, List<String> errores) async {
-    await tester.pumpWidget(DirectaApp(store: store, client: backendSimulado(), auth: testAuth()));
+    await tester.pumpWidget(DirectaApp(store: store, client: backendSimulado()));
     for (var i = 0; i < 10; i++) {
       await tester.pump(const Duration(milliseconds: 200));
     }
-    expect(find.text('Gerencia General'), findsOneWidget);
+    expect(find.text('Bienvenido al módulo de Gerencia General'), findsOneWidget);
     expect(find.text('Memoria_Anual_2024_Andes_Demo.pdf'), findsWidgets);
 
     Future<void> tab(String label) async {
@@ -124,13 +123,9 @@ Future<void> _recorrido(WidgetTester tester, Store store, List<String> errores) 
       }
     }
 
-    final st = tester.element(find.byType(Scaffold).first).read<AppState>();
-    st.go('documentos');
-    await tester.pumpAndSettle();
+    await tab('Documentos');
     expect(find.textContaining('DOCUMENTOS CARGADOS (2)'), findsOneWidget);
-    Navigator.of(tester.element(find.byType(Scaffold).last)).pop();
-    await tester.pumpAndSettle();
-    await tab('Análisis');
+    await tab('Resultados');
     expect(find.text('Resultados del análisis'), findsOneWidget);
     expect(find.textContaining('señales graves revisadas por el verificador'), findsOneWidget);
     final pestanaSenales = find.textContaining('Señales (');
@@ -140,7 +135,7 @@ Future<void> _recorrido(WidgetTester tester, Store store, List<String> errores) 
     expect(find.textContaining('Dependencia de proveedor único'), findsWidgets);
     expect(find.text('Sin respaldo'), findsWidgets); // la señal financiera con la cifra de otro año
 
-    await tab('Consultar a la IA');
+    await tab('Preguntar');
     await tester.enterText(find.byType(TextField).last, '¿Qué riesgo tiene TechniPart?');
     await tester.testTextInput.receiveAction(TextInputAction.send);
     for (var i = 0; i < 10; i++) {
@@ -160,6 +155,7 @@ Future<void> _recorrido(WidgetTester tester, Store store, List<String> errores) 
       await tester.pump(const Duration(milliseconds: 200));
     }
 
+    final st = tester.element(find.byType(Scaffold).first).read<AppState>();
     // Ruta de preguntas guía del agente: la que aborda la señal grave sube primero.
     st.cambiarAgente('operaciones');
     for (var i = 0; i < 6; i++) {
@@ -169,8 +165,8 @@ Future<void> _recorrido(WidgetTester tester, Store store, List<String> errores) 
     expect(find.text('¿De qué proveedores o insumos críticos dependemos?'), findsOneWidget);
     expect(errores, isEmpty, reason: 'errores en el chat');
 
-    // La navegación actual conserva el asistente flotante en Más.
-    await tab('Más');
+    // Asistente flotante desde Inicio
+    await tab('Inicio');
     expect(find.text('Preparar mi reunión'), findsWidgets);
     await tester.tap(find.byTooltip('Asistente: ayuda y preguntas al documento'));
     for (var i = 0; i < 6; i++) {
@@ -212,7 +208,7 @@ Future<void> _recorrido(WidgetTester tester, Store store, List<String> errores) 
       }
       expect(find.textContaining(titulo, findRichText: true), findsWidgets, reason: id);
       if (id == 'memoria') {
-        for (final (pestana, texto) in [('Personalizar estilo', 'MEMORIAS ANTERIORES PARA APRENDER EL TONO'), ('Revisar avance', 'TEMAS QUE PIDE LA NORMA')]) {
+        for (final (pestana, texto) in [('Perfil de tono', 'MEMORIAS ANTERIORES PARA APRENDER EL TONO'), ('Capítulos', 'TEMAS QUE PIDE LA NORMA')]) {
           await tester.ensureVisible(find.text(pestana));
           await tester.tap(find.text(pestana));
           for (var i = 0; i < 8; i++) {
@@ -229,7 +225,7 @@ Future<void> _recorrido(WidgetTester tester, Store store, List<String> errores) 
         expect(find.text('RESPUESTA SUGERIDA'), findsWidgets);
       }
       expect(errores, isEmpty, reason: 'errores en $id');
-      if (id != 'memoria') Navigator.of(tester.element(find.byType(Scaffold).last)).pop();
+      Navigator.of(tester.element(find.byType(Scaffold).last)).pop();
       for (var i = 0; i < 4; i++) {
         await tester.pump(const Duration(milliseconds: 200));
       }

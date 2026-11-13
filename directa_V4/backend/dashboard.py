@@ -88,8 +88,7 @@ def construir_dashboard(sb, document_id):
     }
 
 
-from acceso import TenantMap
-_CACHE_DASH = TenantMap()
+_CACHE_DASH = {}
 CACHE_DASH_SEG = 45
 
 

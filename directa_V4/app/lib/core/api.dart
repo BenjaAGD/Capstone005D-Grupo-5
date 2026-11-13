@@ -18,7 +18,6 @@ class Api {
 
   String baseUrl;
   final http.Client _client;
-  void close() => _client.close();
   static const _timeout = Duration(seconds: 40);
 
   Uri _u(String path, [Map<String, String>? q]) {

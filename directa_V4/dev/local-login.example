@@ -1,8 +1,0 @@
-# Solo se usa al copiar este ejemplo a .directa/local-login.env con --init.
-# Archivo de destino ignorado por Git. Cambiar estos valores antes del bootstrap
-# permite usar otras credenciales de laboratorio sin modificar el código.
-LOCAL_ADMIN_LOGIN=admin
-LOCAL_ADMIN_PASSWORD=admin
-LOCAL_ADMIN_EMAIL=admin@directa.local
-LOCAL_ORGANIZATION=Directa laboratorio local
-LOCAL_DISPLAY_NAME=Administración local

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/config.dart';
-import '../auth/auth_controller.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
@@ -60,17 +59,8 @@ class _AjustesScreenState extends State<AjustesScreen> {
   Widget build(BuildContext context) {
     final c = context.c;
     final st = context.watch<AppState>();
-    final access = context.watch<AuthController?>();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const PageHead(title: 'Servidor y apariencia'),
-      if (access?.ready ?? false) GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const SecTitle('Tu sesión'),
-        Text(access!.organization!.name, style: TextStyle(color: c.text, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 5),
-        Text(access.identity!.email, style: TextStyle(color: c.text2, fontSize: 12)),
-        const SizedBox(height: 14),
-        GgButton('Cerrar sesión', icon: Icons.logout_rounded, ghost: true, onTap: access.signOut),
-      ])),
       GgCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const SecTitle('Dirección del backend'),

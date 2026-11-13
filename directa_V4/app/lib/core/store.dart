@@ -5,43 +5,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Guardado local en el teléfono (equivale al localStorage del index.html).
 /// Mismas claves que el MVP para que se reconozca qué se guarda.
 class Store {
-  Store._(this._p, this._scope, this._lease, this._publicOnly, this._leases);
+  Store._(this._p);
   final SharedPreferences _p;
-  final String? _scope;
-  final _StoreLease? _lease;
-  final Map<String, _StoreLease> _leases;
-  final bool _publicOnly;
 
-  static Future<Store> open() async => Store._(await SharedPreferences.getInstance(), null, null, false, {});
-
-  Store publicOnly() => Store._(_p, null, null, true, _leases);
-
-  /// Los datos anteriores sin identidad no se adjudican a la primera cuenta.
-  Store scoped(String userId, String tenantId) {
-    final scope = '${userId}_$tenantId';
-    var lease = _leases[scope];
-    if (lease == null || !lease.active) { lease = _StoreLease(); _leases[scope] = lease; }
-    return Store._(_p, scope, lease, false, _leases);
-  }
-
-  bool _public(String key) => key == kApi || key == kTheme || key == kFont;
-  bool _canUse(String key) => _public(key) || (!_publicOnly && (_lease?.active ?? true));
-  String _key(String key) => _scope == null || _public(key) ? key : 'directa_session_${_scope}__$key';
-
-  Future<void> clearSession(String userId, String tenantId) async {
-    final scope = '${userId}_$tenantId';
-    final lease = _leases[scope];
-    if (lease != null) { lease.active = false; await Future.wait(lease.pending.toList()); }
-    final prefix = 'directa_session_${scope}__';
-    for (final key in _p.getKeys().where((key) => key.startsWith(prefix)).toList()) { await _p.remove(key); }
-  }
-
-  Future<void> _write(String key, Future<bool> Function(String actualKey) operation) async {
-    if (!_canUse(key)) return;
-    final pending = operation(_key(key));
-    if (!_public(key)) _lease?.pending.add(pending);
-    try { await pending; } finally { _lease?.pending.remove(pending); }
-  }
+  static Future<Store> open() async => Store._(await SharedPreferences.getInstance());
 
   static const kApi = 'directa_api';
   static const kTheme = 'directa_theme';
@@ -58,20 +25,20 @@ class Store {
   static const kPrep = 'directa_preparar_reunion_v1';
   static const kValoraciones = 'directa_valoraciones_v1';
 
-  String? getString(String k) => _canUse(k) ? _p.getString(_key(k)) : null;
+  String? getString(String k) => _p.getString(k);
   Future<void> setString(String k, String? v) async {
     if (v == null) {
-      await _write(k, _p.remove);
+      await _p.remove(k);
     } else {
-      await _write(k, (key) => _p.setString(key, v));
+      await _p.setString(k, v);
     }
   }
 
-  double? getDouble(String k) => _canUse(k) ? _p.getDouble(_key(k)) : null;
-  Future<void> setDouble(String k, double v) => _write(k, (key) => _p.setDouble(key, v));
+  double? getDouble(String k) => _p.getDouble(k);
+  Future<void> setDouble(String k, double v) => _p.setDouble(k, v);
 
   T getJson<T>(String k, T def) {
-    final s = getString(k);
+    final s = _p.getString(k);
     if (s == null) return def;
     try {
       final v = jsonDecode(s);
@@ -81,10 +48,5 @@ class Store {
     }
   }
 
-  Future<void> setJson(String k, Object? v) => setString(k, jsonEncode(v));
-}
-
-class _StoreLease {
-  bool active = true;
-  final pending = <Future<bool>>{};
+  Future<void> setJson(String k, Object? v) => _p.setString(k, jsonEncode(v));
 }

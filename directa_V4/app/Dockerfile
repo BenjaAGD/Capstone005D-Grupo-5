@@ -20,17 +20,7 @@ RUN flutter pub get
 COPY . .
 # Vacío = la app usa el mismo dominio donde se publica (nginx reenvía /api al backend)
 ARG API_BASE_URL=
-ARG SUPABASE_URL=
-ARG SUPABASE_ANON_KEY=
-ARG AUTH_REDIRECT_URL=
-# Solo variables públicas; ninguna contraseña ni service_role se compila.
-RUN dart tool/validate_public_config.dart "$SUPABASE_URL" "$SUPABASE_ANON_KEY" "$API_BASE_URL" "$AUTH_REDIRECT_URL" \
- && flutter build web --release \
-      --dart-define="API_BASE_URL=${API_BASE_URL}" \
-      --dart-define="SUPABASE_URL=${SUPABASE_URL}" \
-      --dart-define="SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}" \
-      --dart-define="AUTH_REDIRECT_URL=${AUTH_REDIRECT_URL}" \
-      --dart-define=DIRECTA_ENV=production
+RUN flutter build web --release --dart-define=API_BASE_URL=${API_BASE_URL}
 
 # ---- 2) Servir con nginx -----------------------------------------------------
 FROM nginx:1.27-alpine

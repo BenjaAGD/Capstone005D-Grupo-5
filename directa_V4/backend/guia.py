@@ -55,8 +55,7 @@ FAQ = [
     (["lento", "demora", "carga"], "Los módulos quedan cargados en segundo plano. Si algo tarda, pulsa «Actualizar datos». Los análisis se guardan, así que no se recalculan."),
     (["preguntar", "chat"], "En «Preguntar» eliges un agente y consultas el documento activo. Cada agente responde en cuatro partes (hallazgo, lo que preguntará el directorio, respuesta sugerida y qué falta) y la respuesta lleva el sello del verificador. También puedes preguntar desde el botón del asistente en cualquier pantalla."),
 ]
-from acceso import TenantMap
-_CACHE = TenantMap()
+_CACHE = {}
 
 
 def _norm(t):

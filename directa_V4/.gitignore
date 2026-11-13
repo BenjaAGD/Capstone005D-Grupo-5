@@ -8,9 +8,6 @@ __pycache__/
 backend/temp_*
 backend/datos_locales/
 backend/.graficos_tmp/
-.directa/
-dev/local-auth/supabase/.temp/
-dev/local-auth/supabase/.branches/
 
 # Flutter
 app/.dart_tool/

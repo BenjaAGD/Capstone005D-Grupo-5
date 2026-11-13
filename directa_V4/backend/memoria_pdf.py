@@ -29,8 +29,7 @@ from modulos_base import (esc_pdf, html_a_pdf, tabla_pdf, tiles_pdf, nota_pdf, c
 MARCA_CARTA = "[CARTA MEMORIA DIRECTA]"
 _RE_COLOR = re.compile(r"^#[0-9A-Fa-f]{6}$")
 _RE_LOGO = re.compile(r"^data:image/(png|jpe?g);base64,[A-Za-z0-9+/=\s]+$")
-from acceso import TenantMap, bound_worker
-jobs = TenantMap()
+jobs = {}
 _TTL_JOB = 3600
 
 
@@ -315,7 +314,7 @@ def crear_router(get_supabase):
                 job["error"] = str(e)[:300]
             finally:
                 job["corriendo"] = False
-        threading.Thread(target=bound_worker(worker), daemon=True).start()
+        threading.Thread(target=worker, daemon=True).start()
         return {"ok": True, "job_id": job_id}
 
     @router.get("/api/memoria/borrador/{job_id}")
