@@ -1,0 +1,13 @@
+name: directa-login-local
+services:
+  backend:
+    image: directa-login-backend-local
+    build:
+      context: ./backend
+    env_file:
+      - ./.directa/backend.local.env
+    ports:
+      - "127.0.0.1:8001:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

@@ -5,6 +5,7 @@ import time
 import json
 import uuid
 import shutil
+import tempfile
 import threading
 import traceback
 import unicodedata
@@ -19,6 +20,7 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from supabase import create_client, Client
+from acceso import AccessMiddleware, ScopedSupabase, TenantMap, bound_worker, current_access
 
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -53,7 +55,7 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 if not SUPABASE_URL: raise Exception("Falta SUPABASE_URL")
 if not SUPABASE_KEY: raise Exception("Falta SUPABASE_KEY")
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+supabase = ScopedSupabase()
 
 
 def _es_error_conexion(e):
@@ -63,10 +65,9 @@ def _es_error_conexion(e):
 
 
 def _reconectar_supabase():
-    """Crea un cliente nuevo. Todo el código usa la variable global `supabase`, así que toma el nuevo solo."""
-    global supabase
+    """Renueva únicamente los clientes del contexto autenticado actual."""
     try:
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        supabase.reconnect()
     except Exception as e:
         print(f"[DB] No se pudo reconectar: {e}", flush=True)
 
@@ -89,13 +90,24 @@ def _reintentar_db(fn, intentos=3):
 
 app = FastAPI(title="Directa MVP", version="3.0")
 
+app.add_middleware(AccessMiddleware)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=[v.strip() for v in os.getenv('DIRECTA_ALLOWED_ORIGINS', '').split(',') if v.strip()],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Directa-Tenant"],
 )
+
+@app.get('/healthz')
+def healthz():
+    return {'status': 'ok'}
+
+@app.get('/api/auth/session')
+def auth_session():
+    access = current_access()
+    return {'verified': True, 'user_id': access.user_id, 'tenant_id': access.tenant_id,
+            'organization': access.organization, 'role': access.role}
 
 for _mod in ("dashboard", "memoria", "indicadores", "guia", "tono", "memoria_pdf"):
     try:
@@ -117,8 +129,8 @@ for _carpeta in ("css", "js"):
     if os.path.isdir(os.path.join(_WEB, _carpeta)):
         app.mount(f"/{_carpeta}", StaticFiles(directory=os.path.join(_WEB, _carpeta)), name=_carpeta)
 
-progreso_documentos = {}
-jobs_analisis = {}
+progreso_documentos = TenantMap()
+jobs_analisis = TenantMap()
 
 CHUNKS_POR_AGENTE = 12
 CHUNKS_POR_GRUPO = 30            
@@ -1310,7 +1322,7 @@ def consultar_progreso(document_id: str):
     return progreso_documentos[document_id]
 
 
-_CACHE_CHUNKS = {}
+_CACHE_CHUNKS = TenantMap()
 
 
 @app.get("/api/documentos/{document_id}/vista-previa")
@@ -1422,7 +1434,8 @@ def eliminar_documento(document_id: str):
 async def subir_informe(document_id: str = Form(...), archivo: UploadFile = File(...)):
     id_seguro = re.sub(r"[^A-Za-z0-9_.-]", "_", document_id)[:80]
     nombre_seguro = re.sub(r"[^A-Za-z0-9_.-]", "_", os.path.basename((archivo.filename or "archivo").replace("\\", "/")))[:120]
-    ruta_temporal = f"temp_{id_seguro}_{nombre_seguro}"
+    carpeta_temporal = tempfile.mkdtemp(prefix='directa-')
+    ruta_temporal = os.path.join(carpeta_temporal, 'documento' + os.path.splitext(nombre_seguro)[1])
     try:
         progreso_documentos[document_id] = {
             "fase": "iniciando", "total": 0, "procesados": 0,
@@ -1430,17 +1443,17 @@ async def subir_informe(document_id: str = Form(...), archivo: UploadFile = File
         }
         with open(ruta_temporal, "wb") as buffer:
             shutil.copyfileobj(archivo.file, buffer)
-        thread = threading.Thread(
-            target=_procesar_documento_bg,
-            args=(document_id, ruta_temporal, archivo.filename),
-            daemon=True,
-        )
+        def trabajo():
+            try:
+                _procesar_documento_bg(document_id, ruta_temporal, archivo.filename)
+            finally:
+                shutil.rmtree(carpeta_temporal, ignore_errors=True)
+        thread = threading.Thread(target=bound_worker(trabajo), daemon=True)
         thread.start()
         return {"ok": True, "mensaje": "Documento recibido.", "document_id": document_id}
     except Exception as e:
         traceback.print_exc()
-        if os.path.exists(ruta_temporal):
-            os.remove(ruta_temporal)
+        shutil.rmtree(carpeta_temporal, ignore_errors=True)
         return {"ok": False, "error": str(e)}
 
 def buscar_chunks(document_id, pregunta, match_threshold=0.05, match_count=8):
@@ -1814,7 +1827,7 @@ def verificar_texto(document_id: str = Form(...), pregunta: str = Form(""), resp
         return {"ok": False, "error": str(e)}
 
 
-jobs_verificacion = {}
+jobs_verificacion = TenantMap()
 
 
 @app.post("/api/verificar-analisis/{document_id}")
@@ -1853,7 +1866,7 @@ def verificar_analisis_iniciar(document_id: str):
             job["errores"].append(str(e))
         finally:
             job["corriendo"] = False
-    threading.Thread(target=worker, daemon=True).start()
+    threading.Thread(target=bound_worker(worker), daemon=True).start()
     return {"ok": True, "job_id": job_id, "total": len(olas)}
 
 
@@ -1868,7 +1881,7 @@ def verificar_analisis_estado(job_id: str):
 # ============================================================================
 # FRENTE A · RUTA DE PREGUNTAS GUÍA Y "PREPARAR MI REUNIÓN"
 # ============================================================================
-_CACHE_CORPUS = {}
+_CACHE_CORPUS = TenantMap()
 _PESO_SEV = {"crítica": 3, "alta": 2, "media": 1, "baja": 0}
 
 
@@ -1932,7 +1945,7 @@ def api_ruta_preguntas(document_id: str, agente: str):
         return {"ok": False, "error": str(e), "preguntas": []}
 
 
-_CACHE_PREPARACION = {}   # {document_id: {item_id: respuesta sugerida}}
+_CACHE_PREPARACION = TenantMap()   # {document_id: {item_id: respuesta sugerida}} por tenant
 MARCA_PREPARAR = "[PREPARAR REUNION DIRECTA]"
 
 
@@ -2157,7 +2170,7 @@ async def analizar_iniciar(document_id: str = Form(...), agentes: str = Form(...
                 job.setdefault("errores", []).append(str(e))
             finally:
                 job["corriendo"] = False
-        threading.Thread(target=worker, daemon=True).start()
+        threading.Thread(target=bound_worker(worker), daemon=True).start()
         return {"ok": True, "job_id": job_id, "estimado_seg": estimado_seg}
     except Exception as e:
         print("[ANALIZAR-INICIAR] Error:", e, flush=True)

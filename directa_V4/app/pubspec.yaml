@@ -42,6 +42,10 @@ dependencies:
   share_plus: ^13.3.1
   google_fonts: ^6.3.3
   web: ^1.1.1
+  supabase_flutter: 2.18.3
+  flutter_secure_storage: 11.2.0
+  qr_flutter: 4.1.0
+  crypto: ^3.0.7
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +68,20 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-Regular.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:
