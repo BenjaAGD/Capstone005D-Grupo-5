@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -102,39 +104,39 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     return Column(children: [
-      // barra del chat
+      // Selector compacto para dejar espacio a los mensajes.
       Container(
-        padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+        padding: const EdgeInsets.fromLTRB(12, 5, 8, 5),
         decoration: BoxDecoration(color: c.bg2, border: Border(bottom: BorderSide(color: c.border))),
         child: Row(children: [
           Expanded(
-            child: Material(
-              color: c.surface2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: c.border2)),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(10),
-                onTap: () => _elegirAgente(st),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  child: Row(children: [
-                    AgentBadge(st.badgeAgente(st.agenteActual)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(st.nombreAgente(st.agenteActual), maxLines: 1, overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
-                        Text(doc != null ? 'Documento: ${nombreDoc(doc)}' : 'Sin documento activo', maxLines: 1,
-                            overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: c.text3)),
-                      ]),
-                    ),
-                    Icon(Icons.expand_more, color: c.text2),
-                  ]),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Material(
+                color: c.surface2,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: c.border2)),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () => _elegirAgente(st),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      AgentBadge(st.badgeAgente(st.agenteActual)),
+                      const SizedBox(width: 7),
+                      Flexible(child: Text(st.nombreAgente(st.agenteActual), maxLines: 1, overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12.5))),
+                      Icon(Icons.expand_more, size: 18, color: c.text2),
+                    ]),
+                  ),
                 ),
               ),
             ),
           ),
           IconButton(
             tooltip: 'Nueva conversación',
+            visualDensity: VisualDensity.compact,
+            constraints: const BoxConstraints.tightFor(width: 38, height: 38),
+            padding: EdgeInsets.zero,
             onPressed: st.mensajes.isEmpty || st.consultando
                 ? null
                 : () async {
@@ -143,9 +145,16 @@ class _ChatScreenState extends State<ChatScreen> {
                       st.nuevaConversacion();
                     }
                   },
-            icon: const Icon(Icons.add_comment_outlined),
+            icon: const Icon(Icons.add_comment_outlined, size: 19),
           ),
-          IconButton(tooltip: 'Nuevas sugerencias', onPressed: () => st.cargarSugerencias(forzar: true), icon: const Icon(Icons.refresh)),
+          IconButton(
+            tooltip: 'Nuevas sugerencias',
+            visualDensity: VisualDensity.compact,
+            constraints: const BoxConstraints.tightFor(width: 38, height: 38),
+            padding: EdgeInsets.zero,
+            onPressed: () => st.cargarSugerencias(forzar: true),
+            icon: const Icon(Icons.refresh, size: 19),
+          ),
         ]),
       ),
       Expanded(
@@ -163,8 +172,41 @@ class _ChatScreenState extends State<ChatScreen> {
                     GgButton('Documentos', ghost: true, small: true, onTap: () => st.go('docs')),
                   ]),
                 ),
-              const EmptyState(icon: Icons.chat_bubble_outline, title: 'Empieza la conversación',
-                  text: 'Escribe una pregunta sobre el documento activo o usa una de las sugerencias. Las repreguntas ("¿y por qué?") se entienden en contexto.'),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(18),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    child: Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [c.accentSoft.withValues(alpha: 0.48), c.surface.withValues(alpha: 0.38)],
+                        ),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: c.accentText.withValues(alpha: 0.22)),
+                      ),
+                      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Container(
+                          width: 40, height: 40,
+                          decoration: BoxDecoration(color: c.accentSoft.withValues(alpha: 0.72), borderRadius: BorderRadius.circular(13)),
+                          child: Icon(Icons.auto_awesome_outlined, color: c.accentText, size: 21),
+                        ),
+                        const SizedBox(width: 13),
+                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          const Text('Conversa con tu asistente', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                          const SizedBox(height: 5),
+                          Text('Pregunta sobre el documento activo. Puedes repreguntar y la IA mantendrá el contexto.',
+                              style: TextStyle(fontSize: 12.5, height: 1.45, color: c.text2)),
+                        ])),
+                      ]),
+                    ),
+                  ),
+                ),
+              ),
             ],
             for (final m in st.mensajes) m.rol == 'me' ? _Mio(m.texto) : _burbujaIA(context, st, m),
           ],

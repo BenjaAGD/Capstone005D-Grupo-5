@@ -1313,6 +1313,39 @@ def consultar_progreso(document_id: str):
 _CACHE_CHUNKS = {}
 
 
+@app.get("/api/documentos/{document_id}/vista-previa")
+def vista_previa_documento(document_id: str, offset: int = 0, limit: int = 12):
+    """Entrega fragmentos indexados para leer el contenido del documento en la app."""
+    try:
+        offset = max(0, offset)
+        limit = min(30, max(1, limit))
+        documento_resp = (supabase.table("documentos")
+                          .select("id, titulo, nombre_archivo, total_paginas, estado, creado_en")
+                          .eq("id", document_id).limit(1).execute())
+        documentos = documento_resp.data or []
+        if not documentos:
+            return {"ok": False, "error": "Documento no encontrado", "fragmentos": [], "total_fragmentos": 0}
+        fragmentos_resp = (supabase.table("document_chunks")
+                           .select("page_number, content")
+                           .eq("document_id", document_id)
+                           .order("page_number")
+                           .range(offset, offset + limit - 1).execute())
+        conteo_resp = (supabase.table("document_chunks")
+                       .select("id", count="exact")
+                       .eq("document_id", document_id).limit(1).execute())
+        return {
+            "ok": True,
+            "documento": documentos[0],
+            "fragmentos": fragmentos_resp.data or [],
+            "total_fragmentos": conteo_resp.count or 0,
+            "offset": offset,
+            "limit": limit,
+        }
+    except Exception as e:
+        print("[VISTA_PREVIA] Error:", e, flush=True)
+        return {"ok": False, "error": str(e), "fragmentos": [], "total_fragmentos": 0}
+
+
 @app.get("/api/documentos")
 def listar_documentos():
     try:
