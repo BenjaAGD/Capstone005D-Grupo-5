@@ -9,16 +9,16 @@ import '../state/app_state.dart';
 import '../widgets/asistente.dart';
 import 'ajustes_screen.dart';
 import 'aprendizaje_screen.dart';
-import 'chat_screen.dart';
 import 'dashboard_screen.dart';
 import 'documentos_screen.dart';
+import 'analisis_screen.dart';
+import 'gestion_screen.dart';
 import 'indicadores_screen.dart';
 import 'informe_screen.dart';
 import 'inicio_screen.dart';
 import 'mas_screen.dart';
 import 'memoria_screen.dart';
 import 'preparar_screen.dart';
-import 'resultados_screen.dart';
 
 /// Contenedor con desplazamiento y ancho máximo, para las pantallas de contenido.
 class Pagina extends StatelessWidget {
@@ -38,13 +38,14 @@ class Pagina extends StatelessWidget {
 
 const _dest = [
   ('Inicio', Icons.home_outlined, Icons.home),
-  ('Documentos', Icons.description_outlined, Icons.description),
-  ('Preguntar', Icons.chat_bubble_outline, Icons.chat_bubble),
-  ('Resultados', Icons.insights_outlined, Icons.insights),
+  ('Análisis', Icons.manage_search_outlined, Icons.manage_search),
+  ('Memoria', Icons.menu_book_outlined, Icons.menu_book),
+  ('Gestión', Icons.insights_outlined, Icons.insights),
   ('Más', Icons.grid_view_outlined, Icons.grid_view_rounded),
 ];
 
 const _secundarias = {
+  'documentos': 'Documentos cargados',
   'preparar': 'Preparar mi reunión',
   'informe': 'Informe IA',
   'dashboard': 'Dashboard',
@@ -100,9 +101,9 @@ class _ShellState extends State<Shell> {
 
   Widget _tab(int i, AppState st) => switch (i) {
         0 => Pagina(onRefresh: st.recargarTodo, child: const InicioScreen()),
-        1 => Pagina(onRefresh: st.recargarTodo, child: const DocumentosScreen()),
-        2 => const ChatScreen(),
-        3 => Pagina(onRefresh: st.recargarTodo, child: const ResultadosScreen()),
+        1 => const AnalisisScreen(),
+        2 => Pagina(onRefresh: st.recargarTodo, child: const MemoriaScreen()),
+        3 => Pagina(onRefresh: st.recargarTodo, child: const GestionScreen()),
         _ => const Pagina(child: MasScreen()),
       };
 
@@ -122,7 +123,7 @@ class _ShellState extends State<Shell> {
     return Scaffold(
       key: _navKey,
       appBar: const BarraDirecta(),
-      floatingActionButton: pantalla == 'chat' ? null : AsistenteFab(pantalla: pantalla),
+      floatingActionButton: (pantalla == 'analisis' || pantalla == 'inicio') ? null : AsistenteFab(pantalla: pantalla),
       body: wide
           ? Row(children: [
               NavigationRail(
@@ -162,6 +163,7 @@ class _Secundaria extends StatelessWidget {
   Widget build(BuildContext context) {
     final st = context.read<AppState>();
     final Widget hijo = switch (id) {
+      'documentos' => const DocumentosScreen(),
       'preparar' => const PrepararScreen(),
       'informe' => const InformeScreen(),
       'dashboard' => const DashboardScreen(),

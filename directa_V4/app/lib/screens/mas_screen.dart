@@ -5,7 +5,7 @@ import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
 
-/// Menú "Más": el resto de las secciones del MVP (Informe IA y las herramientas).
+/// Acciones de apoyo y configuración menos frecuentes.
 class MasScreen extends StatelessWidget {
   const MasScreen({super.key});
 
@@ -13,40 +13,30 @@ class MasScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.c;
     final st = context.watch<AppState>();
-    final n = st.itemsInforme.length;
-    Widget item(String id, IconData ic, String t, String d, {String? badge}) => GgCard(
-          onTap: () => st.go(id),
-          child: Row(children: [
-            Container(
-              width: 40, height: 40,
-              decoration: BoxDecoration(color: c.accentSoft, borderRadius: BorderRadius.circular(11)),
-              child: Icon(ic, color: c.accentText, size: 21),
-            ),
-            const SizedBox(width: 13),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(children: [
-                  Text(t, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                  if (badge != null) ...[const SizedBox(width: 8), Pill(badge, fg: Colors.white, bg: c.crit)],
-                ]),
-                const SizedBox(height: 2),
-                Text(d, style: TextStyle(fontSize: 12.3, color: c.text2)),
-              ]),
-            ),
-            Icon(Icons.chevron_right, color: c.text3),
-          ]),
-        );
+    Widget item(String id, IconData ic, String t, String d) => GgCard(
+      onTap: () => st.go(id),
+      child: Row(children: [
+        Container(
+          width: 40, height: 40,
+          decoration: BoxDecoration(color: c.accentSoft, borderRadius: BorderRadius.circular(11)),
+          child: Icon(ic, color: c.accentText, size: 21),
+        ),
+        const SizedBox(width: 13),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(t, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+          const SizedBox(height: 2),
+          Text(d, style: TextStyle(fontSize: 12.3, color: c.text2)),
+        ])),
+        Icon(Icons.chevron_right, color: c.text3),
+      ]),
+    );
+
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const PageHead(title: 'Más', subtitle: 'Preparación de la reunión, herramientas y configuración.'),
-      item('preparar', Icons.event_note_outlined, 'Preparar mi reunión', 'Preguntas probables del directorio con respuesta sugerida.'),
-      item('informe', Icons.description_outlined, 'Informe IA', 'Reúne todo para exportar el PDF del directorio.', badge: n > 0 ? '$n' : null),
-      const SecTitle('Herramientas'),
-      item('dashboard', Icons.dashboard_outlined, 'Dashboard', 'Semáforo, señales, plan de acción y comparación con lo ya analizado.'),
-      item('memoria', Icons.menu_book_outlined, 'Memoria Anual', 'Capítulos de la NCG 461, tono de la empresa y PDF con gráficos.'),
-      item('indicadores', Icons.speed_outlined, 'Indicadores', 'KPI, KRI y soluciones: sugeridos con lo analizado y propios que tú agregas.'),
-      item('aprendizaje', Icons.school_outlined, 'Aprendizaje de los agentes', 'Valoraciones y lecciones que mejoran a los agentes.'),
+      const PageHead(title: 'Más', subtitle: 'Preparación, aprendizaje y configuración de la aplicación.'),
+      item('preparar', Icons.event_note_outlined, 'Preparar mi reunión', 'Anticipa preguntas y temas para el directorio.'),
+      item('aprendizaje', Icons.school_outlined, 'Aprendizaje de los agentes', 'Revisa valoraciones y lecciones de los agentes.'),
       const SecTitle('Ayuda y configuración'),
-      item('guia', Icons.support_agent, 'Asistente y ayuda', 'Pregunta cómo hacer algo en la app o consulta el documento.'),
+      item('guia', Icons.support_agent, 'Guía de uso', 'Pregunta cómo hacer algo en la aplicación.'),
       item('ajustes', Icons.settings_outlined, 'Servidor y apariencia', 'Dirección del backend, tema y tamaño de letra.'),
     ]);
   }

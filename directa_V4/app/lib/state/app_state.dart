@@ -85,11 +85,29 @@ class AppState extends ChangeNotifier {
   Stream<String> get navRequests => _nav.stream;
 
   /// Pestañas principales del menú inferior.
-  static const tabs = ['inicio', 'docs', 'chat', 'resultados', 'mas'];
+  static const tabs = ['inicio', 'analisis', 'memoria', 'gestion', 'mas'];
   int tab = 0;
 
-  /// Ir a una pantalla (mismos ids que el menú del index.html).
+  /// La vista de análisis reúne los hallazgos y el chat de IA.
+  int analisisPestana = 0;
+
+  void seleccionarAnalisis(int indice) {
+    analisisPestana = indice.clamp(0, 1).toInt();
+    notifyListeners();
+  }
+
+  /// Mantiene compatibles los accesos usados por las pantallas existentes.
   void go(String id) {
+    if (id == 'docs' || id == 'documentos') {
+      _nav.add('documentos');
+      return;
+    }
+    if (id == 'chat' || id == 'resultados') {
+      tab = tabs.indexOf('analisis');
+      analisisPestana = id == 'chat' ? 1 : 0;
+      notifyListeners();
+      return;
+    }
     final i = tabs.indexOf(id);
     if (i >= 0) {
       tab = i;
