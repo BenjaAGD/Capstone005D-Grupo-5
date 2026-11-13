@@ -223,7 +223,8 @@ def buscar_evidencia(fuentes_chunks):
     return out
 
 
-_CACHE_COBERTURA = {}      # {(ids...): (momento, resultado)}
+from acceso import TenantMap
+_CACHE_COBERTURA = TenantMap()      # {(ids...): (momento, resultado)} por tenant
 CACHE_SEGUNDOS = 600       # 10 min; el botón "Actualizar datos" fuerza una lectura nueva
 
 
@@ -372,7 +373,7 @@ def html_pdf_memoria(d, estado=None, solo_marcados=False):
     return pagina_pdf("Esquema de Memoria Anual", "Estructura según la NCG 461 de la CMF", cuerpo, meta, "Esquema de Memoria Anual")
 
 
-_CACHE_SUG = {}
+_CACHE_SUG = TenantMap()
 
 
 def sugerir_borrador(data, cap_id, clave="", perfil=None):
@@ -437,7 +438,7 @@ def sugerir_borrador(data, cap_id, clave="", perfil=None):
     return res
 
 
-_CACHE_FRAG = {}
+_CACHE_FRAG = TenantMap()
 
 
 def _chunks_cacheados(sb, document_id, ttl=600):

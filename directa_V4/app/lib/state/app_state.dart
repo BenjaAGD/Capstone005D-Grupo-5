@@ -16,8 +16,11 @@ const estadosProcesando = ['Procesando', 'Analizando', 'Iniciando'];
 
 /// Estado principal de la app: equivale al objeto `state` del index.html del MVP.
 class AppState extends ChangeNotifier {
-  AppState(this.store, {http.Client? client})
+  AppState(this.store, {http.Client? client, this.isAllowedApiUrl})
       : api = Api(store.getString(Store.kApi) ?? Config.apiPorDefecto(), client: client) {
+    if (isAllowedApiUrl != null && !isAllowedApiUrl!(Uri.tryParse(api.baseUrl) ?? Uri())) {
+      api.baseUrl = Config.apiPorDefecto();
+    }
     themeMode = store.getString(Store.kTheme) == 'light' ? ThemeMode.light : ThemeMode.dark;
     textScale = store.getDouble(Store.kFont) ?? 1.0;
     docActivo = store.getString(Store.kDoc);
@@ -33,6 +36,11 @@ class AppState extends ChangeNotifier {
 
   final Store store;
   final Api api;
+  final bool Function(Uri)? isAllowedApiUrl;
+  bool _disposed = false;
+
+  @override
+  void notifyListeners() { if (!_disposed) super.notifyListeners(); }
 
   // ---------------------------------------------------------------- preferencias
   late ThemeMode themeMode;
@@ -60,6 +68,9 @@ class AppState extends ChangeNotifier {
     while (u.endsWith('/')) {
       u = u.substring(0, u.length - 1);
     }
+    if (isAllowedApiUrl != null && !isAllowedApiUrl!(Uri.tryParse(u) ?? Uri())) {
+      return 'Usa el servidor autorizado para este entorno.';
+    }
     api.baseUrl = u;
     await store.setString(Store.kApi, u);
     final err = await probarConexion();
@@ -79,7 +90,7 @@ class AppState extends ChangeNotifier {
   // ---------------------------------------------------------------- avisos y navegación
   final _toasts = StreamController<({String msg, bool err})>.broadcast();
   Stream<({String msg, bool err})> get toasts => _toasts.stream;
-  void toast(String m, {bool err = false}) => _toasts.add((msg: m, err: err));
+  void toast(String m, {bool err = false}) { if (!_disposed) _toasts.add((msg: m, err: err)); }
 
   final _nav = StreamController<String>.broadcast();
   Stream<String> get navRequests => _nav.stream;
@@ -1144,6 +1155,8 @@ class AppState extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
+    api.close();
     _watch?.cancel();
     _polling?.cancel();
     _toasts.close();

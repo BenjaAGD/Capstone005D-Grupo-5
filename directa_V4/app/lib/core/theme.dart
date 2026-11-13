@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// Colores fijos de la marca.
 class Brand {
@@ -74,7 +73,7 @@ class AppTheme {
     final dark = b == Brightness.dark;
     final c = dark ? GgColors.dark : GgColors.light;
     final base = ThemeData(brightness: b, useMaterial3: true);
-    final text = GoogleFonts.interTextTheme(base.textTheme).apply(bodyColor: c.text, displayColor: c.text);
+    final text = base.textTheme.apply(fontFamily: 'Inter', bodyColor: c.text, displayColor: c.text);
     OutlineInputBorder borde(Color col) =>
         OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: col));
     return base.copyWith(
@@ -125,5 +124,5 @@ class AppTheme {
   }
 
   static TextStyle mono(BuildContext context, {double size = 12, Color? color, FontWeight? weight}) =>
-      GoogleFonts.jetBrainsMono(fontSize: size, color: color ?? context.c.text, fontWeight: weight);
+      TextStyle(fontFamily: 'JetBrainsMono', fontSize: size, color: color ?? context.c.text, fontWeight: weight);
 }

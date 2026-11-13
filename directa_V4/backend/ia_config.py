@@ -5,6 +5,7 @@ import json
 import threading
 import unicodedata
 import requests
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
@@ -24,7 +25,10 @@ _legacy = os.getenv("GROQ_API_KEY")
 if _legacy and _legacy not in GROQ_API_KEYS:
     GROQ_API_KEYS.append(_legacy)
 
-if not NVIDIA_API_KEY:
+_LOGIN_LOCAL = (os.getenv('DIRECTA_ENV') == 'local' and os.getenv('DIRECTA_LOGIN_TEST') == '1'
+                and urlparse(os.getenv('SUPABASE_URL', '')).hostname
+                in ('localhost', '127.0.0.1', 'host.docker.internal', '10.0.2.2', '::1'))
+if not NVIDIA_API_KEY and not _LOGIN_LOCAL:
     raise Exception("Falta NVIDIA_API_KEY en el .env")
 if not GROQ_API_KEYS:
     print("[IA] Advertencia: no hay GROQ_API_KEYS. Se usará solo NVIDIA NIM.", flush=True)
@@ -88,6 +92,8 @@ def normalizar_texto(texto: str) -> str:
 def generar_embeddings_batch(textos: list, max_intentos: int = MAX_REINTENTOS_EMBEDDING) -> list:
     if not textos:
         return []
+    if not NVIDIA_API_KEY:
+        raise RuntimeError('El proveedor de embeddings no está configurado en este entorno local de pruebas.')
 
     url = f"{NVIDIA_BASE_URL}/embeddings"
     headers = {
@@ -312,6 +318,8 @@ def _llamar_groq(prompt_sistema, prompt_usuario, temperatura, max_tokens, json_m
 
 
 def _llamar_nvidia(prompt_sistema, prompt_usuario, temperatura, max_tokens, json_mode):
+    if not NVIDIA_API_KEY:
+        raise RuntimeError('El proveedor de análisis no está configurado en este entorno local de pruebas.')
     inicio = time.time()
     url = f"{NVIDIA_BASE_URL}/chat/completions"
     body = {

@@ -1,0 +1,10 @@
+# Overlay para un despliegue real con HTTPS. Solo configuración pública web.
+# docker compose -f docker-compose.yml -f docker-compose.auth.yml up --build
+services:
+  web:
+    build:
+      context: ./app
+      args:
+        SUPABASE_URL: ${SUPABASE_PUBLIC_URL:?Configura la URL HTTPS pública de Supabase}
+        SUPABASE_ANON_KEY: ${SUPABASE_PUBLIC_KEY:?Configura la clave anon o publicable}
+        AUTH_REDIRECT_URL: ${DIRECTA_PUBLIC_URL:?Configura la URL HTTPS de la app}
