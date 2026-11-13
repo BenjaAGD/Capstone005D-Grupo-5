@@ -13,7 +13,7 @@ import '../state/app_state.dart';
 import '../widgets/common.dart';
 
 const _kMarca = 'directa_marca_memoria_v1';
-const _coloresMarca = ['#1B2F4B', '#0E5A8A', '#0E7490', '#2F6B4F', '#7A1F3D', '#5B3E8A'];
+const _coloresMarca = ['#1B2F4B', '#0E5A8A', '#0E7490', '#12AFC6', '#237AA8', '#4664A8'];
 
 Color _hex(String h) => Color(int.parse('FF${h.substring(1)}', radix: 16));
 
@@ -42,7 +42,7 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
     super.initState();
     final m = st.store.getJson<Map>(_kMarca, {});
     _nombre.text = '${m['nombre'] ?? ''}';
-    if (_coloresMarca.contains(m['color']) || RegExp(r'^#[0-9A-Fa-f]{6}$').hasMatch('${m['color']}')) color = '${m['color']}';
+    if (_coloresMarca.contains(m['color'])) color = '${m['color']}';
     logo = m['logo'] as String?;
     WidgetsBinding.instance.addPostFrameCallback((_) => _cargar());
   }

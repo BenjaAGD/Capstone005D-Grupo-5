@@ -291,35 +291,43 @@ CSS_PDF = """
   @frame cab { -pdf-frame-content: pdf_cab; left: 1.9cm; top: 1.1cm; width: 17.2cm; height: 1.5cm; }
   @frame pie { -pdf-frame-content: pdf_pie; left: 1.9cm; top: 27.6cm; width: 17.2cm; height: 1.3cm; }
 }
-body { font-family: Helvetica; font-size: 9.5pt; color: #2B2F36; line-height: 1.35; }
-h1 { font-size: 20pt; margin: 0; color: #FFFFFF; }
-h2 { font-size: 12pt; margin: 14pt 0 5pt 0; padding-bottom: 3pt; color: #1B2F4B; border-bottom: 1pt solid #1B2F4B; }
-h3 { font-size: 10pt; margin: 12pt 0 4pt 0; color: #1B2F4B; }
+body { font-family: Helvetica; font-size: 9.2pt; color: #2B2F36; line-height: 1.38; }
+h1 { font-family: Times; font-weight: bold; font-size: 21pt; margin: 0; color: #1B2F4B; }
+h2 { font-family: Helvetica; font-weight: bold; font-size: 8.5pt; margin: 12pt 0 5pt 0; padding: 5pt 7pt; color: #FFFFFF; background-color: #1B2F4B; }
+h3 { font-family: Times; font-weight: bold; font-size: 10.5pt; margin: 10pt 0 4pt 0; color: #1B2F4B; }
 p { margin: 3pt 0 6pt 0; }
-.muted { color: #5F6877; }
+.muted { color: #66738A; }
 .small { font-size: 8pt; }
 .neg { font-weight: bold; }
 .cab { font-size: 8pt; color: #5F6877; border-bottom: 0.75pt solid #1B2F4B; }
 .cab b { color: #1B2F4B; letter-spacing: 1pt; }
 .pie { font-size: 7.5pt; color: #5F6877; border-top: 0.5pt solid #C9D0DA; padding-top: 3pt; }
-.portada td { background-color: #1B2F4B; padding: 7pt 12pt; }
-.tit { font-size: 15pt; font-weight: bold; color: #FFFFFF; }
-.eyebrow { font-size: 7pt; color: #AFC0D6; letter-spacing: 1.2pt; }
-.subtit { font-size: 8.5pt; color: #D7E0EC; }
-.meta td { padding: 4pt 6pt; border-bottom: 0.5pt solid #C9D0DA; font-size: 9pt; }
-.meta td.k { color: #5F6877; width: 22%; background-color: #F3F5F8; }
+.brand td { background-color: #1B2F4B; padding: 7pt 12pt; color: #FFFFFF; font-family: Helvetica; font-weight: bold; font-size: 9pt; }
+.brand b { color: #FFFFFF; letter-spacing: 1pt; }
+.portada td { background-color: #FFFFFF; padding: 8pt 0 5pt 0; }
+.tit { font-family: Times; font-weight: bold; font-size: 22pt; color: #1B2F4B; }
+.eyebrow { font-family: Helvetica; font-weight: bold; font-size: 7pt; color: #0E7490; letter-spacing: 1.2pt; }
+.subtit { font-family: Helvetica; font-size: 8.5pt; color: #66738A; }
+.band td { background-color: #7161E8; padding: 5pt 8pt; color: #FFFFFF; font-family: Helvetica; font-weight: bold; font-size: 8pt; }
+.meta { margin-top: 5pt; }
+.meta td { padding: 4pt 6pt; border-bottom: 0.5pt solid #D9E0E8; font-size: 8.5pt; }
+.meta td.k { color: #53637D; width: 22%; background-color: #F2F5F9; font-family: Helvetica; font-weight: bold; }
 table.dat { width: 100%; border-collapse: collapse; margin: 4pt 0 8pt 0; }
-table.dat th { background-color: #1B2F4B; color: #FFFFFF; font-size: 8pt; text-align: left; padding: 4pt 5pt; }
-table.dat td { padding: 4pt 5pt; border-bottom: 0.5pt solid #C9D0DA; vertical-align: top; font-size: 8.5pt; }
-table.dat th.num { text-align: right; }
+table.dat th { background-color: #1B2F4B; color: #FFFFFF; font-size: 7.5pt; text-align: left; padding: 5pt 5pt; }
+table.dat td { padding: 4.5pt 5pt; border-bottom: 0.5pt solid #D9E0E8; vertical-align: top; font-size: 8.2pt; }
 table.keep { page-break-inside: avoid; }
-table.dat td.z { background-color: #F3F5F8; }
+table.dat td.z { background-color: #F3F6F9; }
 .num { text-align: right; }
 .ctr { text-align: center; }
-.tile td { text-align: center; border: 0.75pt solid #C9D0DA; padding: 7pt 3pt; background-color: #F8F9FB; font-size: 8pt; color: #5F6877; }
-.big { font-size: 20pt; font-weight: bold; color: #1B2F4B; }
-.nota td { background-color: #F3F5F8; border-left: 3pt solid #1B2F4B; padding: 6pt 9pt; font-size: 8.5pt; color: #2B2F36; }
-"""
+.tile td { text-align: center; border: 0.75pt solid #D9E0E8; padding: 7pt 3pt; background-color: #F2F8FB; font-size: 7.7pt; color: #5F6877; }
+.big { font-family: Times; font-size: 19pt; font-weight: bold; color: #1B2F4B; }
+.nota td { background-color: #EAF6FA; border-left: 3pt solid #18B9D2; padding: 7pt 10pt; font-size: 8.5pt; color: #273650; }
+.cover td { vertical-align: middle; }
+.coverleft { color: #FFFFFF; padding: 20pt 14pt; }
+.cover-kicker { color: #8DE4F0; font-family: Helvetica; font-weight: bold; font-size: 8pt; letter-spacing: 1pt; }
+.cover-title { color: #FFFFFF; font-family: Times; font-weight: bold; font-size: 26pt; }
+.cover-year { color: #6DD7E8; font-family: Helvetica; font-size: 18pt; }
+.cover-caption { color: #E6EEF7; font-family: Helvetica; font-size: 8pt; }"""
 
 
 def _meta_html(meta):
@@ -341,18 +349,19 @@ def _meta_html(meta):
 
 
 def pagina_pdf(titulo, subtitulo, cuerpo, meta=None, titulo_corto=None):
-    """Documento corporativo: encabezado y pie en todas las páginas, portada con título y ficha del documento."""
-    from datetime import datetime
+    """Plantilla editorial común para informes, indicadores, dashboard y esquema anual."""
     corto = titulo_corto or titulo
-    cab = (f"<div id='pdf_cab'><table width='100%'><tr><td class='cab'><b>DIRECTA</b> &nbsp;|&nbsp; Gerencia General</td>"
-           f"<td class='cab' align='right'>{esc_pdf(corto)}</td></tr></table></div>")
+    cab = (f"<div id='pdf_cab'><table width='100%'><tr><td class='cab'><b>DIRECTA</b> &nbsp;/&nbsp; INTELIGENCIA PARA DIRECTORIOS</td>"
+           f"<td class='cab' align='right'>GERENCIA GENERAL</td></tr></table></div>")
     pie = (f"<div id='pdf_pie'><table width='100%'><tr><td class='pie'>{esc_pdf(CLASIFICACION)}</td>"
            f"<td class='pie' align='right'>P&aacute;gina <pdf:pagenumber/> de <pdf:pagecount/></td></tr></table></div>")
+    marca = ("<table class='brand' width='100%'><tr><td><b>DIRECTA</b> &nbsp;/&nbsp; INTELIGENCIA PARA DIRECTORIOS</td>"
+             f"<td align='right'>GERENCIA GENERAL</td></tr></table>")
     portada = (f"<table class='portada' width='100%'><tr><td><span class='eyebrow'>GERENCIA GENERAL &nbsp;|&nbsp; DIRECTA</span><br/>"
-               f"<span class='tit'>{esc_pdf(titulo)}</span><br/><span class='subtit'>{esc_pdf(subtitulo)}</span></td></tr></table><br/>")
-    return (f"<html><head><meta charset='utf-8'/><style>{CSS_PDF}</style></head><body>{cab}{pie}{portada}"
+               f"<span class='tit'>{esc_pdf(titulo)}</span><br/><span class='subtit'>{esc_pdf(subtitulo)}</span></td></tr></table>"
+               f"<table class='band' width='100%'><tr><td>INFORME EJECUTIVO &nbsp;/&nbsp; {esc_pdf(corto).upper()}</td></tr></table><br/>")
+    return (f"<html><head><meta charset='utf-8'/><style>{CSS_PDF}</style></head><body>{cab}{pie}{marca}{portada}"
             f"{_meta_html(meta)}{cuerpo}</body></html>")
-
 
 def seccion(numero, titulo):
     return f"<h2>{numero}. {esc_pdf(titulo)}</h2>"

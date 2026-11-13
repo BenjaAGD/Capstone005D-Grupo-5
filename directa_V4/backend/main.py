@@ -2568,14 +2568,28 @@ def _construir_html_informe(doc_info, resumen_general, por_agente):
 
     from modulos_base import CSS_PDF, CLASIFICACION
     sec_criticos = (
-        "<h2>2. Puntos críticos detectados</h2>" + bloque_senales_html(top_senales)) if top_senales else ""
+        "<h2>02 &nbsp; ALERTAS PARA REVISAR</h2>" + bloque_senales_html(top_senales)) if top_senales else ""
     sec_preguntas = (
-        "<h2>3. Preguntas probables del directorio</h2>" + bloque_preguntas_html(top_preguntas)) if top_preguntas else ""
+        "<h2>03 &nbsp; ASUNTOS PARA LA SESI&Oacute;N</h2>" + bloque_preguntas_html(top_preguntas)) if top_preguntas else ""
+    # Gráfico de barras con los puntajes reales por área (sin completar cifras financieras faltantes).
+    filas_area = []
+    for area in sorted(analisis_con_info, key=_score_ord):
+        try:
+            puntaje = max(0, min(100, int(area["resultado"].get("score", 0))))
+        except (TypeError, ValueError):
+            puntaje = 0
+        ancho_restante = 100 - puntaje
+        barra = (f"<table width='100%' cellpadding='0' cellspacing='0'><tr><td width='{puntaje}%' bgcolor='#7565E8' style='font-size:5pt;'>&nbsp;</td>"
+                 f"<td width='{ancho_restante}%' bgcolor='#E6EAF0' style='font-size:5pt;'>&nbsp;</td></tr></table>")
+        filas_area.append(f"<tr><td width='30%'>{_esc_html(area['nombre'])}</td><td width='58%'>{barra}</td><td width='12%' align='right'><b>{puntaje}/100</b></td></tr>")
+    grafico_areas = ("<h2>04 &nbsp; PREPARACI&Oacute;N POR &Aacute;REA</h2>"
+                     + "<table width='100%' cellpadding='5' cellspacing='0'>" + "".join(filas_area) + "</table>") if filas_area else ""
+
     html_completo = f'''<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-<title>Informe Pre-Directorio - {nombre_doc}</title>
+<title>Informe para Directorio - {nombre_doc}</title>
 <style>
 {CSS_PDF}
   ul, ol {{ margin: 6px 0 10px 22px; padding: 0; }}
@@ -2583,36 +2597,35 @@ def _construir_html_informe(doc_info, resumen_general, por_agente):
 </style>
 </head>
 <body>
-<div id="pdf_cab"><table width="100%"><tr><td class="cab"><b>DIRECTA</b> &nbsp;|&nbsp; Gerencia General</td><td class="cab" align="right">Informe de Preparaci&oacute;n Pre-Directorio</td></tr></table></div>
+<div id="pdf_cab"><table width="100%"><tr><td class="cab"><b>DIRECTA</b> &nbsp;|&nbsp; Gerencia General</td><td class="cab" align="right">Informe de Preparaci&oacute;n para Directorio</td></tr></table></div>
 <div id="pdf_pie"><table width="100%"><tr><td class="pie">{CLASIFICACION}</td><td class="pie" align="right">P&aacute;gina <pdf:pagenumber/> de <pdf:pagecount/></td></tr></table></div>
 
+<table class="brand" width="100%"><tr><td><b>DIRECTA</b> &nbsp;/&nbsp; INTELIGENCIA PARA DIRECTORIOS</td><td align="right">GERENCIA GENERAL</td></tr></table>
 <table class="portada" width="100%"><tr><td>
   <span class="eyebrow">GERENCIA GENERAL &nbsp;|&nbsp; DIRECTA</span><br/>
   <span class="tit">Informe de Preparaci&oacute;n Pre-Directorio</span><br/>
   <span class="subtit">An&aacute;lisis del documento para la reuni&oacute;n de directorio</span>
-</td></tr></table><br/>
-<table class="meta" width="100%">
+</td></tr></table>
+<table class="band" width="100%"><tr><td>INFORME EJECUTIVO &nbsp;/&nbsp; PREPARACI&Oacute;N PARA SESI&Oacute;N</td></tr></table><br/><table class="meta" width="100%">
   <tr><td class="k">Documento</td><td>{nombre_doc}</td><td class="k">P&aacute;ginas</td><td>{paginas}</td></tr>
   <tr><td class="k">Fecha de emisi&oacute;n</td><td>{fecha}</td><td class="k">Clasificaci&oacute;n</td><td>Confidencial</td></tr>
 </table>
 
-<h2>1. Resumen ejecutivo</h2>
-<table width="100%" cellpadding="0" cellspacing="0"><tr>
-  <td width="150" class="tile" style="border:0.75pt solid #C9D0DA;padding:12pt 6pt;text-align:center;vertical-align:top;background-color:#F8F9FB;">
-    <span style="font-size:30pt;font-weight:bold;color:{score_global_color};">{score_global}</span><br/>
-    <span style="font-size:7.5pt;color:#5F6877;">&Iacute;NDICE GLOBAL DE PREPARACI&Oacute;N</span><br/>
-    <span style="font-size:9pt;font-weight:bold;color:{score_global_color};">{score_global_label}</span><br/>
-    <span style="font-size:7.5pt;color:#5F6877;">{n_evaluados} de {n_total} &aacute;reas evaluadas</span>
-  </td>
-  <td width="14"></td>
-  <td style="vertical-align:top;font-size:9.5pt;color:#2B2F36;line-height:1.5;">{_render_markdown_a_html(resumen_general)}</td>
+<table class="tile" width="100%"><tr>
+  <td><span class="big" style="color:{score_global_color};">{score_global}/100</span><br/>Preparaci&oacute;n global<br/><span class="small">{score_global_label}</span></td>
+  <td><span class="big">{n_evaluados}/{n_total}</span><br/>Agentes con hallazgos<br/><span class="small">&Aacute;reas evaluadas</span></td>
+  <td><span class="big">{len(senales_criticas)}</span><br/>Se&ntilde;ales cr&iacute;ticas y altas<br/><span class="small">Para revisar</span></td>
+  <td><span class="big">{paginas}</span><br/>P&aacute;ginas fuente<br/><span class="small">Documento analizado</span></td>
 </tr></table>
-
+<h2>01 &nbsp; LECTURA EJECUTIVA</h2>
+<table class="nota" width="100%"><tr><td>{_render_markdown_a_html(resumen_general)}</td></tr></table>
 {sec_criticos}
 
 {sec_preguntas}
 
-<h2>4. An&aacute;lisis detallado por &aacute;rea</h2>
+{grafico_areas}
+
+<pdf:nextpage/><h2>05 &nbsp; AN&Aacute;LISIS DETALLADO POR &Aacute;REA</h2>
 {bloques_agentes if bloques_agentes else "<p><i>Sin an&aacute;lisis disponibles.</i></p>"}
 
 </body>
