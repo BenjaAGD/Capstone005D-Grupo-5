@@ -11,6 +11,8 @@ las que solo aparecen en documentos de años anteriores. Los gráficos usan dato
 (análisis de los agentes) o ingresados por el usuario, y el PDF dice cuál es cuál.
 Corre en segundo plano: POST /api/memoria/borrador -> GET /api/memoria/borrador/{id} -> GET .../pdf
 """
+import base64
+import os
 import re
 import threading
 import time
@@ -104,15 +106,26 @@ def _html(ctx):
            f"Memoria Anual {anio}</td><td class='cab' align='right'>Borrador para revisión</td></tr></table></div>")
     pie = (f"<div id='pdf_pie'><table width='100%'><tr><td class='pie'>{esc_pdf(CLASIFICACION)}</td>"
            f"<td class='pie' align='right'>P&aacute;gina <pdf:pagenumber/> de <pdf:pagecount/></td></tr></table></div>")
-    logo = f"<img src='{m['logo']}' style='height:2.2cm;'/><br/><br/>" if m["logo"] else ""
-    portada = (f"<table width='100%' style='margin-top:3cm;'><tr><td style='background-color:{color};padding:28pt 22pt;'>"
-               f"{logo}<span style='font-size:9pt;color:#E8EDF3;letter-spacing:1.5pt;'>MEMORIA ANUAL</span><br/>"
-               f"<span style='font-size:30pt;font-weight:bold;color:#FFFFFF;'>{anio}</span><br/>"
-               f"<span style='font-size:15pt;color:#FFFFFF;'>{esc_pdf(empresa)}</span></td></tr></table>"
-               f"<p class='small muted' style='margin-top:14pt;'>Borrador generado por DIRECTA el "
-               f"{datetime.now().strftime('%d/%m/%Y')} para revisión del Gerente General. Los textos en amarillo "
-               f"([COMPLETAR]) requieren datos del área responsable. Estructura según la NCG 461 de la CMF.</p>"
+    logo = f"<img src='{m['logo']}' style='height:1.8cm;'/><br/><br/>" if m["logo"] else ""
+    foto_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "memoria_portada_edificio.jpg")
+    try:
+        with open(foto_path, "rb") as f:
+            foto_url = "data:image/jpeg;base64," + base64.b64encode(f.read()).decode("ascii")
+    except OSError:
+        foto_url = ""
+    foto = f"<img src='{foto_url}' style='width:9.2cm;height:15.8cm;'/>" if foto_url else ""
+    portada = (f"<table class='cover' width='100%' cellpadding='0' cellspacing='0' style='margin-top:0.3cm;'><tr>"
+               f"<td class='coverleft' width='45%' style='background-color:{color};'>"
+               f"{logo}<span class='cover-kicker'>MEMORIA CORPORATIVA</span><br/><br/>"
+               f"<span class='cover-title'>Memoria<br/>anual</span><br/><br/>"
+               f"<span class='cover-year'>{anio}</span><br/><br/>"
+               f"<span class='cover-caption'>Preparada para<br/>{esc_pdf(empresa)}</span></td>"
+               f"<td width='55%' style='padding:0;'>{foto}</td></tr></table>"
+               f"<p class='small muted' style='margin-top:8pt;'>Borrador generado por DIRECTA el "
+               f"{datetime.now().strftime('%d/%m/%Y')} para revisi&oacute;n del Gerente General. Los textos en amarillo "
+               f"([COMPLETAR]) requieren datos del &aacute;rea responsable. Estructura seg&uacute;n la NCG 461 de la CMF.</p>"
                f"<pdf:nextpage/>")
+
     secciones = ["Carta del Gerente General"] + [f"{c['numero']}. {c['titulo']}" for c in ctx["capitulos"]] + [
         "Indicadores", "Panorama del ejercicio", "Cobertura de la NCG 461", "Revisión de cifras"]
     indice = ("<h2>Índice</h2><table class='dat' width='100%'>" + "".join(

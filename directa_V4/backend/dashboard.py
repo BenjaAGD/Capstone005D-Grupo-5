@@ -306,77 +306,233 @@ def html_pdf_comparacion(c):
 
 
 def excel_plan(d, acciones=None):
-    """Excel ordenado con el plan de acción y las señales. Devuelve bytes (.xlsx)."""
+    """Libro de trabajo del plan de acciÃ³n con identidad visual DIRECTA."""
+    import io
+    from datetime import datetime
     from openpyxl import Workbook
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+    from openpyxl.utils import get_column_letter
+
     acciones = acciones or {}
     wb = Workbook()
-    borde = Border(bottom=Side(style="thin", color="C9D0DA"))
-    cab_fill = PatternFill("solid", fgColor="1B2F4B")
-    zebra = PatternFill("solid", fgColor="F3F5F8")
+    wb.properties.title = "Plan de acciÃ³n DIRECTA"
+    wb.properties.subject = "Informe para Gerencia General y Directorio"
+    wb.properties.creator = "DIRECTA | Inteligencia para Directorios"
 
-    def hoja(ws, titulo, encabezados, filas, anchos):
-        """Encabezado en la fila 1 (única fila fija), sin títulos arriba: así el scroll funciona normal."""
-        for j, h in enumerate(encabezados, 1):
-            c = ws.cell(row=1, column=j, value=h)
-            c.font = Font(name="Calibri", bold=True, color="FFFFFF")
-            c.fill = cab_fill
-            c.alignment = Alignment(vertical="center", wrap_text=True)
-        ws.row_dimensions[1].height = 22
-        for i, fila in enumerate(filas):
-            maxl = 1
-            for j, v in enumerate(fila, 1):
-                c = ws.cell(row=2 + i, column=j, value=v)
-                c.alignment = Alignment(vertical="top", wrap_text=True)
-                c.border = borde
-                c.font = Font(name="Calibri", size=10)
-                if i % 2:
-                    c.fill = zebra
-                ancho = anchos[j - 1] if j - 1 < len(anchos) else 12
-                maxl = max(maxl, -(-len(str(v if v is not None else "")) // max(1, int(ancho * 1.1))))
-            ws.row_dimensions[2 + i].height = min(160, 15 * maxl + 3)   # alto fijo: Excel no recalcula al abrir
-        for j, a in enumerate(anchos, 1):
-            ws.column_dimensions[chr(64 + j)].width = a
-        ws.freeze_panes = "A2"
-        if filas:
-            ws.auto_filter.ref = f"A1:{chr(64 + len(encabezados))}{1 + len(filas)}"
+    navy = "1B2F4B"
+    purple = "7161E8"
+    cyan = "18B9D2"
+    pale = "EAF6FA"
+    zebra = "F3F5F8"
+    ink = "26354D"
+    muted = "66738A"
+    line = "C9D0DA"
+    white = "FFFFFF"
+    doc_name = str((d.get("documento") or {}).get("nombre") or "Documento analizado")
+    emitted = datetime.now().strftime("%d/%m/%Y %H:%M")
+
+    def merged_band(ws, row, last_col, text, fill, font, height, align=None):
+        ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=last_col)
+        cell = ws.cell(row=row, column=1, value=text)
+        cell.fill = PatternFill("solid", fgColor=fill)
+        cell.font = font
+        cell.alignment = align or Alignment(vertical="center", horizontal="left")
+        ws.row_dimensions[row].height = height
+
+    def hoja(ws, titulo, seccion, encabezados, filas, anchos):
+        last_col = len(encabezados)
+        merged_band(ws, 1, last_col, "DIRECTA   /   INTELIGENCIA PARA DIRECTORIOS",
+                    navy, Font(name="Calibri", size=11, bold=True, color=white), 30,
+                    Alignment(vertical="center", horizontal="left", indent=1))
+        merged_band(ws, 2, last_col, titulo,
+                    white, Font(name="Times New Roman", size=19, bold=True, color=navy), 36)
+        merged_band(ws, 3, last_col, "Informe para Gerencia General Â· PreparaciÃ³n para el Directorio",
+                    white, Font(name="Calibri", size=10, color=muted), 22)
+        merged_band(ws, 4, last_col, f"DOCUMENTO: {doc_name}     Â·     EMISIÃ“N: {emitted}     Â·     USO INTERNO",
+                    "F2F5F9", Font(name="Calibri", size=9, color=ink), 23,
+                    Alignment(vertical="center", horizontal="left", indent=1))
+        merged_band(ws, 5, last_col, seccion.upper(),
+                    purple, Font(name="Calibri", size=9, bold=True, color=white), 23,
+                    Alignment(vertical="center", horizontal="left", indent=1))
+
+        header_row = 7
+        ws.row_dimensions[6].height = 8
+        for j, encabezado in enumerate(encabezados, 1):
+            cell = ws.cell(row=header_row, column=j, value=encabezado)
+            cell.font = Font(name="Calibri", size=9, bold=True, color=white)
+            cell.fill = PatternFill("solid", fgColor=navy)
+            cell.alignment = Alignment(vertical="center", horizontal="left", wrap_text=True)
+            cell.border = Border(bottom=Side(style="medium", color=cyan))
+        ws.row_dimensions[header_row].height = 29
+
+        data_rows = filas or [["Sin registros para este informe"] + [""] * (last_col - 1)]
+        for i, fila in enumerate(data_rows, 1):
+            max_lines = 1
+            for j, value in enumerate(fila, 1):
+                cell = ws.cell(row=header_row + i, column=j, value=value)
+                cell.font = Font(name="Calibri", size=10, color=ink)
+                cell.alignment = Alignment(vertical="top", wrap_text=True)
+                cell.border = Border(bottom=Side(style="thin", color=line))
+                if i % 2 == 0:
+                    cell.fill = PatternFill("solid", fgColor=zebra)
+                width = anchos[j - 1] if j - 1 < len(anchos) else 14
+                max_lines = max(max_lines, -(-len(str(value if value is not None else "")) // max(1, int(width * 1.15))))
+                if str(encabezados[j - 1]).lower() == "estado":
+                    normalized = str(value or "").lower()
+                    status_colors = {"hecha": "E8F4EC", "en curso": "EAF6FA", "pendiente": "FFF4D6"}
+                    if normalized in status_colors:
+                        cell.fill = PatternFill("solid", fgColor=status_colors[normalized])
+                        cell.font = Font(name="Calibri", size=10, bold=True, color=ink)
+            ws.row_dimensions[header_row + i].height = min(120, max(24, 15 * max_lines + 6))
+
+        for j, width in enumerate(anchos, 1):
+            ws.column_dimensions[get_column_letter(j)].width = width
+        ws.freeze_panes = f"A{header_row + 1}"
+        ws.auto_filter.ref = f"A{header_row}:{get_column_letter(last_col)}{header_row + len(data_rows)}"
         ws.sheet_view.showGridLines = False
-        ws.sheet_view.zoomScale = 100
+        ws.sheet_view.zoomScale = 90
         ws.page_setup.orientation = "landscape"
         ws.page_setup.fitToWidth = 1
         ws.page_setup.fitToHeight = 0
         ws.sheet_properties.pageSetUpPr.fitToPage = True
-        ws.print_title_rows = "1:1"
-        ws.oddFooter.center.text = f"{str(d['documento']['nombre']).replace('&', '&&')}  -  Página &P de &N"
+        ws.print_title_rows = f"1:{header_row}"
+        ws.print_area = f"A1:{get_column_letter(last_col)}{header_row + len(data_rows)}"
+        ws.oddHeader.center.text = "&BDIRECTA  /  INTELIGENCIA PARA DIRECTORIOS&B"
+        ws.oddFooter.left.text = doc_name.replace("&", "&&")
+        ws.oddFooter.right.text = "PÃ¡gina &P de &N"
+        ws.sheet_properties.pageSetUpPr.autoPageBreaks = False
 
-    ws = wb.active
-    ws.title = "Plan de acción"
-    filas = []
-    for r in d["recomendaciones"]:
-        a = acciones.get(r["id"]) or {}
-        est = a.get("estado") if a.get("estado") in _ESTADOS_PLAN else "pendiente"
-        filas.append([r["agente_nombre"], r["texto"], a.get("responsable", "") or "", a.get("fecha", "") or "", _ESTADOS_PLAN[est]])
-    hoja(ws, "Plan de acción", ["Área", "Acción recomendada", "Responsable", "Fecha límite", "Estado"], filas, [20, 70, 22, 15, 14])
+    resumen = d.get("resumen") or {}
+    severities = resumen.get("senales") or {}
+    recommendations = d.get("recomendaciones", [])
+    agents_total = resumen.get("agentes_total", len(d.get("agentes", [])))
+    agents_done = resumen.get("agentes_analizados", sum(1 for a in d.get("agentes", []) if a.get("con_info")))
+    score_value = resumen.get("score_global")
+    high_count = severities.get("crÃ­tica", 0) + severities.get("alta", 0)
+    done_count = sum(1 for item in recommendations if (acciones.get(item["id"]) or {}).get("estado") == "hecho")
 
-    ws2 = wb.create_sheet("Señales")
-    orden_sev = {k: i for i, k in enumerate(SEVERIDADES)}
-    sens = sorted(d["senales"], key=lambda x: (orden_sev.get(x["severidad"], 9), x.get("transversal", False)))
-    filas = [[x["severidad"].capitalize(), x["agente_nombre"], x["titulo"], x.get("descripcion", "")] for x in sens]
-    hoja(ws2, "Señales detectadas", ["Severidad", "Área", "Señal", "Descripción"], filas, [14, 20, 45, 80])
+    # Portada de resumen en Excel: composiciÃ³n inspirada en el informe ejecutivo entregado.
+    cover = wb.active
+    cover.title = "Resumen ejecutivo"
+    cover.sheet_view.showGridLines = False
+    cover.sheet_view.zoomScale = 85
+    for col in range(1, 11):
+        cover.column_dimensions[get_column_letter(col)].width = 15
+    merged_band(cover, 1, 10, "DIRECTA   /   INTELIGENCIA PARA DIRECTORIOS",
+                navy, Font(name="Calibri", size=12, bold=True, color=white), 34,
+                Alignment(vertical="center", horizontal="left", indent=1))
+    merged_band(cover, 3, 10, "Informe de preparaciÃ³n para directorio",
+                white, Font(name="Times New Roman", size=22, bold=True, color=navy), 42)
+    merged_band(cover, 4, 10, f"{doc_name}   Â·   Emitido {emitted}",
+                white, Font(name="Calibri", size=10, color=muted), 24)
+    merged_band(cover, 6, 10, "INFORME EJECUTIVO   /   MUESTRA DE DISEÃ‘O",
+                purple, Font(name="Calibri", size=9, bold=True, color=white), 24,
+                Alignment(vertical="center", horizontal="left", indent=1))
 
-    ws3 = wb.create_sheet("Estado por área")
-    filas = []
-    for a in sorted(d["agentes"], key=lambda a: (a["score"] is None, a["score"] if a["score"] is not None else 999, a["nombre"])):
-        s_ = a["senales"]
-        filas.append([a["nombre"], a["score"] if a["con_info"] else None, a["etiqueta"], s_["crítica"], s_["alta"], s_["media"], s_["baja"],
-                      a["n_omisiones"], a["n_preguntas"], a["n_recomendaciones"]])
-    hoja(ws3, "Estado por área de análisis", ["Área", "Puntaje", "Estado", "Críticas", "Altas", "Medias", "Bajas", "Omisiones", "Preguntas", "Recomend."],
-         filas, [20, 10, 26, 10, 10, 10, 10, 11, 11, 11])
-    import io
+    cards = [
+        ("ÃNDICE GLOBAL", f"{score_value}/100" if score_value is not None else "â€”", "PreparaciÃ³n general"),
+        ("SEÃ‘ALES ALTAS", str(high_count), "CrÃ­ticas y altas"),
+        ("ALERTAS TOTALES", str(resumen.get("senales_total", sum(severities.values()))), "Detectadas por agentes"),
+        ("ACCIONES", str(len(recommendations)), f"{done_count} completadas"),
+        ("AGENTES", f"{agents_done}/{agents_total}", "Con anÃ¡lisis disponible"),
+    ]
+    for i, (label, value, note) in enumerate(cards):
+        start = 1 + i * 2
+        end = start + 1
+        for row, text, fill, font in (
+            (8, label, "F2F5F9", Font(name="Calibri", size=8, bold=True, color=purple)),
+            (9, value, white, Font(name="Times New Roman", size=19, bold=True, color=navy)),
+            (10, note, white, Font(name="Calibri", size=8, color=muted)),
+        ):
+            cover.merge_cells(start_row=row, start_column=start, end_row=row, end_column=end)
+            c = cover.cell(row=row, column=start, value=text)
+            c.fill = PatternFill("solid", fgColor=fill)
+            c.font = font
+            c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+            for col in range(start, end + 1):
+                cover.cell(row=row, column=col).border = Border(bottom=Side(style="thin", color=line))
+    cover.row_dimensions[8].height = 23
+    cover.row_dimensions[9].height = 37
+    cover.row_dimensions[10].height = 25
+
+    merged_band(cover, 12, 10, "LECTURA EJECUTIVA",
+                navy, Font(name="Calibri", size=9, bold=True, color=white), 23,
+                Alignment(vertical="center", horizontal="left", indent=1))
+    reading = (f"El documento {doc_name} fue revisado por {agents_done} de {agents_total} agentes. "
+               f"Se detectaron {resumen.get('senales_total', sum(severities.values()))} seÃ±ales, incluidas "
+               f"{severities.get('crÃ­tica', 0)} crÃ­ticas y {severities.get('alta', 0)} altas. "
+               f"El plan registra {len(recommendations)} acciones y {done_count} completadas.")
+    cover.merge_cells(start_row=13, start_column=1, end_row=15, end_column=10)
+    c = cover.cell(row=13, column=1, value=reading)
+    c.fill = PatternFill("solid", fgColor="F2F5F9")
+    c.font = Font(name="Calibri", size=11, color=ink)
+    c.alignment = Alignment(vertical="center", wrap_text=True, indent=1)
+    cover.row_dimensions[13].height = 30
+    cover.row_dimensions[14].height = 26
+    cover.row_dimensions[15].height = 26
+
+    merged_band(cover, 17, 10, "ASUNTOS PARA LA SESIÃ“N",
+                navy, Font(name="Calibri", size=9, bold=True, color=white), 23,
+                Alignment(vertical="center", horizontal="left", indent=1))
+    agenda = recommendations[:5]
+    for i, item in enumerate(agenda, 18):
+        area = str(item.get("agente_nombre") or "Ãrea")
+        text = str(item.get("texto") or "")
+        cover.merge_cells(start_row=i, start_column=1, end_row=i, end_column=2)
+        cover.cell(row=i, column=1, value=area.upper()).font = Font(name="Calibri", size=9, bold=True, color=purple)
+        cover.cell(row=i, column=1).fill = PatternFill("solid", fgColor="F2F5F9")
+        cover.merge_cells(start_row=i, start_column=3, end_row=i, end_column=10)
+        cell = cover.cell(row=i, column=3, value=text)
+        cell.font = Font(name="Calibri", size=10, color=ink)
+        cell.alignment = Alignment(vertical="center", wrap_text=True)
+        cell.border = Border(bottom=Side(style="thin", color=line))
+        cover.row_dimensions[i].height = 36
+    if not agenda:
+        merged_band(cover, 18, 10, "No hay recomendaciones disponibles para este documento.",
+                    white, Font(name="Calibri", size=10, color=muted), 30)
+    cover.freeze_panes = "A7"
+    cover.page_setup.orientation = "landscape"
+    cover.page_setup.fitToWidth = 1
+    cover.page_setup.fitToHeight = 1
+    cover.sheet_properties.pageSetUpPr.fitToPage = True
+    cover.print_area = f"A1:J{max(18, 17 + len(agenda))}"
+    cover.oddFooter.left.text = doc_name.replace("&", "&&")
+    cover.oddFooter.right.text = "PÃ¡gina &P de &N"
+
+    ws = wb.create_sheet("Plan de acciÃ³n")
+    ws.title = "Plan de acciÃ³n"
+    rows = []
+    for item in d.get("recomendaciones", []):
+        action = acciones.get(item["id"]) or {}
+        status = action.get("estado") if action.get("estado") in _ESTADOS_PLAN else "pendiente"
+        rows.append([item["agente_nombre"], item["texto"], action.get("responsable", "") or "",
+                     action.get("fecha", "") or "", _ESTADOS_PLAN[status]])
+    hoja(ws, "Plan de acciÃ³n", "Informe ejecutivo  /  Seguimiento de recomendaciones",
+         ["Ãrea", "AcciÃ³n recomendada", "Responsable", "Fecha lÃ­mite", "Estado"],
+         rows, [20, 70, 22, 16, 16])
+
+    ws2 = wb.create_sheet("SeÃ±ales")
+    order = {key: i for i, key in enumerate(SEVERIDADES)}
+    signals = sorted(d.get("senales", []), key=lambda x: (order.get(x["severidad"], 9), x.get("transversal", False)))
+    rows = [[item["severidad"].capitalize(), item["agente_nombre"], item["titulo"], item.get("descripcion", "")]
+            for item in signals]
+    hoja(ws2, "SeÃ±ales detectadas", "Informe ejecutivo  /  Alertas para revisiÃ³n",
+         ["Severidad", "Ãrea", "SeÃ±al", "DescripciÃ³n"], rows, [16, 22, 48, 78])
+
+    ws3 = wb.create_sheet("Estado por Ã¡rea")
+    rows = []
+    for item in sorted(d.get("agentes", []), key=lambda a: (a["score"] is None, a["score"] if a["score"] is not None else 999, a["nombre"])):
+        signals = item["senales"]
+        rows.append([item["nombre"], item["score"] if item["con_info"] else None, item["etiqueta"],
+                     signals["crÃ­tica"], signals["alta"], signals["media"], signals["baja"],
+                     item["n_omisiones"], item["n_preguntas"], item["n_recomendaciones"]])
+    hoja(ws3, "Estado por Ã¡rea", "Informe ejecutivo  /  Resumen de anÃ¡lisis",
+         ["Ãrea", "Puntaje", "Estado", "CrÃ­ticas", "Altas", "Medias", "Bajas", "Omisiones", "Preguntas", "Recomend."],
+         rows, [22, 11, 26, 11, 11, 11, 11, 13, 13, 13])
+
     buf = io.BytesIO()
     wb.save(buf)
     return buf.getvalue()
-
 
 def crear_router(get_supabase):
     router = APIRouter()
