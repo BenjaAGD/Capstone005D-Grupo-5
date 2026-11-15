@@ -201,8 +201,14 @@ def _lista_indicadores_export(payload, sb):
     ajustes = payload.get("ajustes") or {}
     for i in lista:
         a = ajustes.get(i.get("id")) or {}
-        for k in ("responsable", "fecha", "estado_solucion", "solucion"):
-            if a.get(k): i[k] = str(a[k])
+        for k in ("tipo", "nombre", "valor", "unidad", "meta", "limite", "direccion", "solucion", "responsable", "fecha", "estado_solucion"):
+            if k in a and a[k] is not None and a[k] != "": i[k] = a[k]
+        for campo in ("valor", "meta", "limite"):
+            valor = i.get(campo)
+            if isinstance(valor, str) and valor.strip():
+                try: i[campo] = float(valor.replace(",", ".").replace("%", "").strip())
+                except ValueError: pass
+        i["estado"] = estado_semaforo(i.get("valor"), i.get("meta"), i.get("limite"), i.get("direccion"))
     for p in payload.get("propios") or []:
         if isinstance(p, dict) and p.get("nombre"):
             i = {k: p.get(k) for k in ("id", "tipo", "nombre", "valor", "unidad", "meta", "limite", "direccion", "solucion", "responsable", "fecha", "estado_solucion")}
@@ -283,9 +289,10 @@ def crear_router(get_supabase):
             ajustes = payload.get("ajustes") or {}
             for i in lista:
                 a = ajustes.get(i["id"]) or {}
-                for k in ("responsable", "fecha", "estado_solucion", "solucion"):
-                    if a.get(k):
-                        i[k] = str(a[k])
+                for k in ("tipo", "nombre", "valor", "unidad", "meta", "limite", "direccion", "solucion", "responsable", "fecha", "estado_solucion"):
+                    if k in a and a[k] is not None and a[k] != "":
+                        i[k] = a[k]
+                i["estado"] = estado_semaforo(i.get("valor"), i.get("meta"), i.get("limite"), i.get("direccion"))
             for m in (payload.get("propios") or []):
                 if isinstance(m, dict) and m.get("nombre"):
                     m = {k: m.get(k) for k in ("id", "tipo", "nombre", "valor", "unidad", "meta", "limite", "direccion",

@@ -136,8 +136,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final c = context.c;
     final app = context.watch<AppState>();
     final head = PageHead(
-      title: 'Dashboard',
-      subtitle: 'Indicadores para el Gerente General calculados con el análisis que se hizo al subir cada documento.',
+      title: 'Dashboard ejecutivo',
+      subtitle: 'Lectura rápida del análisis: nivel de preparación, señales y temas que requieren seguimiento.',
       actions: [
         GgButton('Descargar PDF', icon: Icons.picture_as_pdf_outlined, ghost: true, loading: pdfCargando,
             onTap: data == null
@@ -188,26 +188,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _demoDashboard(BuildContext context) {
     final c = context.c;
-    const bars = [('2024', .62), ('2025', .74), ('Plan 2026', .81)];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const DemoAviso(text: 'Gráficos y cifras ilustrativos para recorrer el dashboard. Se reemplazarán por el análisis de tus documentos cuando exista uno.'),
+      GgCard(child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Icon(Icons.insights_outlined, color: c.accentText), const SizedBox(width: 10),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('Panel de análisis ejecutivo', style: TextStyle(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 4),
+          Text('Cuando selecciones un documento analizado, este panel mostrará sus resultados y gráficos. Puedes explorar la estructura desde ahora.', style: TextStyle(fontSize: 12.5, height: 1.4, color: c.text2)),
+        ])),
+      ])),
       GridCols(cols: 2, children: const [
-        DemoDato(valor: '\$12.070 MM', titulo: 'Ingresos', detalle: 'ejemplo · CLP'),
-        DemoDato(valor: '\$1.556 MM', titulo: 'EBITDA', detalle: 'ejemplo · CLP'),
-        DemoDato(valor: '12,9%', titulo: 'Margen EBITDA', detalle: 'ejemplo'),
-        DemoDato(valor: '2', titulo: 'Alertas altas', detalle: 'ejemplo'),
+        DemoDato(valor: '—', titulo: 'Preparación global', detalle: 'Se calcula con los agentes'),
+        DemoDato(valor: '—', titulo: 'Señales críticas y altas', detalle: 'Del documento analizado'),
+        DemoDato(valor: '—', titulo: 'Omisiones', detalle: 'Temas no cubiertos'),
+        DemoDato(valor: '—', titulo: 'Agentes con hallazgos', detalle: 'Resultados disponibles'),
       ]),
-      const SizedBox(height: 12),
       GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const SecTitle('Evolución de ingresos · muestra'),
-        for (final b in bars) Padding(padding: const EdgeInsets.only(bottom: 12), child: Row(children: [SizedBox(width: 70, child: Text(b.$1, style: TextStyle(fontSize: 11, color: c.text2))), Expanded(child: GgBar(value: b.$2, color: c.accentText, height: 11))])),
-        Text('Valores ficticios; el gráfico real se calcula a partir de datos cargados.', style: TextStyle(fontSize: 11, color: c.text3)),
+        const SecTitle('Gráficos del análisis'),
+        for (final x in [('Señales por gravedad', Icons.donut_large_outlined), ('Puntaje por área', Icons.bar_chart_outlined), ('Evolución entre documentos', Icons.show_chart_outlined)])
+          Padding(padding: const EdgeInsets.symmetric(vertical: 7), child: Row(children: [Icon(x.$2, color: c.accentText, size: 18), const SizedBox(width: 9), Expanded(child: Text(x.$1, style: TextStyle(color: c.text2))), Text('Sin datos', style: TextStyle(color: c.text3, fontSize: 11.5))])),
+        const SizedBox(height: 4),
+        Text('Los gráficos se completan con información de tus documentos, sin estimar cifras.', style: TextStyle(fontSize: 11.5, color: c.text3)),
       ])),
       GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const SecTitle('Temas para revisar en sesión'),
-        const DemoFila(titulo: 'Rentabilidad', detalle: 'Pedir puente de EBITDA y causas de la variación del margen.', icon: Icons.trending_up),
-        const DemoFila(titulo: 'Capital', detalle: 'Solicitar retorno, hitos y responsables de las inversiones.', icon: Icons.account_balance),
-        const DemoFila(titulo: 'Seguridad', detalle: 'Confirmar estado de controles y planes de continuidad.', icon: Icons.health_and_safety_outlined),
+        const SecTitle('Prioridades para la sesión'),
+        Text('Las prioridades aparecerán al seleccionar un documento con análisis.', style: TextStyle(color: c.text2, fontSize: 12.5)),
       ])),
     ]);
   }
@@ -260,24 +265,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ]),
       ),
       GridCols(cols: 2, children: [
-        for (final s in severidades)
-          KpiTile(
-            value: '${sen[s] ?? 0}',
-            label: 'Señales ${sevPlural(s).toLowerCase()}',
-            leading: Container(width: 9, height: 9, decoration: BoxDecoration(color: sevColor(context, s), shape: BoxShape.circle)),
-            color: filtroSev == s ? sevColor(context, s) : null,
-            onTap: () {
-              setState(() {
-                filtroSev = s;
-                verTodasSen = false;
-              });
-              _irASenales();
-            },
-          ),
-        KpiTile(value: '${r['agentes_analizados']}/${r['agentes_total']}', label: 'Agentes analizados'),
-        KpiTile(value: '${r['omisiones']}', label: 'Omisiones'),
-        KpiTile(value: '${r['preguntas']}', label: 'Preguntas probables'),
-        KpiTile(value: '${r['recomendaciones']}', label: 'Recomendaciones'),
+        KpiTile(value: '${r['agentes_analizados']}/${r['agentes_total']}', label: 'Agentes analizados', leading: Icon(Icons.groups_2_outlined, size: 17, color: c.accentText)),
+        KpiTile(value: '${(sen['crítica'] as num? ?? 0) + (sen['alta'] as num? ?? 0)}', label: 'Señales críticas y altas', leading: Icon(Icons.warning_amber_rounded, size: 17, color: c.high), onTap: _irASenales),
+        KpiTile(value: '${r['omisiones']}', label: 'Omisiones detectadas', leading: Icon(Icons.checklist_outlined, size: 17, color: c.accentText)),
+        KpiTile(value: '${r['preguntas']}', label: 'Preguntas para la sesión', leading: Icon(Icons.help_outline, size: 17, color: c.accentText)),
       ]),
       if ((r['senales_transversales'] as num? ?? 0) > 0)
         Padding(
