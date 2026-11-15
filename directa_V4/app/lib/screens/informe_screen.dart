@@ -7,6 +7,7 @@ import '../core/sev.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
+import '../widgets/demo_offline.dart';
 import '../widgets/verificacion.dart';
 
 String plano(Object? t) => (t ?? '').toString().replaceAll(RegExp(r'\*\*|__'), '').replaceAll(RegExp(r'^\s*[-•*]\s+', multiLine: true), '• ');
@@ -165,9 +166,17 @@ class InformeScreen extends StatelessWidget {
             Flexible(child: Text('El PDF final puede variar en el diseño', textAlign: TextAlign.right, style: TextStyle(fontSize: 11, color: c.text3))),
           ]),
           const SizedBox(height: 12),
-          if (activos.isEmpty)
-            const EmptyState(icon: Icons.visibility_outlined, title: 'Vista previa', text: 'Selecciona al menos un ítem para ver el informe consolidado.')
-          else ...[
+          if (activos.isEmpty) ...[
+            const DemoAviso(text: 'Maqueta de informe para revisar la estructura. No contiene datos de tu organización y el PDF real se habilita al agregar análisis o respuestas.'),
+            const Text('INFORME DE PREPARACIÓN PARA DIRECTORIO', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 4),
+            Text('ORGANIZACIÓN DE EJEMPLO · MEMORIA ANUAL 2026 · SESIÓN 04/2026', style: TextStyle(fontSize: 11, color: c.text3)),
+            const SizedBox(height: 12),
+            const DemoDato(valor: '\$12.070 MM', titulo: 'Ingresos · ejemplo', detalle: 'CLP'),
+            const SizedBox(height: 10),
+            const DemoFila(titulo: 'Lectura ejecutiva', detalle: 'El crecimiento de ingresos no se tradujo en mejora del margen. Solicitar conciliación de costos y retorno esperado de inversiones.', icon: Icons.summarize_outlined),
+            const DemoFila(titulo: 'Asuntos para la sesión', detalle: 'Rentabilidad · Capital · Seguridad operacional', icon: Icons.checklist_outlined),
+          ] else ...[
             const Text('Informe de Preparación Pre-Directorio', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
             Text('Documento: ${nombreDoc(doc).isEmpty ? '—' : nombreDoc(doc)}\nGenerado por DIRECTA v2 · Gerencia General',

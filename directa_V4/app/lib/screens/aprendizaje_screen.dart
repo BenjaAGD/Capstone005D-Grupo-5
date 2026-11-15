@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
+import '../widgets/demo_offline.dart';
 
 /// Aprendizaje de los agentes (Frente C2): valoraciones del gerente y lecciones por agente.
 /// Ninguna lección se aplica sin que una persona la pruebe y la apruebe; todas se pueden revertir.
@@ -31,9 +32,14 @@ class _AprendizajeScreenState extends State<AprendizajeScreen> {
 
   Future<void> _cargar() async {
     try {
-      final r = await st.api.getJson('/api/valoraciones/resumen');
-      final l = await st.api.getJson('/api/lecciones');
-      final e = await st.api.getJson('/api/estado');
+      final respuestas = await Future.wait([
+        st.api.getJson('/api/valoraciones/resumen', timeout: const Duration(seconds: 6)),
+        st.api.getJson('/api/lecciones', timeout: const Duration(seconds: 6)),
+        st.api.getJson('/api/estado', timeout: const Duration(seconds: 6)),
+      ]);
+      final r = respuestas[0];
+      final l = respuestas[1];
+      final e = respuestas[2];
       resumen = r['ok'] == true ? Map<String, dynamic>.from(r) : null;
       lecciones = [for (final x in (l['lecciones'] as List? ?? const [])) if (x is Map) Map<String, dynamic>.from(x)];
       estado = e is Map ? Map<String, dynamic>.from(e) : null;
@@ -119,6 +125,17 @@ class _AprendizajeScreenState extends State<AprendizajeScreen> {
     final c = context.c;
     final app = context.watch<AppState>();
     if (cargando) return const GgCard(child: EmptyState(icon: Icons.hourglass_empty, title: 'Cargando…', loading: true));
+    if (error != null && resumen == null) return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const PageHead(title: 'Aprendizaje de los agentes', subtitle: 'Revisa cómo se podrían convertir tus valoraciones en mejoras controladas.'),
+      const DemoAviso(text: 'Ejemplo de interfaz. Las valoraciones y lecciones reales se guardan en el servidor y requieren conexión.'),
+      const DemoDato(valor: '3', titulo: 'Valoraciones necesarias', detalle: 'ejemplo de regla'),
+      const SizedBox(height: 12),
+      const GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SecTitle('Lección de muestra · pendiente de revisión'),
+        DemoFila(titulo: 'Agente Financiero', detalle: 'Separar los datos informados en el documento de las proyecciones y citar la página de origen.', icon: Icons.school_outlined),
+        DemoFila(titulo: 'Flujo', detalle: 'Probar la lección, revisar su impacto y aprobarla antes de activarla.', icon: Icons.fact_check_outlined),
+      ])),
+    ]);
     final porAgente = Map<String, dynamic>.from((resumen?['por_agente'] as Map?) ?? {});
     final motivos = Map<String, dynamic>.from((resumen?['motivos'] as Map?) ?? {});
     final pendientes = lecciones.where((l) => l['estado'] == 'pendiente').toList();

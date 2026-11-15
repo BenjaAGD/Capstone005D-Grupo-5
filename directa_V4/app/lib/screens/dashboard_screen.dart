@@ -10,6 +10,7 @@ import '../core/store.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
+import '../widgets/demo_offline.dart';
 
 const estadosPlan = [('pendiente', 'Pendiente'), ('curso', 'En curso'), ('hecho', 'Hecha')];
 
@@ -147,7 +148,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ],
     );
     final List<Widget> cuerpo;
-    if (!app.backendOk && data == null) {
+    if (app.docActivoMap == null) {
+      cuerpo = [_demoDashboard(context)];
+    } else if (!app.backendOk && data == null) {
       cuerpo = [const BackendAviso()];
     } else if (app.documentos.isEmpty) {
       cuerpo = [const GgCard(child: EmptyState(icon: Icons.description_outlined, title: 'Todavía no hay documentos',
@@ -180,6 +183,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Text('Documento: ${nombreDoc(app.docActivoMap)}', style: TextStyle(fontSize: 12.5, color: c.text3)),
         ),
       ...cuerpo,
+    ]);
+  }
+
+  Widget _demoDashboard(BuildContext context) {
+    final c = context.c;
+    const bars = [('2024', .62), ('2025', .74), ('Plan 2026', .81)];
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const DemoAviso(text: 'Gráficos y cifras ilustrativos para recorrer el dashboard. Se reemplazarán por el análisis de tus documentos cuando exista uno.'),
+      GridCols(cols: 2, children: const [
+        DemoDato(valor: '\$12.070 MM', titulo: 'Ingresos', detalle: 'ejemplo · CLP'),
+        DemoDato(valor: '\$1.556 MM', titulo: 'EBITDA', detalle: 'ejemplo · CLP'),
+        DemoDato(valor: '12,9%', titulo: 'Margen EBITDA', detalle: 'ejemplo'),
+        DemoDato(valor: '2', titulo: 'Alertas altas', detalle: 'ejemplo'),
+      ]),
+      const SizedBox(height: 12),
+      GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const SecTitle('Evolución de ingresos · muestra'),
+        for (final b in bars) Padding(padding: const EdgeInsets.only(bottom: 12), child: Row(children: [SizedBox(width: 70, child: Text(b.$1, style: TextStyle(fontSize: 11, color: c.text2))), Expanded(child: GgBar(value: b.$2, color: c.accentText, height: 11))])),
+        Text('Valores ficticios; el gráfico real se calcula a partir de datos cargados.', style: TextStyle(fontSize: 11, color: c.text3)),
+      ])),
+      GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const SecTitle('Temas para revisar en sesión'),
+        const DemoFila(titulo: 'Rentabilidad', detalle: 'Pedir puente de EBITDA y causas de la variación del margen.', icon: Icons.trending_up),
+        const DemoFila(titulo: 'Capital', detalle: 'Solicitar retorno, hitos y responsables de las inversiones.', icon: Icons.account_balance),
+        const DemoFila(titulo: 'Seguridad', detalle: 'Confirmar estado de controles y planes de continuidad.', icon: Icons.health_and_safety_outlined),
+      ])),
     ]);
   }
 

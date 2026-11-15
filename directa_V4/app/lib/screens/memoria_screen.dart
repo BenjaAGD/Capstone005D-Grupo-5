@@ -9,6 +9,7 @@ import '../core/store.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
+import '../widgets/demo_offline.dart';
 import 'memoria_extra.dart';
 
 const estadosCap = [('pend', 'Pendiente'), ('curso', 'En redacción'), ('listo', 'Listo')];
@@ -68,7 +69,7 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
     setState(() => cargando = true);
     try {
       final q = <String, String>{if (fuente != '__todos__') 'docs': fuente, if (forzar) 'refrescar': '1'};
-      final r = await st.api.getJson('/api/memoria/cobertura', query: q.isEmpty ? null : q, timeout: const Duration(minutes: 2));
+      final r = await st.api.getJson('/api/memoria/cobertura', query: q.isEmpty ? null : q, timeout: const Duration(seconds: 8));
       if (r['ok'] != true) throw Exception(r['error'] ?? 'No se pudo leer la cobertura');
       data = Map<String, dynamic>.from(r);
       error = null;
@@ -213,12 +214,17 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
       const SizedBox(height: 12),
     ];
 
-    if (!app.backendOk && data == null) {
+    if (app.documentos.isEmpty) {
+      hijos.add(const DemoAviso(text: 'Ejemplo para revisar la estructura de capítulos y su avance. La cobertura real requiere documentos y conexión al servidor.'));
+      hijos.add(GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const SecTitle('Avance ilustrativo · NCG 461'),
+        const DemoFila(titulo: '1 · Índice de contenidos', detalle: '2 de 2 temas con evidencia · muestra', icon: Icons.check_circle_outline),
+        const DemoFila(titulo: '2 · Perfil de la entidad', detalle: '3 de 5 temas con evidencia · muestra', icon: Icons.timelapse),
+        const DemoFila(titulo: '3 · Gobierno corporativo', detalle: 'Pendiente de revisión · muestra', icon: Icons.radio_button_unchecked),
+        GgButton('Ir a Documentos', icon: Icons.upload_file, ghost: true, onTap: () => app.go('docs')),
+      ])));
+    } else if (!app.backendOk && data == null) {
       hijos.add(const BackendAviso());
-    } else if (app.documentos.isEmpty) {
-      hijos.add(GgCard(child: EmptyState(icon: Icons.menu_book_outlined, title: 'Todavía no hay documentos',
-          text: 'Sube un documento (por ejemplo, la memoria del año anterior) y aquí aparecerá la evidencia por capítulo.',
-          action: GgButton('Ir a Documentos', onTap: () => app.go('docs')))));
     } else if (cargando && data == null) {
       hijos.add(const GgCard(child: EmptyState(icon: Icons.search, title: 'Buscando evidencia…', loading: true)));
     } else if (data == null) {

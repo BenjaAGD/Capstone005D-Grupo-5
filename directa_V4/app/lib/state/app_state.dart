@@ -177,6 +177,10 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> init() async {
+    // La navegación y las pantallas deben estar disponibles aunque la API no responda.
+    // El contenido dependiente de documentos mostrará su propio estado vacío/offline.
+    iniciado = true;
+    notifyListeners();
     await cargarAgentes();
     if (docActivo != null) _cargarChat(docActivo!);
     await cargarDocumentos(silencioso: true);

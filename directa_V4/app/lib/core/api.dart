@@ -18,7 +18,7 @@ class Api {
 
   String baseUrl;
   final http.Client _client;
-  static const _timeout = Duration(seconds: 40);
+  static const _timeout = Duration(seconds: 8);
 
   Uri _u(String path, [Map<String, String>? q]) {
     final base = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;

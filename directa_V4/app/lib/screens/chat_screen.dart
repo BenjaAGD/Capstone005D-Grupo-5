@@ -7,6 +7,7 @@ import '../core/models.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
+import '../widgets/demo_offline.dart';
 import '../widgets/valoracion.dart';
 import '../widgets/verificacion.dart';
 
@@ -22,6 +23,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final Map<String, String> _tab = {};
   int _ultimo = -1;
   String _ultimoTexto = '';
+  final List<Map<String, String>> _demoMensajes = [];
 
   @override
   void initState() {
@@ -43,6 +45,18 @@ class _ChatScreenState extends State<ChatScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scroll.hasClients) _scroll.jumpTo(_scroll.position.maxScrollExtent);
     });
+  }
+
+  void _responderDemo() {
+    final pregunta = _input.text.trim();
+    if (pregunta.isEmpty) return;
+    final respuesta = pregunta.toLowerCase().contains('margen')
+        ? 'Ejemplo: el margen cae aunque los ingresos crecen. Para una respuesta real, DIRECTA debe consultar la evidencia del documento y citar sus páginas.'
+        : pregunta.toLowerCase().contains('invers') || pregunta.toLowerCase().contains('capex')
+            ? 'Ejemplo: antes de aprobar la inversión, revisa retorno esperado, hitos, presupuesto y responsable. Esta respuesta es ilustrativa y no cita documentos.'
+            : 'Ejemplo de respuesta ejecutiva: identifica el resultado, explica su causa, señala el riesgo y propone una pregunta de seguimiento. Sin documento, no se puede validar información ni mostrar fuentes.';
+    setState(() => _demoMensajes.add({'pregunta': pregunta, 'respuesta': respuesta}));
+    _input.clear();
   }
 
   void _enviar(AppState st) {
@@ -102,6 +116,8 @@ class _ChatScreenState extends State<ChatScreen> {
       _ultimoTexto = ultimoTexto;
       _alFondo();
     }
+
+    if (doc == null) return _demoChat(context);
 
     return Column(children: [
       // Selector compacto para dejar espacio a los mensajes.
@@ -263,6 +279,36 @@ class _ChatScreenState extends State<ChatScreen> {
           ]),
         ),
       ),
+    ]);
+  }
+
+  Widget _demoChat(BuildContext context) {
+    final c = context.c;
+    const ejemplos = ['¿Qué debería revisar el directorio?', '¿Qué explica la caída del margen?', '¿Qué debo validar del CAPEX?'];
+    return Column(children: [
+      Container(
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
+        decoration: BoxDecoration(color: c.bg2, border: Border(bottom: BorderSide(color: c.border))),
+        child: Row(children: [AgentBadge('GEN'), const SizedBox(width: 8), const Text('Asistente · demostración'), const Spacer(), Pill('EJEMPLO', fg: c.info)]),
+      ),
+      Expanded(child: ListView(padding: const EdgeInsets.all(14), children: [
+        const DemoAviso(text: 'Puedes probar el diseño del chat con respuestas de muestra. No se consulta IA ni se usan documentos en este modo.'),
+        if (_demoMensajes.isEmpty) ...[
+          const GgCard(child: DemoFila(titulo: 'Consulta al asistente', detalle: 'Escribe una pregunta o toca una sugerencia. La respuesta aparecerá marcada como ejemplo y no se guardará en el informe.', icon: Icons.chat_bubble_outline)),
+          Wrap(spacing: 7, runSpacing: 7, children: [for (final q in ejemplos) ActionChip(label: Text(q), onPressed: () { _input.text = q; _responderDemo(); })]),
+        ],
+        for (final m in _demoMensajes) ...[
+          Align(alignment: Alignment.centerRight, child: Container(margin: const EdgeInsets.only(bottom: 8, left: 40), padding: const EdgeInsets.all(11), decoration: BoxDecoration(color: c.accentSoft, borderRadius: BorderRadius.circular(12)), child: Text(m['pregunta']!))),
+          GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [const Expanded(child: Text('Respuesta de muestra', style: TextStyle(fontWeight: FontWeight.w700))), Pill('NO VERIFICADA', fg: c.med)]),
+            const SizedBox(height: 7), Text(m['respuesta']!, style: TextStyle(fontSize: 13, height: 1.45, color: c.text2)),
+          ])),
+        ],
+      ])),
+      Container(color: c.bg2, padding: const EdgeInsets.fromLTRB(10, 8, 10, 10), child: SafeArea(top: false, child: Row(children: [
+        Expanded(child: TextField(controller: _input, minLines: 1, maxLines: 4, textInputAction: TextInputAction.send, onSubmitted: (_) => _responderDemo(), decoration: const InputDecoration(hintText: 'Prueba una pregunta…'))),
+        const SizedBox(width: 8), IconButton.filled(onPressed: _responderDemo, style: IconButton.styleFrom(backgroundColor: Brand.accent, foregroundColor: Brand.onAccent), icon: const Icon(Icons.send_rounded)),
+      ]))),
     ]);
   }
 
