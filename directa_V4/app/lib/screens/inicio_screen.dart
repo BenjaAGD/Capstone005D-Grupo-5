@@ -40,6 +40,27 @@ class InicioScreen extends StatelessWidget {
     ));
   }
 
+  void _verVistaPrevia(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Vista previa del documento'),
+        content: const SingleChildScrollView(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+            Text('INFORME DE GESTIÓN 2026', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.1)),
+            SizedBox(height: 14),
+            Text('Resultados del ejercicio', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700)),
+            SizedBox(height: 10),
+            Text('Durante el período, la organización avanzó en sus prioridades operacionales y de inversión. Los resultados y cifras deben validarse con los documentos originales.'),
+            SizedBox(height: 12),
+            Text('La gestión se enfocó en fortalecer la continuidad operacional, dar seguimiento a los proyectos prioritarios y mejorar la calidad de la información para la toma de decisiones.', style: TextStyle(height: 1.45)),
+          ]),
+        ),
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cerrar'))],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.c;
@@ -85,12 +106,42 @@ class InicioScreen extends StatelessWidget {
       const SecTitle('Documento de trabajo'),
       if (doc == null)
         GgCard(
-          child: Row(children: [
-            Icon(Icons.description_outlined, color: c.text3, size: 25),
-            const SizedBox(width: 12),
-            Expanded(child: Text('Todavía no hay un documento activo. Carga uno para comenzar.',
-                style: TextStyle(color: c.text2, height: 1.4))),
-            TextButton(onPressed: () => st.go('documentos'), child: const Text('Ver lista')),
+          borderColor: c.border,
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Container(
+                width: 42, height: 42, alignment: Alignment.center,
+                decoration: BoxDecoration(color: c.accentSoft, borderRadius: BorderRadius.circular(11)),
+                child: Icon(Icons.description_outlined, color: c.accentText),
+              ),
+              const SizedBox(width: 11),
+              const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Informe de gestión 2026.pdf', maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
+                SizedBox(height: 3),
+                Text('PDF · 12 páginas · Documento de trabajo', style: TextStyle(fontSize: 11.5)),
+              ])),
+            ]),
+            const SizedBox(height: 11),
+            Text('Consulta el contenido del documento y revisa el análisis asociado.',
+                style: TextStyle(fontSize: 12, height: 1.4, color: c.text2)),
+            const SizedBox(height: 6),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () => _verVistaPrevia(context),
+                icon: const Icon(Icons.visibility_outlined, size: 17),
+                label: const Text('Ver vista previa'),
+              ),
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () => st.go('documentos'),
+                icon: const Icon(Icons.folder_open_outlined, size: 17),
+                label: const Text('Ver lista de documentos'),
+              ),
+            ),
           ]),
         )
       else
