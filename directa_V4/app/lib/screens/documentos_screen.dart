@@ -6,6 +6,7 @@ import '../core/models.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
+import '../widgets/demo_offline.dart';
 
 class DocumentosScreen extends StatelessWidget {
   const DocumentosScreen({super.key});
@@ -55,10 +56,13 @@ class DocumentosScreen extends StatelessWidget {
       GgCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           SecTitle('Documentos cargados (${st.documentos.length})'),
-          if (st.documentos.isEmpty)
+          if (st.documentos.isEmpty) ...[
             const EmptyState(icon: Icons.description_outlined, title: 'Aún no hay documentos',
-                text: 'Sube el primer archivo para empezar. Se indexará y analizará automáticamente.')
-          else
+                text: 'Sube el primer archivo para empezar. Se indexará y analizará automáticamente.'),
+            const Divider(height: 22),
+            const DemoAviso(text: 'Vista de ejemplo: este archivo no está cargado ni será analizado. Sirve para mostrar cómo se verá la lista.'),
+            const DemoFila(titulo: 'Informe_Gestion_2025.pdf', detalle: 'PDF · 8,4 MB · ejemplo de archivo · análisis pendiente de una carga real', icon: Icons.picture_as_pdf_outlined),
+          ] else
             for (final d in st.documentos) _DocRow(d: d),
         ]),
       ),

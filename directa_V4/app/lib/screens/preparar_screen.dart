@@ -5,6 +5,7 @@ import '../core/sev.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
+import '../widgets/demo_offline.dart';
 import '../widgets/verificacion.dart';
 
 /// "Preparar mi reunión" (Frente E1): las preguntas probables del directorio, ordenadas por la gravedad
@@ -29,7 +30,18 @@ class _PrepararScreenState extends State<PrepararScreen> {
     final items = st.prepPreguntas;
     final sinSugerir = items.where((x) => x['sugerida'] == null).length;
 
-    if (st.docActivo == null || (st.analisis == null && !st.cargandoAnalisis)) {
+    if (st.docActivo == null) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const PageHead(title: 'Preparar mi reunión', subtitle: 'Practica la revisión de preguntas estratégicas antes de una sesión.'),
+        const DemoAviso(text: 'Preguntas ficticias para mostrar la experiencia. Cuando cargues documentos, las preguntas se basarán en los hallazgos reales.'),
+        const DemoFila(titulo: 'Rentabilidad', detalle: '¿Qué explica que los ingresos crezcan más rápido que el margen?', icon: Icons.trending_down),
+        const DemoFila(titulo: 'Inversión', detalle: '¿Qué hitos y retorno se esperan del CAPEX planificado?', icon: Icons.account_balance),
+        const DemoFila(titulo: 'Seguridad operacional', detalle: '¿Qué controles críticos siguen abiertos y quién responde por ellos?', icon: Icons.health_and_safety_outlined),
+        const DemoFila(titulo: 'Sostenibilidad', detalle: '¿Qué riesgos ambientales podrían afectar la continuidad del negocio?', icon: Icons.eco_outlined),
+        const DemoFila(titulo: 'Personas', detalle: '¿Qué posiciones críticas requieren sucesión o retención?', icon: Icons.groups_outlined),
+      ]);
+    }
+    if (st.analisis == null && !st.cargandoAnalisis) {
       return Column(children: [
         const PageHead(title: 'Preparar mi reunión'),
         GgCard(

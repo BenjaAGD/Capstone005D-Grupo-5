@@ -6,6 +6,7 @@ import '../core/sev.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
+import '../widgets/demo_offline.dart';
 import '../widgets/verificacion.dart';
 
 class ResultadosScreen extends StatefulWidget {
@@ -32,6 +33,8 @@ class _ResultadosScreenState extends State<ResultadosScreen> {
     final res = st.analisis ?? {};
     final keys = res.keys.toList()..sort((a, b) => st.ordenAgente(a).compareTo(st.ordenAgente(b)));
     final doc = st.docActivoMap;
+
+    if (keys.isEmpty && doc == null) return _demoResultados(context);
 
     if (keys.isEmpty) {
       final procesando = doc != null && estadosProcesando.contains(doc['estado']);
@@ -212,6 +215,32 @@ class _ResultadosScreenState extends State<ResultadosScreen> {
               style: TextStyle(fontSize: 12.5, color: gi.color, fontWeight: FontWeight.w600)),
         ),
       cuerpo,
+    ]);
+  }
+
+  Widget _demoResultados(BuildContext context) {
+    final c = context.c;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const PageHead(title: 'Análisis', subtitle: 'Explora cómo se presentan los hallazgos, las señales y las preguntas del directorio.'),
+      const DemoAviso(text: 'Estos hallazgos son ficticios y sirven para recorrer la experiencia. Sube un documento para ver resultados reales de los agentes.'),
+      GridCols(cols: 3, minItemWidth: 130, children: const [
+        DemoDato(valor: '78', titulo: 'Preparación global', detalle: 'de ejemplo / 100'),
+        DemoDato(valor: '2', titulo: 'Alertas altas'),
+        DemoDato(valor: '5', titulo: 'Preguntas para sesión'),
+      ]),
+      const SizedBox(height: 12),
+      GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const SecTitle('Señales de ejemplo'),
+        DemoFila(titulo: 'Margen bajo presión', detalle: 'El crecimiento de ingresos no se tradujo en mejora del margen. Revisar costos y proyección del próximo período.', icon: Icons.trending_down, color: c.med),
+        DemoFila(titulo: 'Inversión por validar', detalle: 'Solicitar retorno esperado, hitos y responsable del CAPEX antes de aprobar el plan.', icon: Icons.account_balance, color: c.info),
+        DemoFila(titulo: 'Continuidad operacional', detalle: 'Confirmar estado de controles y planes de contingencia.', icon: Icons.shield_outlined, color: c.low),
+      ])),
+      GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const SecTitle('Preguntas que podría hacer el directorio'),
+        Text('¿Qué explica la variación del margen y qué medidas se tomarán?', style: TextStyle(fontSize: 13, color: c.text)),
+        const Divider(height: 20),
+        Text('¿Qué hitos y retorno se esperan de las inversiones del próximo año?', style: TextStyle(fontSize: 13, color: c.text)),
+      ])),
     ]);
   }
 

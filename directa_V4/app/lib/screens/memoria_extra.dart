@@ -11,6 +11,7 @@ import '../core/store.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
+import '../widgets/demo_offline.dart';
 
 const _kMarca = 'directa_marca_memoria_v1';
 const _coloresMarca = ['#1B2F4B', '#0E5A8A', '#0E7490', '#12AFC6', '#237AA8', '#4664A8'];
@@ -58,7 +59,7 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
 
   Future<void> _cargar() async {
     try {
-      final r = await st.api.getJson('/api/memoria/anios');
+      final r = await st.api.getJson('/api/memoria/anios', timeout: const Duration(seconds: 6));
       anios = [for (final a in (r['anios'] as List? ?? const [])) if (a is Map) Map<String, dynamic>.from(a)];
       anio ??= anios.isEmpty ? null : (anios.first['anio'] as num).toInt();
       error = null;
@@ -133,13 +134,89 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
     final c = context.c;
     if (cargando) return const GgCard(child: EmptyState(icon: Icons.hourglass_empty, title: 'Cargando…', loading: true));
     if (anios.isEmpty) {
-      return GgCard(
-        child: EmptyState(
-          icon: Icons.menu_book_outlined,
-          title: 'No hay documentos con año',
-          text: error ?? 'Sube los documentos del año (el año debe ir en el nombre del archivo, por ejemplo «Informe_2025.pdf»).',
+      final anioVista = DateTime.now().year;
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        GgCard(
+          borderColor: c.border2,
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Icon(Icons.visibility_outlined, color: c.accentText),
+              const SizedBox(width: 8),
+              const Expanded(child: Text('Vista de demostración', style: TextStyle(fontWeight: FontWeight.w700))),
+              Pill('EJEMPLO', fg: c.accentText),
+            ]),
+            const SizedBox(height: 6),
+            Text(
+              error == null
+                  ? 'Aún no hay documentos con año. Puedes revisar y personalizar la portada; para generar el PDF necesitarás documentos y conexión al servidor.'
+                  : 'No se pudo conectar con el servidor. Esta vista te permite revisar la portada; los datos son de ejemplo.',
+              style: TextStyle(fontSize: 12.5, height: 1.4, color: c.text2),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _nombre,
+              decoration: const InputDecoration(labelText: 'Empresa o institución'),
+              onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              height: 184,
+              width: double.infinity,
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: _hex(color),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: c.border2),
+              ),
+              child: Stack(children: [
+                Positioned(
+                  right: 0, top: 0, bottom: 0, width: 150,
+                  child: Container(
+                    color: _hex(color).withValues(alpha: 0.82),
+                    child: Icon(Icons.apartment_rounded, size: 82, color: Colors.white.withValues(alpha: 0.14)),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(_nombre.text.trim().isEmpty ? 'TU ORGANIZACIÓN' : _nombre.text.trim().toUpperCase(),
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.8)),
+                    const SizedBox(height: 17),
+                    Container(width: 30, height: 2, color: Brand.accent),
+                    const SizedBox(height: 12),
+                    const Text('Memoria anual', style: TextStyle(color: Colors.white, fontFamily: 'serif', fontWeight: FontWeight.bold, fontSize: 23)),
+                    Text('$anioVista', style: TextStyle(color: c.accentText, fontSize: 17, fontWeight: FontWeight.w600)),
+                    const Spacer(),
+                    const Text('Preparada para Gerencia General', style: TextStyle(color: Colors.white70, fontSize: 10)),
+                  ]),
+                ),
+              ]),
+            ),
+            const SizedBox(height: 12),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final h in _coloresMarca)
+                InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () {
+                    setState(() => color = h);
+                    _guardarMarca();
+                  },
+                  child: Container(
+                    width: 28, height: 28,
+                    decoration: BoxDecoration(color: _hex(h), shape: BoxShape.circle,
+                        border: Border.all(color: color == h ? c.text : c.border2, width: color == h ? 2.5 : 1)),
+                  ),
+                ),
+            ]),
+            const SizedBox(height: 12),
+            GgButton('Generar borrador en PDF', icon: Icons.picture_as_pdf_outlined, expand: true, onTap: null),
+            const SizedBox(height: 6),
+            Text('Se habilitará cuando haya documentos y el servidor esté conectado.',
+                style: TextStyle(fontSize: 11.5, color: c.text3)),
+          ]),
         ),
-      );
+      ]);
     }
     final docsAnio = [for (final g in anios) if (g['anio'] == anio) ...(g['documentos'] as List)];
     final total = (progreso?['total'] as num?)?.toInt() ?? 1;
@@ -295,7 +372,7 @@ class _PerfilTonoState extends State<PerfilTono> {
 
   Future<void> _cargar() async {
     try {
-      final r = await st.api.getJson('/api/memoria/perfil-tono');
+      final r = await st.api.getJson('/api/memoria/perfil-tono', timeout: const Duration(seconds: 6));
       if (r['ok'] != true) throw Exception(r['error']);
       perfil = r['perfil'] is Map ? Map<String, dynamic>.from(r['perfil'] as Map) : null;
       minimo = (r['minimo_memorias'] as num?)?.toInt() ?? 3;
@@ -336,6 +413,13 @@ class _PerfilTonoState extends State<PerfilTono> {
     final medidas = (perfil?['medidas'] as Map?) ?? {};
     final aprobado = perfil?['estado'] == 'aprobado';
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      if (perfil == null && docs.isEmpty) const DemoAviso(text: 'Ejemplo del perfil editorial. Para extraer un tono real necesitas memorias anteriores cargadas y conexión al servidor.'),
+      if (perfil == null && docs.isEmpty) const GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SecTitle('Ejemplo de tono corporativo'),
+        DemoFila(titulo: 'Formalidad', detalle: 'Profesional, directa y orientada a decisiones.'),
+        DemoFila(titulo: 'Estilo', detalle: 'Frases claras, cifras acompañadas de contexto y próximos pasos explícitos.'),
+        DemoFila(titulo: 'Regla editorial', detalle: 'Distinguir hechos, proyecciones y asuntos pendientes de validación.'),
+      ])),
       if (error != null) GgCard(borderColor: c.crit, child: Text(error!, style: TextStyle(color: c.crit))),
       GgCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

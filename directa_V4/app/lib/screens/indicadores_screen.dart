@@ -11,6 +11,7 @@ import '../core/store.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
+import '../widgets/demo_offline.dart';
 
 const estadosSol = [
   ('pendiente', 'Pendiente'),
@@ -278,6 +279,29 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
     final cont = {'rojo': 0, 'amarillo': 0, 'verde': 0, 'sin_dato': 0};
     for (final i in todos) {
       cont['${i['estado']}'] = (cont['${i['estado']}'] ?? 0) + 1;
+    }
+    if (app.docActivoMap == null) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        PageHead(title: 'Indicadores', subtitle: 'Revisa cómo se presentan KPI y KRI, agrega indicadores propios y edítalos desde este dispositivo.', actions: [
+          GgButton('+ Agregar indicador', onTap: () => _form()),
+          GgButton('Guardar copia', icon: Icons.save_alt, ghost: true, small: true, onTap: _exportar),
+          GgButton('Cargar copia', icon: Icons.file_open_outlined, ghost: true, small: true, onTap: _importar),
+        ]),
+        const DemoAviso(text: 'Las tarjetas de muestra son ficticias. Los indicadores que agregues tú sí quedan guardados localmente; las sugerencias con IA requieren documento y servidor.'),
+        GridCols(cols: 2, children: const [DemoDato(valor: '2', titulo: 'En meta · muestra'), DemoDato(valor: '1', titulo: 'En atención · muestra')]),
+        const SizedBox(height: 12),
+        const SecTitle('KPI · desempeño'),
+        GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const DemoFila(titulo: 'Ingresos del ejercicio', detalle: 'Actual: 12.070 · Meta: 12.500 MM CLP · ejemplo editable cuando agregues tu propio indicador.', icon: Icons.trending_up),
+          const GgBar(value: .78, height: 8),
+        ])),
+        const SecTitle('KRI · riesgo'),
+        GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const DemoFila(titulo: 'Concentración de clientes', detalle: 'Actual: 38% · Umbral de atención: 35% · ejemplo, no es un dato de tu empresa.', icon: Icons.warning_amber_outlined),
+          GgBar(value: .68, color: c.med, height: 8),
+        ])),
+        if (propios.isNotEmpty) ...[const SecTitle('Tus indicadores guardados'), for (final p in propios) _tarjeta(context, {...p, 'origen': 'propio', 'soluciones': <String>[], 'como': '', 'estado': semaforo(p['valor'], p['meta'], p['limite'], p['direccion'])})],
+      ]);
     }
     Widget? aviso;
     if (!app.backendOk && sug == null) {
