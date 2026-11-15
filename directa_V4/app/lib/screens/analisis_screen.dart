@@ -7,7 +7,7 @@ import '../widgets/common.dart';
 import 'chat_screen.dart';
 import 'resultados_screen.dart';
 
-/// Reúne hallazgos y consultas al asistente en una sola sección.
+/// Reúne hallazgos y la guía conversacional de análisis en una sola sección.
 class AnalisisScreen extends StatelessWidget {
   const AnalisisScreen({super.key});
 
@@ -42,13 +42,13 @@ class AnalisisScreen extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 820),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             if (!consultando)
-              const PageHead(title: 'Análisis', subtitle: 'Revisa los hallazgos de la IA o consulta sobre el documento activo.'),
+              const PageHead(title: 'Análisis', subtitle: 'Revisa hallazgos y trabaja cinco temas clave con la guía de DIRECTA.'),
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(color: c.surface2, border: Border.all(color: c.border), borderRadius: BorderRadius.circular(13)),
               child: Row(children: [
                 opcion('Hallazgos', 0, Icons.insights_outlined),
-                opcion('Consultar a la IA', 1, Icons.chat_bubble_outline),
+                opcion('Guía y Chat', 1, Icons.chat_bubble_outline),
               ]),
             ),
           ]),
