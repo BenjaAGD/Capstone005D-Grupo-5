@@ -1,4 +1,5 @@
 import os
+from io import BytesIO
 from datetime import datetime
 from fastapi import APIRouter, Body
 from fastapi.responses import FileResponse, JSONResponse, Response
@@ -192,6 +193,62 @@ def sugerir_indicador(sb, p):
     return res
 
 
+
+def _lista_indicadores_export(payload, sb):
+    did = str(payload.get("documento_id") or "")
+    sug = construir_sugeridos(sb, did) if did else None
+    lista = [dict(i) for i in (sug or {}).get("indicadores", [])]
+    ajustes = payload.get("ajustes") or {}
+    for i in lista:
+        a = ajustes.get(i.get("id")) or {}
+        for k in ("responsable", "fecha", "estado_solucion", "solucion"):
+            if a.get(k): i[k] = str(a[k])
+    for p in payload.get("propios") or []:
+        if isinstance(p, dict) and p.get("nombre"):
+            i = {k: p.get(k) for k in ("id", "tipo", "nombre", "valor", "unidad", "meta", "limite", "direccion", "solucion", "responsable", "fecha", "estado_solucion")}
+            i["tipo"] = "KRI" if str(i.get("tipo")).upper() == "KRI" else "KPI"
+            i["direccion"] = "menor" if i.get("direccion") == "menor" else "mayor"
+            i["origen"] = "propio"
+            i["estado"] = estado_semaforo(i.get("valor"), i.get("meta"), i.get("limite"), i["direccion"])
+            lista.append(i)
+    return lista, ((sug or {}).get("documento") or {}).get("nombre") or "Sin documento asociado"
+
+
+def _excel_indicadores(payload, sb):
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
+    from openpyxl.utils import get_column_letter
+    lista, documento = _lista_indicadores_export(payload, sb)
+    wb = Workbook(); ws = wb.active; ws.title = "Plan de acción"
+    navy, cyan, pale, white = "1B2F4B", "12AFC6", "EAF4F8", "FFFFFF"
+    ws.merge_cells("A1:J1"); ws["A1"] = "DIRECTA  /  INTELIGENCIA PARA DIRECTORIOS"
+    ws["A1"].fill = PatternFill("solid", fgColor=navy); ws["A1"].font = Font(name="Arial", size=14, bold=True, color=white); ws["A1"].alignment = Alignment(vertical="center")
+    ws.row_dimensions[1].height = 32
+    ws.merge_cells("A3:J3"); ws["A3"] = "Plan de indicadores y acciones"
+    ws["A3"].font = Font(name="Arial", size=18, bold=True, color=navy)
+    ws.merge_cells("A4:J4"); ws["A4"] = f"{documento}  ·  Exportado {datetime.now().strftime('%d/%m/%Y')}"
+    ws["A4"].font = Font(name="Arial", size=10, color="52657D")
+    headers = ["Tipo", "Indicador", "Valor actual", "Unidad", "Meta", "Límite", "Estado", "Acción / solución", "Responsable", "Fecha objetivo"]
+    for col, title in enumerate(headers, 1):
+        cell = ws.cell(6, col, title); cell.fill = PatternFill("solid", fgColor=cyan); cell.font = Font(name="Arial", bold=True, color=white); cell.alignment = Alignment(vertical="center", wrap_text=True)
+    for row, i in enumerate(lista, 7):
+        estado = i.get("estado") or estado_semaforo(i.get("valor"), i.get("meta"), i.get("limite"), i.get("direccion"))
+        vals = [i.get("tipo", ""), i.get("nombre", ""), i.get("valor"), i.get("unidad", ""), i.get("meta"), i.get("limite"), _TXT.get(estado, "Sin dato"), i.get("solucion") or "; ".join(i.get("soluciones") or []), i.get("responsable", ""), i.get("fecha", "")]
+        for col, value in enumerate(vals, 1):
+            cell = ws.cell(row, col, value); cell.font = Font(name="Arial", size=10, color=navy); cell.alignment = Alignment(vertical="top", wrap_text=True)
+            if row % 2 == 1: cell.fill = PatternFill("solid", fgColor=pale)
+        ws.row_dimensions[row].height = 34
+    widths = [12, 34, 15, 12, 12, 12, 17, 52, 24, 18]
+    for n, width in enumerate(widths, 1): ws.column_dimensions[get_column_letter(n)].width = width
+    ws.freeze_panes = "A7"; ws.auto_filter.ref = f"A6:J{max(6, 6 + len(lista))}"
+    ws.sheet_view.showGridLines = False; ws.sheet_properties.pageSetUpPr.fitToPage = True
+    ws.page_setup.orientation = "landscape"; ws.page_setup.fitToWidth = 1; ws.page_setup.fitToHeight = 0
+    ws.print_title_rows = "1:6"
+    thin = Side(style="thin", color="C8D6E3")
+    for row in ws.iter_rows(min_row=6, max_row=max(6, 6 + len(lista)), min_col=1, max_col=10):
+        for cell in row: cell.border = Border(bottom=thin)
+    buf = BytesIO(); wb.save(buf); return buf.getvalue()
+
 def crear_router(get_supabase):
     router = APIRouter()
     aqui = os.path.dirname(os.path.abspath(__file__))
@@ -245,6 +302,17 @@ def crear_router(get_supabase):
             return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
         nombre = f"Directa_Indicadores_{datetime.now().strftime('%Y-%m-%d')}.pdf"
         return Response(content=pdf, media_type="application/pdf",
+                        headers={"Content-Disposition": f'attachment; filename="{nombre}"'})
+
+    @router.post("/api/indicadores/excel")
+    def api_excel(payload: dict = Body(default={})):
+        try:
+            contenido = _excel_indicadores(payload or {}, get_supabase())
+        except Exception as e:
+            print(f"[INDICADORES] Error Excel: {e}", flush=True)
+            return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+        nombre = f"Directa_Plan_Indicadores_{datetime.now().strftime('%Y-%m-%d')}.xlsx"
+        return Response(content=contenido, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         headers={"Content-Disposition": f'attachment; filename="{nombre}"'})
 
     @router.get("/indicadores.html")

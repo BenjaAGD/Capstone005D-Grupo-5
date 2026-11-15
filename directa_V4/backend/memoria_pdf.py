@@ -51,19 +51,23 @@ def _marca(m):
     logo = str(m.get("logo") or "").strip()
     if logo and (len(logo) > 2_000_000 or not _RE_LOGO.match(logo)):
         logo = ""
-    return {"nombre": " ".join(str(m.get("nombre") or "").split())[:80],
+    limpio = lambda k, default, n: " ".join(str(m.get(k) or default).split())[:n]
+    return {"nombre": limpio("nombre", "", 80),
+            "titulo": limpio("titulo", "Memoria anual", 100),
+            "destinatario": limpio("destinatario", "Gerencia General", 100),
+            "firmante": limpio("firmante", "Gerente General", 100),
             "color": color if _RE_COLOR.match(color) else "#1B2F4B",
             "logo": re.sub(r"\s+", "", logo)}
 
 
-def _carta(contexto, perfil, anio, empresa):
+def _carta(contexto, perfil, anio, empresa, firmante="Gerente General"):
     import ia_config as _ia
     import tono
     sistema = (f"{MARCA_CARTA}\nEres el Redactor de memoria de DIRECTA. Escribe la carta del Gerente General para la "
                f"memoria anual {anio} de {empresa or 'la empresa'}: tres párrafos, máximo 230 palabras en total, sin "
                "listas ni markdown. Usa SOLO los hechos del contexto; si falta un dato escribe [COMPLETAR: dato]. No "
                "inventes cifras y no uses cifras de otros años como si fueran de este. Cierra con un agradecimiento y "
-               "la firma 'Gerente General'. Español.")
+               f"la firma '{firmante}'. Español.")
     if perfil:
         sistema += "\n\n" + tono.bloque_para_prompt(perfil)
     texto = _ia.llamar_llm_chat(sistema, contexto + "\n\nEscribe la carta.", temperatura=0.3, max_tokens=900)
@@ -102,8 +106,10 @@ def _html(ctx):
     css = CSS_PDF.replace("#1B2F4B", color)
     empresa = m["nombre"] or ctx["empresa"] or "La empresa"
     anio = ctx["anio"]
+    titulo = m.get("titulo") or "Memoria anual"
+    destinatario = m.get("destinatario") or "Gerencia General"
     cab = (f"<div id='pdf_cab'><table width='100%'><tr><td class='cab'><b>{esc_pdf(empresa.upper())}</b> &nbsp;|&nbsp; "
-           f"Memoria Anual {anio}</td><td class='cab' align='right'>Borrador para revisión</td></tr></table></div>")
+           f"{esc_pdf(titulo)} {anio}</td><td class='cab' align='right'>Borrador para revisión</td></tr></table></div>")
     pie = (f"<div id='pdf_pie'><table width='100%'><tr><td class='pie'>{esc_pdf(CLASIFICACION)}</td>"
            f"<td class='pie' align='right'>P&aacute;gina <pdf:pagenumber/> de <pdf:pagecount/></td></tr></table></div>")
     logo = f"<img src='{m['logo']}' style='height:1.8cm;'/><br/><br/>" if m["logo"] else ""
@@ -117,9 +123,9 @@ def _html(ctx):
     portada = (f"<table class='cover' width='100%' cellpadding='0' cellspacing='0' style='margin-top:0.3cm;'><tr>"
                f"<td class='coverleft' width='45%' style='background-color:{color};'>"
                f"{logo}<span class='cover-kicker'>MEMORIA CORPORATIVA</span><br/><br/>"
-               f"<span class='cover-title'>Memoria<br/>anual</span><br/><br/>"
+               f"<span class='cover-title'>{esc_pdf(titulo)}</span><br/><br/>"
                f"<span class='cover-year'>{anio}</span><br/><br/>"
-               f"<span class='cover-caption'>Preparada para<br/>{esc_pdf(empresa)}</span></td>"
+               f"<span class='cover-caption'>Preparada para<br/>{esc_pdf(destinatario)}</span></td>"
                f"<td width='55%' style='padding:0;'>{foto}</td></tr></table>"
                f"<p class='small muted' style='margin-top:8pt;'>Borrador generado por DIRECTA el "
                f"{datetime.now().strftime('%d/%m/%Y')} para revisi&oacute;n del Gerente General. Los textos en amarillo "
@@ -217,7 +223,9 @@ def generar(get_sb, job, anio, marca=None, caps=None, propios=None, carta=None):
 
     job["paso"] = "Redactando la carta del Gerente General"
     empresa = (marca or {}).get("nombre") or ""
-    texto_carta = (carta or "").strip() or _carta(_contexto_carta(dash), perfil, anio, empresa)
+    firmante = (marca or {}).get("firmante") or "Gerente General"
+    texto_carta = (carta or "").strip() or _carta(_contexto_carta(dash), perfil, anio, empresa, firmante)
+    texto_carta = re.sub(r"(?im)^\s*Gerente General\s*$", firmante, texto_carta)
     job["hechos"] += 1
 
     capitulos, revision = [], []
