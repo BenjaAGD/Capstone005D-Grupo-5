@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'core/store.dart';
 import 'core/theme.dart';
-import 'screens/shell.dart';
+import 'screens/login_screen.dart';
 import 'state/app_state.dart';
 
 Future<void> main() async {
@@ -35,7 +35,7 @@ class DirectaApp extends StatelessWidget {
             data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(st.textScale)),
             child: child!,
           ),
-          home: st.iniciado ? const Shell() : const _Cargando(),
+          home: st.iniciado ? const LoginScreen() : const _Cargando(),
         ),
       ),
     );

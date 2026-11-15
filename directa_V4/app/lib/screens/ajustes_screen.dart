@@ -60,10 +60,21 @@ class _AjustesScreenState extends State<AjustesScreen> {
     final c = context.c;
     final st = context.watch<AppState>();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const PageHead(title: 'Servidor y apariencia'),
+      const PageHead(title: 'Mi cuenta y ajustes', subtitle: 'Preferencias de DIRECTA para este dispositivo.'),
+      GgCard(
+        child: Row(children: [
+          CircleAvatar(radius: 23, backgroundColor: c.accentSoft, child: Icon(Icons.person_outline_rounded, color: c.accentText)),
+          const SizedBox(width: 12),
+          const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Gerencia General', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+            SizedBox(height: 3),
+            Text('Perfil local · cuenta de acceso pendiente', style: TextStyle(fontSize: 12)),
+          ])),
+        ]),
+      ),
       GgCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const SecTitle('Dirección del backend'),
+          const SecTitle('Servidor'),
           TextField(
             controller: _url,
             keyboardType: TextInputType.url,
@@ -116,6 +127,13 @@ class _AjustesScreenState extends State<AjustesScreen> {
           ),
           Text('Tamaño de letra: ${(st.textScale * 100).round()}%', style: TextStyle(color: c.text2)),
           Slider(value: st.textScale, min: 0.8, max: 1.4, divisions: 6, activeColor: Brand.accent, onChanged: st.setTextScale),
+        ]),
+      ),
+      GgCard(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const SecTitle('Cuenta y sesión'),
+          Text('El acceso real, la administración de usuarios y los roles se habilitarán cuando se configure Supabase.',
+              style: TextStyle(fontSize: 12.5, height: 1.4, color: c.text2)),
         ]),
       ),
     ]);

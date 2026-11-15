@@ -52,7 +52,7 @@ const _secundarias = {
   'memoria': 'Memoria Anual',
   'indicadores': 'Indicadores',
   'aprendizaje': 'Aprendizaje de los agentes',
-  'ajustes': 'Servidor y apariencia',
+  'ajustes': 'Mi cuenta y ajustes',
 };
 
 class Shell extends StatefulWidget {
@@ -242,9 +242,13 @@ class BarraDirecta extends StatelessWidget implements PreferredSizeWidget {
       ]),
       actions: [
         IconButton(
-          tooltip: 'Cambiar tema',
-          onPressed: st.toggleTheme,
-          icon: Icon(Theme.of(context).brightness == Brightness.dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined, size: 21),
+          tooltip: 'Mi cuenta y ajustes',
+          onPressed: () => st.go('ajustes'),
+          icon: CircleAvatar(
+            radius: 15,
+            backgroundColor: c.accentSoft,
+            child: Icon(Icons.person_outline_rounded, size: 19, color: c.accentText),
+          ),
         ),
         const SizedBox(width: 4),
       ],
