@@ -178,6 +178,25 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
     if (mounted) setState(() => pdfCargando = false);
   }
 
+  Future<void> _excel() async {
+    final aj = <String, dynamic>{};
+    ajustes.forEach((k, v) {
+      final partes = k.split('|');
+      if (partes.first == '$_doc') {
+        final m = v as Map;
+        aj[partes.sublist(1).join('|')] = {'responsable': m['responsable'], 'fecha': m['fecha'], 'estado_solucion': m['estado'], 'solucion': m['solucion']};
+      }
+    });
+    setState(() => pdfCargando = true);
+    try {
+      final bytes = await st.api.download('/api/indicadores/excel', json: {'documento_id': _doc, 'propios': propios, 'ajustes': aj});
+      st.toast(await guardarArchivo('Plan_Indicadores_${DateTime.now().toIso8601String().substring(0, 10)}.xlsx', bytes, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'));
+    } catch (e) {
+      st.toast('No se pudo generar el Excel: $e', err: true);
+    }
+    if (mounted) setState(() => pdfCargando = false);
+  }
+
   Future<void> _exportar() async {
     final txt = const JsonEncoder.withIndent('  ')
         .convert({'version': 1, 'propios': propios, 'ajustes': ajustes});
@@ -284,7 +303,8 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         PageHead(title: 'Indicadores', subtitle: 'Revisa cómo se presentan KPI y KRI, agrega indicadores propios y edítalos desde este dispositivo.', actions: [
           GgButton('+ Agregar indicador', onTap: () => _form()),
-          GgButton('Guardar copia', icon: Icons.save_alt, ghost: true, small: true, onTap: _exportar),
+          GgButton('Exportar Excel', icon: Icons.table_view_outlined, ghost: true, small: true, onTap: _excel),
+          GgButton('Copia JSON', icon: Icons.save_alt, ghost: true, small: true, onTap: _exportar),
           GgButton('Cargar copia', icon: Icons.file_open_outlined, ghost: true, small: true, onTap: _importar),
         ]),
         const DemoAviso(text: 'Las tarjetas de muestra son ficticias. Los indicadores que agregues tú sí quedan guardados localmente; las sugerencias con IA requieren documento y servidor.'),
@@ -344,7 +364,15 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
               onTap: _pdf,
             ),
             GgButton(
-              'Guardar copia',
+              'Exportar Excel',
+              icon: Icons.table_view_outlined,
+              ghost: true,
+              small: true,
+              loading: pdfCargando,
+              onTap: _excel,
+            ),
+            GgButton(
+              'Copia JSON',
               icon: Icons.save_alt,
               ghost: true,
               small: true,
