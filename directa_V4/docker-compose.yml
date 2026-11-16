@@ -19,7 +19,7 @@ services:
     environment:
       BACKEND_URL: http://backend:8000
     ports:
-      - "8080:80"
+      - "8081:80"
     depends_on:
       - backend
     restart: unless-stopped
