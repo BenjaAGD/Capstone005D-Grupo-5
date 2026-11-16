@@ -9,6 +9,7 @@ import '../core/store.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
+import '../widgets/demo_offline.dart';
 import 'memoria_extra.dart';
 
 const estadosCap = [('pend', 'Pendiente'), ('curso', 'En redacción'), ('listo', 'Listo')];
@@ -68,7 +69,7 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
     setState(() => cargando = true);
     try {
       final q = <String, String>{if (fuente != '__todos__') 'docs': fuente, if (forzar) 'refrescar': '1'};
-      final r = await st.api.getJson('/api/memoria/cobertura', query: q.isEmpty ? null : q, timeout: const Duration(minutes: 2));
+      final r = await st.api.getJson('/api/memoria/cobertura', query: q.isEmpty ? null : q, timeout: const Duration(seconds: 8));
       if (r['ok'] != true) throw Exception(r['error'] ?? 'No se pudo leer la cobertura');
       data = Map<String, dynamic>.from(r);
       error = null;
@@ -129,25 +130,66 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
     final app = context.watch<AppState>();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const PageHead(
-        title: 'Memoria Anual',
-        subtitle: 'Borrador completo en un paso, capítulos de la NCG 461 y el tono de las memorias anteriores.',
+        title: 'Memoria anual',
+        subtitle: 'Prepara, completa y revisa el informe anual de tu organización.',
       ),
-      Wrap(spacing: 8, runSpacing: 8, children: [
-        for (final t in const [('borrador', 'Borrador en un paso'), ('capitulos', 'Capítulos'), ('tono', 'Perfil de tono')])
-          ChipBtn(t.$2, on: pestana == t.$1, onTap: () => setState(() => pestana = t.$1)),
-      ]),
-      const SizedBox(height: 16),
+      GgCard(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('¿Qué quieres hacer?', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: context.c.text)),
+          const SizedBox(height: 5),
+          Text('La memoria reúne la gestión, los resultados y la información de la empresa durante el año. DIRECTA te ayuda a ordenar la evidencia y preparar un borrador revisable.',
+              style: TextStyle(fontSize: 13, height: 1.45, color: context.c.text2)),
+          const SizedBox(height: 14),
+          GridCols(cols: 3, minItemWidth: 175, children: [
+            _opcionMemoria('borrador', Icons.auto_awesome_outlined, 'Crear memoria',
+                'Elige el año y genera un borrador con la información disponible.', 'Comenzar'),
+            _opcionMemoria('capitulos', Icons.fact_check_outlined, 'Revisar avance',
+                'Revisa capítulos, evidencia encontrada y datos que faltan.', 'Ver capítulos'),
+            _opcionMemoria('tono', Icons.tune_outlined, 'Personalizar estilo',
+                'Ajusta el tono de redacción para que sea coherente con la empresa.', 'Configurar tono'),
+          ]),
+        ]),
+      ),
+      const SizedBox(height: 12),
       if (pestana == 'borrador') BorradorMemoria(caps: () => mem['caps'] as Map<String, dynamic>),
       if (pestana == 'tono') const PerfilTono(),
       if (pestana == 'capitulos') _capitulos(context, app),
     ]);
   }
 
+  Widget _opcionMemoria(String id, IconData icono, String titulo, String detalle, String accion) {
+    final c = context.c;
+    final activa = pestana == id;
+    return Material(
+      color: activa ? c.accentSoft : c.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: activa ? Brand.accent : c.border),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => setState(() => pestana = id),
+        child: Padding(
+          padding: const EdgeInsets.all(13),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Icon(icono, color: Brand.accent, size: 22),
+            const SizedBox(height: 9),
+            Text(titulo, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: c.text)),
+            const SizedBox(height: 5),
+            Text(detalle, style: TextStyle(fontSize: 12, height: 1.35, color: c.text2)),
+            const SizedBox(height: 8),
+            Text(accion, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Brand.accent)),
+          ]),
+        ),
+      ),
+    );
+  }
+
   Widget _capitulos(BuildContext context, AppState app) {
     final c = context.c;
     final hijos = <Widget>[
       Wrap(spacing: 8, runSpacing: 8, children: [
-        GgButton('Esquema en PDF', icon: Icons.picture_as_pdf_outlined, ghost: true, small: true, loading: pdfCargando,
+        GgButton('Descargar checklist de cobertura', icon: Icons.picture_as_pdf_outlined, ghost: true, small: true, loading: pdfCargando,
             onTap: data == null ? null : _pdf),
         GgButton('Actualizar datos', icon: Icons.refresh, ghost: true, small: true, onTap: () => _cargar(forzar: true)),
       ]),
@@ -172,12 +214,17 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
       const SizedBox(height: 12),
     ];
 
-    if (!app.backendOk && data == null) {
+    if (app.documentos.isEmpty) {
+      hijos.add(const DemoAviso(text: 'Ejemplo para revisar la estructura de capítulos y su avance. La cobertura real requiere documentos y conexión al servidor.'));
+      hijos.add(GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const SecTitle('Avance ilustrativo · NCG 461'),
+        const DemoFila(titulo: '1 · Índice de contenidos', detalle: '2 de 2 temas con evidencia · muestra', icon: Icons.check_circle_outline),
+        const DemoFila(titulo: '2 · Perfil de la entidad', detalle: '3 de 5 temas con evidencia · muestra', icon: Icons.timelapse),
+        const DemoFila(titulo: '3 · Gobierno corporativo', detalle: 'Pendiente de revisión · muestra', icon: Icons.radio_button_unchecked),
+        GgButton('Ir a Documentos', icon: Icons.upload_file, ghost: true, onTap: () => app.go('docs')),
+      ])));
+    } else if (!app.backendOk && data == null) {
       hijos.add(const BackendAviso());
-    } else if (app.documentos.isEmpty) {
-      hijos.add(GgCard(child: EmptyState(icon: Icons.menu_book_outlined, title: 'Todavía no hay documentos',
-          text: 'Sube un documento (por ejemplo, la memoria del año anterior) y aquí aparecerá la evidencia por capítulo.',
-          action: GgButton('Ir a Documentos', onTap: () => app.go('docs')))));
     } else if (cargando && data == null) {
       hijos.add(const GgCard(child: EmptyState(icon: Icons.search, title: 'Buscando evidencia…', loading: true)));
     } else if (data == null) {

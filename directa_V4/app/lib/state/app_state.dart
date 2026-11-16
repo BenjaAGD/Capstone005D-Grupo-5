@@ -85,11 +85,29 @@ class AppState extends ChangeNotifier {
   Stream<String> get navRequests => _nav.stream;
 
   /// Pestañas principales del menú inferior.
-  static const tabs = ['inicio', 'docs', 'chat', 'resultados', 'mas'];
+  static const tabs = ['inicio', 'analisis', 'memoria', 'gestion', 'mas'];
   int tab = 0;
 
-  /// Ir a una pantalla (mismos ids que el menú del index.html).
+  /// La vista de análisis reúne los hallazgos y el chat de IA.
+  int analisisPestana = 0;
+
+  void seleccionarAnalisis(int indice) {
+    analisisPestana = indice.clamp(0, 1).toInt();
+    notifyListeners();
+  }
+
+  /// Mantiene compatibles los accesos usados por las pantallas existentes.
   void go(String id) {
+    if (id == 'docs' || id == 'documentos') {
+      _nav.add('documentos');
+      return;
+    }
+    if (id == 'chat' || id == 'resultados') {
+      tab = tabs.indexOf('analisis');
+      analisisPestana = id == 'chat' ? 1 : 0;
+      notifyListeners();
+      return;
+    }
     final i = tabs.indexOf(id);
     if (i >= 0) {
       tab = i;
@@ -159,6 +177,10 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> init() async {
+    // La navegación y las pantallas deben estar disponibles aunque la API no responda.
+    // El contenido dependiente de documentos mostrará su propio estado vacío/offline.
+    iniciado = true;
+    notifyListeners();
     await cargarAgentes();
     if (docActivo != null) _cargarChat(docActivo!);
     await cargarDocumentos(silencioso: true);
@@ -409,10 +431,6 @@ class AppState extends ChangeNotifier {
     store.setString(Store.kAgente, key);
     sugerencias = [];
     notifyListeners();
-    if (docActivo != null) {
-      cargarSugerencias();
-      cargarRuta();
-    }
   }
 
   /// Desde Resultados u otra pantalla: abre el chat con un agente y una pregunta escrita.
@@ -424,10 +442,6 @@ class AppState extends ChangeNotifier {
     borrador = texto;
     sugerencias = [];
     go('chat');
-    if (docActivo != null) {
-      cargarSugerencias();
-      cargarRuta();
-    }
   }
 
   // ---------------------------------------------------------------- ruta de preguntas guía (Frente A)
@@ -437,6 +451,91 @@ class AppState extends ChangeNotifier {
   bool cargandoRuta = false;
 
   String get _claveRuta => '$docActivo::$agenteActual';
+
+  // Avance de los cinco focos de la guía, guardado localmente y separado por documento.
+  String get _claveTemasGuia => '__temas_guia__::${docActivo ?? 'sin_documento'}';
+
+  Map<String, dynamic> get _estadoTemasGuia =>
+      _ruta[_claveTemasGuia] ?? const <String, dynamic>{};
+
+  Set<int> get guiaTemasCompletados {
+    final valores = _estadoTemasGuia['completados'] as List? ?? const [];
+    return {for (final valor in valores) if (valor is num) valor.toInt()};
+  }
+
+  int get guiaTemaSeleccionado {
+    final valor = _estadoTemasGuia['seleccionado'];
+    if (valor is num) return valor.toInt().clamp(0, 4).toInt();
+    final completados = guiaTemasCompletados;
+    for (var i = 0; i < 5; i++) {
+      if (!completados.contains(i)) return i;
+    }
+    return 4;
+  }
+
+  Map<int, String> get respuestasGuia {
+    final crudas = _estadoTemasGuia['respuestas'] as Map? ?? const {};
+    final resultado = <int, String>{};
+    for (final e in crudas.entries) {
+      final indice = int.tryParse('${e.key}');
+      if (indice != null && e.value is String) resultado[indice] = e.value as String;
+    }
+    return resultado;
+  }
+
+  Map<int, Map<String, String>> get acuerdosGuia {
+    final crudos = _estadoTemasGuia['acuerdos'] as Map? ?? const {};
+    final resultado = <int, Map<String, String>>{};
+    for (final e in crudos.entries) {
+      final indice = int.tryParse('${e.key}');
+      if (indice != null && e.value is Map) {
+        final fila = e.value as Map;
+        resultado[indice] = {
+          'responsable': '${fila['responsable'] ?? ''}',
+          'fecha': '${fila['fecha'] ?? ''}',
+        };
+      }
+    }
+    return resultado;
+  }
+
+  void seleccionarTemaGuia(int indice) {
+    if (indice < 0 || indice > 4) return;
+    final estado = _ruta.putIfAbsent(_claveTemasGuia, () => <String, dynamic>{'completados': []});
+    estado['seleccionado'] = indice;
+    store.setJson(Store.kRuta, _ruta);
+    notifyListeners();
+  }
+
+  void completarTemaGuia(int indice, String respuesta) {
+    if (indice < 0 || indice > 4) return;
+    final estado = _ruta.putIfAbsent(_claveTemasGuia, () => <String, dynamic>{'completados': []});
+    final completados = [for (final x in (estado['completados'] as List? ?? const [])) if (x is num) x.toInt()];
+    if (!completados.contains(indice)) completados.add(indice);
+    completados.sort();
+    final respuestas = Map<String, dynamic>.from((estado['respuestas'] as Map?) ?? const {});
+    respuestas['$indice'] = respuesta;
+    estado['completados'] = completados;
+    estado['respuestas'] = respuestas;
+    estado['seleccionado'] = List<int>.generate(5, (i) => i).firstWhere(
+      (i) => !completados.contains(i),
+      orElse: () => 4,
+    );
+    store.setJson(Store.kRuta, _ruta);
+    notifyListeners();
+  }
+
+  void guardarAcuerdoGuia(int indice, {String? responsable, String? fecha}) {
+    if (indice < 0 || indice > 4) return;
+    final estado = _ruta.putIfAbsent(_claveTemasGuia, () => <String, dynamic>{'completados': []});
+    final acuerdos = Map<String, dynamic>.from((estado['acuerdos'] as Map?) ?? const {});
+    final actual = Map<String, dynamic>.from((acuerdos['$indice'] as Map?) ?? const {});
+    if (responsable != null) actual['responsable'] = responsable;
+    if (fecha != null) actual['fecha'] = fecha;
+    acuerdos['$indice'] = actual;
+    estado['acuerdos'] = acuerdos;
+    store.setJson(Store.kRuta, _ruta);
+  }
 
   /// Preguntas de la ruta del agente actual, en el orden que propone el backend (las que abordan
   /// una señal grave suben). Si el backend no respondió, se usa el orden base del agente.
@@ -777,13 +876,14 @@ class AppState extends ChangeNotifier {
     return jsonEncode(turnos.length > 4 ? turnos.sublist(turnos.length - 4) : turnos);
   }
 
-  Future<void> enviarPregunta(String texto) async {
+  Future<bool> enviarPregunta(String texto, {String? consulta}) async {
     final pregunta = texto.trim();
-    if (pregunta.isEmpty || consultando) return;
+    if (pregunta.isEmpty || consultando) return false;
     if (docActivo == null) {
       toast('Selecciona un documento activo', err: true);
-      return;
+      return false;
     }
+    final preguntaParaIA = (consulta ?? pregunta).trim();
     final historial = _historial();
     final docDeLaPregunta = docActivo!;
     mensajes.add(ChatMsg(id: _uid(), rol: 'me', texto: pregunta));
@@ -800,7 +900,7 @@ class AppState extends ChangeNotifier {
     borrador = '';
     notifyListeners();
 
-    final campos = {'pregunta': pregunta, 'document_id': docDeLaPregunta, 'agente': agenteActual, 'historial': historial};
+    final campos = {'pregunta': preguntaParaIA, 'document_id': docDeLaPregunta, 'agente': agenteActual, 'historial': historial};
     var acumulado = '', errorServidor = '';
     try {
       await for (final p in api.sse('/api/consultar-stream/', campos)) {
@@ -857,6 +957,7 @@ class AppState extends ChangeNotifier {
     if (!msg.error) _agregarChatAlInforme(msg, pregunta, docId: docDeLaPregunta);
     _guardarChatDe(docDeLaPregunta, msg);
     notifyListeners();
+    return !msg.error;
   }
 
   ChatMsg? get _consultaActiva {

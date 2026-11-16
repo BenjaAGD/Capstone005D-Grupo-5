@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' show max;
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -11,9 +12,10 @@ import '../core/store.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
+import '../widgets/demo_offline.dart';
 
 const _kMarca = 'directa_marca_memoria_v1';
-const _coloresMarca = ['#1B2F4B', '#0E5A8A', '#0E7490', '#2F6B4F', '#7A1F3D', '#5B3E8A'];
+const _coloresMarca = ['#1B2F4B', '#0E5A8A', '#0E7490', '#12AFC6', '#237AA8', '#4664A8'];
 
 Color _hex(String h) => Color(int.parse('FF${h.substring(1)}', radix: 16));
 
@@ -32,6 +34,9 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
   String? error, logo;
   String color = _coloresMarca.first;
   final _nombre = TextEditingController();
+  final _titulo = TextEditingController(text: 'Memoria anual');
+  final _destinatario = TextEditingController(text: 'Gerencia General');
+  final _firmante = TextEditingController(text: 'Gerente General');
   Map<String, dynamic>? progreso, resultado;
   Timer? _poll;
 
@@ -42,7 +47,10 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
     super.initState();
     final m = st.store.getJson<Map>(_kMarca, {});
     _nombre.text = '${m['nombre'] ?? ''}';
-    if (_coloresMarca.contains(m['color']) || RegExp(r'^#[0-9A-Fa-f]{6}$').hasMatch('${m['color']}')) color = '${m['color']}';
+    _titulo.text = '${m['titulo'] ?? 'Memoria anual'}';
+    _destinatario.text = '${m['destinatario'] ?? 'Gerencia General'}';
+    _firmante.text = '${m['firmante'] ?? 'Gerente General'}';
+    if (_coloresMarca.contains(m['color'])) color = '${m['color']}';
     logo = m['logo'] as String?;
     WidgetsBinding.instance.addPostFrameCallback((_) => _cargar());
   }
@@ -51,14 +59,21 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
   void dispose() {
     _poll?.cancel();
     _nombre.dispose();
+    _titulo.dispose();
+    _destinatario.dispose();
+    _firmante.dispose();
     super.dispose();
   }
 
-  void _guardarMarca() => st.store.setJson(_kMarca, {'nombre': _nombre.text.trim(), 'color': color, if (logo != null) 'logo': logo});
+  void _guardarMarca() => st.store.setJson(_kMarca, {
+    'nombre': _nombre.text.trim(), 'titulo': _titulo.text.trim(),
+    'destinatario': _destinatario.text.trim(), 'firmante': _firmante.text.trim(),
+    'color': color, if (logo != null) 'logo': logo,
+  });
 
   Future<void> _cargar() async {
     try {
-      final r = await st.api.getJson('/api/memoria/anios');
+      final r = await st.api.getJson('/api/memoria/anios', timeout: const Duration(seconds: 6));
       anios = [for (final a in (r['anios'] as List? ?? const [])) if (a is Map) Map<String, dynamic>.from(a)];
       anio ??= anios.isEmpty ? null : (anios.first['anio'] as num).toInt();
       error = null;
@@ -94,7 +109,9 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
       final propios = st.store.getJson<List>(Store.kIndPropios, const []);
       final r = await st.api.postJson('/api/memoria/borrador', {
         'anio': anio,
-        'marca': {'nombre': _nombre.text.trim(), 'color': color, if (logo != null) 'logo': logo},
+        'marca': {'nombre': _nombre.text.trim(), 'titulo': _titulo.text.trim(),
+          'destinatario': _destinatario.text.trim(), 'firmante': _firmante.text.trim(),
+          'color': color, if (logo != null) 'logo': logo},
         'caps': widget.caps(),
         'propios': propios,
       });
@@ -131,108 +148,82 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
   @override
   Widget build(BuildContext context) {
     final c = context.c;
-    if (cargando) return const GgCard(child: EmptyState(icon: Icons.hourglass_empty, title: 'Cargando…', loading: true));
-    if (anios.isEmpty) {
-      return GgCard(
-        child: EmptyState(
-          icon: Icons.menu_book_outlined,
-          title: 'No hay documentos con año',
-          text: error ?? 'Sube los documentos del año (el año debe ir en el nombre del archivo, por ejemplo «Informe_2025.pdf»).',
-        ),
-      );
-    }
-    final docsAnio = [for (final g in anios) if (g['anio'] == anio) ...(g['documentos'] as List)];
-    final total = (progreso?['total'] as num?)?.toInt() ?? 1;
-    final hechos = (progreso?['hechos'] as num?)?.toInt() ?? 0;
+    final anioPortada = anio ?? DateTime.now().year;
+    final docsAnio = [for (final g in anios) if ((g['anio'] as num?)?.toInt() == anio) ...(g['documentos'] as List? ?? const [])];
+    final caps = widget.caps();
+    final terminados = caps.values.where((v) => v is Map && ['listo', 'completo', 'hecho'].contains('${v['estado']}'.toLowerCase())).length;
+    final totalCaps = caps.length;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      GgCard(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const SecTitle('1. Año de la memoria'),
-          Wrap(spacing: 8, runSpacing: 8, children: [
-            for (final g in anios)
-              ChipBtn('${g['anio']}', on: anio == g['anio'], onTap: () => setState(() => anio = (g['anio'] as num).toInt())),
-          ]),
-          const SizedBox(height: 8),
-          Text('Documentos del año: ${docsAnio.map((d) => d['nombre']).join(', ')}', style: TextStyle(fontSize: 12, color: c.text3)),
-          const SizedBox(height: 16),
-          const SecTitle('2. Marca de la portada'),
-          TextField(controller: _nombre, decoration: const InputDecoration(labelText: 'Nombre de la empresa'), onChanged: (_) => _guardarMarca()),
-          const SizedBox(height: 12),
-          Row(children: [
-            for (final h in _coloresMarca)
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  onTap: () {
-                    setState(() => color = h);
-                    _guardarMarca();
-                  },
-                  child: Container(
-                    width: 32, height: 32,
-                    decoration: BoxDecoration(color: _hex(h), shape: BoxShape.circle,
-                        border: Border.all(color: color == h ? c.text : Colors.transparent, width: 2.5)),
-                  ),
-                ),
-              ),
-          ]),
-          const SizedBox(height: 12),
-          Row(children: [
-            GgButton(logo == null ? 'Agregar logo' : 'Cambiar logo', icon: Icons.image_outlined, ghost: true, small: true, onTap: _elegirLogo),
-            const SizedBox(width: 8),
-            if (logo != null)
-              TextButton(onPressed: () {
-                setState(() => logo = null);
-                _guardarMarca();
-              }, child: const Text('Quitar logo')),
-          ]),
-          const SizedBox(height: 16),
-          GgButton(generando ? 'Generando…' : 'Generar borrador en PDF', icon: Icons.picture_as_pdf_outlined, expand: true,
-              loading: generando, onTap: anio == null ? null : _generar),
-          const SizedBox(height: 8),
-          Text('Incluye portada, índice, carta del Gerente General, los 11 capítulos (tus notas o un borrador del Redactor), '
-              'gráficos de indicadores, una página tipo dashboard, la cobertura de la NCG 461 y la revisión de cifras.',
-              style: TextStyle(fontSize: 12, color: c.text3, height: 1.4)),
+      GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          const Expanded(child: SecTitle('Datos de la memoria')),
+          if (cargando) const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
+          if (!cargando && error != null) IconButton(tooltip: 'Reintentar conexión', onPressed: _cargar, icon: Icon(Icons.refresh, color: c.accentText)),
         ]),
-      ),
-      if (generando && progreso != null)
-        GgCard(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('${progreso!['paso'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            GgBar(value: total == 0 ? 0 : hechos / total),
-            const SizedBox(height: 4),
-            Text('$hechos de $total pasos', style: TextStyle(fontSize: 11.5, color: c.text3)),
-          ]),
-        ),
-      if (error != null) GgCard(borderColor: c.crit, child: Text(error!, style: TextStyle(color: c.crit))),
-      if (resultado != null)
-        GgCard(
-          borderColor: c.low,
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Icon(Icons.check_circle_outline, color: c.low),
-              const SizedBox(width: 8),
-              const Expanded(child: Text('Borrador listo', style: TextStyle(fontWeight: FontWeight.w700))),
-            ]),
-            const SizedBox(height: 6),
-            Text('${resultado!['graficos'] ?? 0} gráficos · '
-                '${(resultado!['revision'] as List? ?? const []).length} alertas de cifras · '
-                '${resultado!['tono'] == null ? 'sin perfil de tono aprobado' : 'con el perfil de tono v${(resultado!['tono'] as Map)['version']}'}',
-                style: TextStyle(fontSize: 12.5, color: c.text2)),
-            for (final a in (resultado!['revision'] as List? ?? const []).take(6))
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text('• ${a['seccion']}: ${a['alerta']}', style: TextStyle(fontSize: 12, color: c.med)),
-              ),
-            if (resultado!['tono'] == null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text('Para que suene como las memorias anteriores, aprueba un perfil en «Perfil de tono».',
-                    style: TextStyle(fontSize: 12, color: c.text3)),
-              ),
-          ]),
-        ),
+        Text('Completa los datos editoriales. La empresa, el título y el destinatario se muestran en lugares distintos del libro.', style: TextStyle(color: c.text2, fontSize: 12.5, height: 1.4)),
+        const SizedBox(height: 14),
+        TextField(controller: _nombre, decoration: const InputDecoration(labelText: 'Empresa u organización', prefixIcon: Icon(Icons.business_outlined)), onChanged: (_) { _guardarMarca(); setState(() {}); }),
+        const SizedBox(height: 10),
+        TextField(controller: _titulo, decoration: const InputDecoration(labelText: 'Título de portada', prefixIcon: Icon(Icons.title)), onChanged: (_) { _guardarMarca(); setState(() {}); }),
+        const SizedBox(height: 10),
+        LayoutBuilder(builder: (context, box) => Wrap(spacing: 10, runSpacing: 10, children: [
+          SizedBox(width: box.maxWidth > 520 ? (box.maxWidth - 10) / 2 : box.maxWidth, child: DropdownButtonFormField<int>(
+            value: anios.isEmpty ? anioPortada : anio,
+            decoration: const InputDecoration(labelText: 'Año del informe', prefixIcon: Icon(Icons.calendar_today_outlined)),
+            items: (anios.isEmpty ? [anioPortada] : anios.map((x) => (x['anio'] as num).toInt()).toList()).map((a) => DropdownMenuItem(value: a, child: Text('$a'))).toList(),
+            onChanged: anios.isEmpty ? null : (v) => setState(() => anio = v),
+          )),
+          SizedBox(width: box.maxWidth > 520 ? (box.maxWidth - 10) / 2 : box.maxWidth, child: TextField(controller: _destinatario, decoration: const InputDecoration(labelText: 'Preparada para', prefixIcon: Icon(Icons.person_outline)), onChanged: (_) { _guardarMarca(); setState(() {}); })),
+        ])),
+        const SizedBox(height: 10),
+        TextField(controller: _firmante, decoration: const InputDecoration(labelText: 'Nombre o cargo de quien firma', prefixIcon: Icon(Icons.draw_outlined)), onChanged: (_) => _guardarMarca()),
+        if (error != null || anios.isEmpty) ...[
+          const SizedBox(height: 12),
+          Container(width: double.infinity, padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: c.surface, borderRadius: BorderRadius.circular(12)), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Icon(error == null ? Icons.info_outline : Icons.cloud_off_outlined, color: c.accentText, size: 19), const SizedBox(width: 8),
+            Expanded(child: Text(error == null ? 'Aún no hay documentos procesados con un año identificable. Puedes preparar los datos y revisar la portada; la generación se activa cuando haya documentos.' : 'No hay conexión con el servidor. Tus datos de portada se guardan en este dispositivo y puedes seguir editándolos.', style: TextStyle(color: c.text2, fontSize: 12.5, height: 1.35))),
+          ])),
+        ],
+      ])),
+      GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const SecTitle('Portada y estilo editorial'),
+        Container(height: 225, width: double.infinity, clipBehavior: Clip.antiAlias, decoration: BoxDecoration(color: _hex(color), borderRadius: BorderRadius.circular(10)), child: Row(children: [
+          Expanded(flex: 5, child: Padding(padding: const EdgeInsets.fromLTRB(18, 18, 12, 18), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            if (logo != null) Image.memory(base64Decode(logo!.split(',').last), width: 48, height: 28, fit: BoxFit.contain) else const SizedBox(height: 8),
+            Text(_nombre.text.trim().isEmpty ? 'NOMBRE DE LA ORGANIZACIÓN' : _nombre.text.trim().toUpperCase(), maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: .6)),
+            const SizedBox(height: 20), Container(width: 36, height: 3, color: Brand.accent), const SizedBox(height: 14),
+            Text(_titulo.text.trim().isEmpty ? 'Memoria anual' : _titulo.text.trim(), maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontFamily: 'serif', fontSize: 22, height: 1.12, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8), Text('$anioPortada', style: TextStyle(color: c.accentText, fontSize: 16, fontWeight: FontWeight.w600)), const Spacer(),
+            Text('Preparada para ${_destinatario.text.trim().isEmpty ? '—' : _destinatario.text.trim()}', maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 10)),
+          ]))),
+          Expanded(flex: 4, child: Image.asset('assets/memoria_portada.jpg', fit: BoxFit.cover, height: double.infinity, width: double.infinity)),
+        ])),
+        const SizedBox(height: 12),
+        Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
+          for (final h in _coloresMarca) InkWell(onTap: () { setState(() => color = h); _guardarMarca(); }, child: Container(width: 30, height: 30, decoration: BoxDecoration(color: _hex(h), shape: BoxShape.circle, border: Border.all(color: color == h ? c.text : c.border2, width: color == h ? 2.5 : 1)))),
+          GgButton(logo == null ? 'Agregar logo' : 'Cambiar logo', icon: Icons.image_outlined, ghost: true, small: true, onTap: _elegirLogo),
+          if (logo != null) TextButton(onPressed: () { setState(() => logo = null); _guardarMarca(); }, child: const Text('Quitar logo')),
+        ]),
+      ])),
+      GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const SecTitle('Revisión antes de generar'),
+        Row(children: [Icon(Icons.menu_book_outlined, color: c.accentText), const SizedBox(width: 8), Expanded(child: Text('Memoria anual $anioPortada', style: const TextStyle(fontWeight: FontWeight.w700))), Pill(anios.isEmpty ? 'SIN DOCUMENTOS' : '${docsAnio.length} DOCUMENTOS', fg: anios.isEmpty ? c.med : c.low)]),
+        const SizedBox(height: 10),
+        if (totalCaps > 0) Text('$terminados de $totalCaps capítulos marcados como listos en tus notas.', style: TextStyle(color: c.text2, fontSize: 12.5)),
+        if (totalCaps > 0) ...[const SizedBox(height: 7), GgBar(value: terminados / totalCaps)],
+        const SizedBox(height: 8),
+        Text(anios.isEmpty ? 'Agrega documentos procesados para revisar evidencia y habilitar el PDF.' : 'Documentos incluidos: ${docsAnio.map((d) => d['nombre']).join(', ')}', style: TextStyle(color: c.text3, fontSize: 12, height: 1.35)),
+        const SizedBox(height: 14),
+        GgButton(generando ? 'Generando memoria…' : 'Generar borrador PDF', icon: Icons.picture_as_pdf_outlined, expand: true, loading: generando, onTap: anio == null || anios.isEmpty ? null : _generar),
+        const SizedBox(height: 8),
+        Text('El PDF incluye portada, índice, carta, capítulos, indicadores, gráficos, cobertura normativa y revisión de cifras. Revisa y valida el contenido antes de distribuirlo.', style: TextStyle(fontSize: 11.5, color: c.text3, height: 1.35)),
+      ])),
+      if (generando && progreso != null) GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${progreso!['paso'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w600)), const SizedBox(height: 8), GgBar(value: ((progreso!['hechos'] as num?)?.toDouble() ?? 0) / max(1, (progreso!['total'] as num?)?.toDouble() ?? 1)), const SizedBox(height: 4), Text('${progreso!['hechos'] ?? 0} de ${progreso!['total'] ?? 1} pasos', style: TextStyle(fontSize: 11.5, color: c.text3))])),
+      if (error != null && !cargando) GgCard(borderColor: c.crit, child: Text(error!, style: TextStyle(color: c.crit))),
+      if (resultado != null) GgCard(borderColor: c.low, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [Icon(Icons.check_circle_outline, color: c.low), const SizedBox(width: 8), const Expanded(child: Text('Borrador PDF listo', style: TextStyle(fontWeight: FontWeight.w700)))]),
+        const SizedBox(height: 6), Text('Memoria_Anual_$anioPortada_borrador.pdf · ${(resultado!['revision'] as List? ?? const []).length} alertas de cifras. Revisa el archivo antes de aprobarlo.', style: TextStyle(fontSize: 12.5, color: c.text2)),
+      ])),
     ]);
   }
 }
@@ -295,7 +286,7 @@ class _PerfilTonoState extends State<PerfilTono> {
 
   Future<void> _cargar() async {
     try {
-      final r = await st.api.getJson('/api/memoria/perfil-tono');
+      final r = await st.api.getJson('/api/memoria/perfil-tono', timeout: const Duration(seconds: 6));
       if (r['ok'] != true) throw Exception(r['error']);
       perfil = r['perfil'] is Map ? Map<String, dynamic>.from(r['perfil'] as Map) : null;
       minimo = (r['minimo_memorias'] as num?)?.toInt() ?? 3;
@@ -336,6 +327,13 @@ class _PerfilTonoState extends State<PerfilTono> {
     final medidas = (perfil?['medidas'] as Map?) ?? {};
     final aprobado = perfil?['estado'] == 'aprobado';
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      if (perfil == null && docs.isEmpty) const DemoAviso(text: 'Ejemplo del perfil editorial. Para extraer un tono real necesitas memorias anteriores cargadas y conexión al servidor.'),
+      if (perfil == null && docs.isEmpty) const GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SecTitle('Ejemplo de tono corporativo'),
+        DemoFila(titulo: 'Formalidad', detalle: 'Profesional, directa y orientada a decisiones.'),
+        DemoFila(titulo: 'Estilo', detalle: 'Frases claras, cifras acompañadas de contexto y próximos pasos explícitos.'),
+        DemoFila(titulo: 'Regla editorial', detalle: 'Distinguir hechos, proyecciones y asuntos pendientes de validación.'),
+      ])),
       if (error != null) GgCard(borderColor: c.crit, child: Text(error!, style: TextStyle(color: c.crit))),
       GgCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

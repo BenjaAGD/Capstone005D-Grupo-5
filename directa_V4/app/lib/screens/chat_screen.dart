@@ -8,6 +8,14 @@ import '../widgets/common.dart';
 import '../widgets/valoracion.dart';
 import '../widgets/verificacion.dart';
 
+const _temasGuia = <({String tema, String pregunta})>[
+  (tema: 'Rentabilidad', pregunta: '¿Qué explica los cambios de ingresos, margen y caja durante el período?'),
+  (tema: 'Inversión', pregunta: '¿Qué inversiones concentran capital y cómo se medirá su retorno?'),
+  (tema: 'Seguridad operacional', pregunta: '¿Qué riesgos y controles críticos requieren seguimiento?'),
+  (tema: 'Sostenibilidad', pregunta: '¿Qué metas, impactos o brechas ambientales y sociales deben revisarse?'),
+  (tema: 'Personas', pregunta: '¿Qué cambios en talento, seguridad y sucesión son relevantes para el directorio?'),
+];
+
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
   @override
@@ -18,6 +26,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final _input = TextEditingController();
   final _scroll = ScrollController();
   final Map<String, String> _tab = {};
+  bool _modoGuia = true;
   int _ultimo = -1;
   String _ultimoTexto = '';
 
@@ -26,8 +35,6 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     final st = context.read<AppState>();
     _input.text = st.borrador;
-    if (st.docActivo != null && st.sugerencias.isEmpty) WidgetsBinding.instance.addPostFrameCallback((_) => st.cargarSugerencias());
-    if (st.docActivo != null) WidgetsBinding.instance.addPostFrameCallback((_) => st.cargarRuta());
   }
 
   @override
@@ -43,10 +50,46 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  void _enviar(AppState st) {
-    final t = _input.text;
+  Future<void> _enviar(AppState st) async {
+    final respuesta = _input.text.trim();
+    if (respuesta.isEmpty || st.consultando) return;
+    final documento = st.docActivoMap;
+    if (documento == null && !_modoGuia) {
+      st.toast('Selecciona un documento activo para consultar la IA', err: true);
+      return;
+    }
+
     _input.clear();
-    st.enviarPregunta(t);
+    if (!_modoGuia) {
+      await st.enviarPregunta(respuesta);
+      return;
+    }
+
+    final indice = st.guiaTemaSeleccionado;
+    final paso = _temasGuia[indice];
+    final contextoPrevio = st.respuestasGuia.entries
+        .where((e) => e.key != indice)
+        .map((e) => '${_temasGuia[e.key].tema}: ${e.value}')
+        .join('\n');
+    final consulta = [
+      'Guía de análisis: ${paso.tema}.',
+      'Pregunta de la guía: ${paso.pregunta}',
+      if (contextoPrevio.isNotEmpty) 'Contexto previo entregado por gerencia:\n$contextoPrevio',
+      'Respuesta de gerencia para este tema:\n$respuesta',
+      'Contrasta el contexto de gerencia con el documento activo. Distingue lo que está respaldado por evidencia, lo que es contexto aportado por gerencia y lo que falta validar. Cita las páginas disponibles y no inventes datos.',
+    ].join('\n\n');
+
+    // Sin documento no se simula una respuesta de IA: se conserva el contexto del gerente localmente.
+    if (documento == null) {
+      st.completarTemaGuia(indice, respuesta);
+      st.toast('Respuesta guardada en este dispositivo; queda pendiente de contrastar con un documento.');
+      return;
+    }
+
+    final ok = await st.enviarPregunta(respuesta, consulta: consulta);
+    if (!mounted) return;
+    st.completarTemaGuia(indice, respuesta);
+    if (!ok) st.toast('Respuesta guardada; la consulta de IA no se completó.', err: true);
   }
 
   Future<void> _elegirAgente(AppState st) async {
@@ -85,6 +128,104 @@ class _ChatScreenState extends State<ChatScreen> {
     if (r != null) st.cambiarAgente(r);
   }
 
+  Widget _selectorModo(AppState st) {
+    final c = context.c;
+    Widget item(String texto, bool guia, IconData icono) => Expanded(
+          child: TextButton.icon(
+            onPressed: () => setState(() => _modoGuia = guia),
+            icon: Icon(icono, size: 16),
+            label: Text(texto, maxLines: 1, overflow: TextOverflow.ellipsis),
+            style: TextButton.styleFrom(
+              foregroundColor: _modoGuia == guia ? c.accentText : c.text2,
+              backgroundColor: _modoGuia == guia ? c.accentSoft : Colors.transparent,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+            ),
+          ),
+        );
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(color: c.surface2, border: Border.all(color: c.border), borderRadius: BorderRadius.circular(12)),
+      child: Row(children: [
+        item('Guía de análisis', true, Icons.route_outlined),
+        item('Chat libre', false, Icons.chat_bubble_outline),
+      ]),
+    );
+  }
+
+  Widget _panelGuia(AppState st) {
+    final c = context.c;
+    final seleccion = st.guiaTemaSeleccionado;
+    final paso = _temasGuia[seleccion];
+    final completados = st.guiaTemasCompletados;
+    final respuestas = st.respuestasGuia;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: c.border2),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Icon(Icons.route_outlined, size: 17, color: c.accentText),
+          const SizedBox(width: 7),
+          Expanded(child: Text('Guía de análisis · Tema ${seleccion + 1} de 5',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: c.accentText))),
+          Text('${completados.length}/5', style: TextStyle(fontSize: 11, color: c.text3)),
+        ]),
+        const SizedBox(height: 7),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(5),
+          child: LinearProgressIndicator(value: completados.length / 5, minHeight: 5, color: c.accentText, backgroundColor: c.surface3),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 34,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              for (var i = 0; i < _temasGuia.length; i++)
+                Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: ChoiceChip(
+                    label: Text(_temasGuia[i].tema, style: const TextStyle(fontSize: 11)),
+                    selected: seleccion == i,
+                    avatar: completados.contains(i) ? Icon(Icons.check_circle, size: 15, color: c.low) : null,
+                    onSelected: (_) => st.seleccionarTemaGuia(i),
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 7),
+        Text('Pregunta del tema · responde en el campo inferior',
+            style: TextStyle(fontSize: 10.5, color: c.text3, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 3),
+        Text(paso.pregunta, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, height: 1.35)),
+        if (respuestas[seleccion] != null) ...[
+          const SizedBox(height: 4),
+          Text('Respuesta registrada: ${respuestas[seleccion]}',
+              maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: c.text3)),
+        ],
+        if (completados.length == 5) ...[
+          const SizedBox(height: 7),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GuiaSintesisScreen())),
+              icon: const Icon(Icons.fact_check_outlined, size: 17),
+              label: const Text('Ver síntesis y seguimiento'),
+            ),
+          ),
+        ],
+      ]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.c;
@@ -102,50 +243,46 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     return Column(children: [
-      // barra del chat
       Container(
-        padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+        padding: const EdgeInsets.fromLTRB(12, 5, 8, 5),
         decoration: BoxDecoration(color: c.bg2, border: Border(bottom: BorderSide(color: c.border))),
         child: Row(children: [
-          Expanded(
-            child: Material(
-              color: c.surface2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: c.border2)),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(10),
-                onTap: () => _elegirAgente(st),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  child: Row(children: [
-                    AgentBadge(st.badgeAgente(st.agenteActual)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(st.nombreAgente(st.agenteActual), maxLines: 1, overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
-                        Text(doc != null ? 'Documento: ${nombreDoc(doc)}' : 'Sin documento activo', maxLines: 1,
-                            overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: c.text3)),
-                      ]),
-                    ),
-                    Icon(Icons.expand_more, color: c.text2),
-                  ]),
-                ),
+          Material(
+            color: c.surface2,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: c.border2)),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () => _elegirAgente(st),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  AgentBadge(st.badgeAgente(st.agenteActual)),
+                  const SizedBox(width: 6),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 180),
+                    child: Text(st.nombreAgente(st.agenteActual), maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                  ),
+                  Icon(Icons.expand_more, size: 17, color: c.text2),
+                ]),
               ),
             ),
           ),
+          const Spacer(),
           IconButton(
             tooltip: 'Nueva conversación',
+            visualDensity: VisualDensity.compact,
+            constraints: const BoxConstraints.tightFor(width: 38, height: 38),
+            padding: EdgeInsets.zero,
             onPressed: st.mensajes.isEmpty || st.consultando
                 ? null
                 : () async {
-                    if (await confirmar(context, '¿Borrar la conversación de este documento? Lo ya agregado al informe se conserva.',
-                        ok: 'Borrar')) {
+                    if (await confirmar(context, '¿Borrar la conversación de este documento? Lo ya agregado al informe se conserva.', ok: 'Borrar')) {
                       st.nuevaConversacion();
                     }
                   },
-            icon: const Icon(Icons.add_comment_outlined),
+            icon: const Icon(Icons.add_comment_outlined, size: 19),
           ),
-          IconButton(tooltip: 'Nuevas sugerencias', onPressed: () => st.cargarSugerencias(forzar: true), icon: const Icon(Icons.refresh)),
         ]),
       ),
       Expanded(
@@ -153,65 +290,69 @@ class _ChatScreenState extends State<ChatScreen> {
           controller: _scroll,
           padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
           children: [
-            if (st.mensajes.isEmpty) ...[
-              const BackendAviso(),
-              if (doc == null && st.documentos.isNotEmpty)
-                GgCard(
-                  borderColor: c.med,
-                  child: Row(children: [
-                    const Expanded(child: Text('Selecciona un documento activo en Documentos o en el selector de arriba.')),
-                    GgButton('Documentos', ghost: true, small: true, onTap: () => st.go('docs')),
-                  ]),
-                ),
-              const EmptyState(icon: Icons.chat_bubble_outline, title: 'Empieza la conversación',
-                  text: 'Escribe una pregunta sobre el documento activo o usa una de las sugerencias. Las repreguntas ("¿y por qué?") se entienden en contexto.'),
+            if (doc == null) ...[
+              GgCard(
+                borderColor: c.border2,
+                child: Row(children: [
+                  Icon(Icons.description_outlined, color: c.text3),
+                  const SizedBox(width: 9),
+                  const Expanded(child: Text('La guía está disponible. Para contrastar tus respuestas y ver evidencia, selecciona un documento.')),
+                  TextButton(onPressed: () => st.go('documentos'), child: const Text('Documentos')),
+                ]),
+              ),
             ],
+            if (st.mensajes.isEmpty)
+              GgCard(
+                borderColor: c.accentText.withValues(alpha: .35),
+                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Icon(Icons.auto_awesome_outlined, color: c.accentText, size: 21),
+                  const SizedBox(width: 10),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(_modoGuia ? 'Revisa cinco temas clave' : 'Consulta el documento',
+                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                    const SizedBox(height: 4),
+                    Text(_modoGuia
+                        ? 'Responde cada pregunta de la gerencia. DIRECTA contrastará tus respuestas con la evidencia disponible.'
+                        : 'Escribe una pregunta. La respuesta mostrará fuentes y páginas cuando estén disponibles.',
+                        style: TextStyle(fontSize: 12, height: 1.4, color: c.text2)),
+                  ])),
+                ]),
+              ),
             for (final m in st.mensajes) m.rol == 'me' ? _Mio(m.texto) : _burbujaIA(context, st, m),
           ],
         ),
       ),
-      // sugerencias + entrada
       Container(
         decoration: BoxDecoration(color: c.bg2, border: Border(top: BorderSide(color: c.border))),
         padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
         child: SafeArea(
           top: false,
-          child: Column(children: [
-            if (st.agenteActual != 'general' && doc != null) const _RutaPreguntas(),
-            SizedBox(
-              height: 34,
-              child: st.cargandoSugerencias
-                  ? Row(children: [
-                      const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
-                      const SizedBox(width: 8),
-                      Text('Buscando sugerencias…', style: TextStyle(fontSize: 12, color: c.text3)),
-                    ])
-                  : ListView(scrollDirection: Axis.horizontal, children: [
-                      for (final s in st.sugerencias)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 6),
-                          child: ChipBtn(s, on: false, maxWidth: 250, onTap: () => _input.text = s),
-                        ),
-                      ChipBtn('¿De qué trata el documento?', on: true,
-                          onTap: () => _input.text = '¿De qué trata el documento?'),
-                    ]),
-            ),
-            const SizedBox(height: 8),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            _selectorModo(st),
+            if (_modoGuia) ...[
+              const SizedBox(height: 7),
+              _panelGuia(st),
+            ],
             Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
               Expanded(
                 child: TextField(
                   controller: _input,
+                  enabled: (doc != null || _modoGuia) && !st.consultando,
                   minLines: 1,
-                  maxLines: 5,
+                  maxLines: 4,
                   textInputAction: TextInputAction.send,
                   onSubmitted: (_) => _enviar(st),
-                  decoration: const InputDecoration(hintText: 'Escribe tu pregunta…'),
+                  decoration: InputDecoration(
+                    hintText: doc == null
+                        ? (_modoGuia ? 'Escribe tu respuesta; se guardará localmente' : 'Selecciona un documento para consultar')
+                        : (_modoGuia ? 'Escribe tu respuesta para este tema…' : 'Escribe tu pregunta…'),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
               IconButton.filled(
-                tooltip: 'Enviar pregunta',
-                onPressed: st.consultando || doc == null ? null : () => _enviar(st),
+                tooltip: _modoGuia ? 'Enviar respuesta del tema' : 'Enviar pregunta',
+                onPressed: st.consultando || (doc == null && !_modoGuia) ? null : () => _enviar(st),
                 style: IconButton.styleFrom(backgroundColor: Brand.accent, foregroundColor: Brand.onAccent),
                 icon: st.consultando
                     ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Brand.onAccent))
@@ -238,8 +379,7 @@ class _ChatScreenState extends State<ChatScreen> {
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(color: c.surface3, borderRadius: BorderRadius.circular(8)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('[${i + 1}] Página ${m.fuentes[i]['pagina'] ?? '?'}'
-                  '${(num.tryParse('${m.fuentes[i]['similarity']}') ?? 0) > 0 ? '  · similitud ${m.fuentes[i]['similarity']}' : ''}',
+              Text('[${i + 1}] Página ${m.fuentes[i]['pagina'] ?? '?'}',
                   style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
               const SizedBox(height: 3),
               Text('${m.fuentes[i]['preview'] ?? ''}', style: TextStyle(fontSize: 12, color: c.text2)),
@@ -267,7 +407,7 @@ class _ChatScreenState extends State<ChatScreen> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(color: c.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: c.border)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('> ${m.agente.isEmpty ? 'Asistente' : m.agente}', style: AppTheme.mono(context, size: 11, color: c.accentText)),
+          Text(m.agente.isEmpty ? 'Asistente' : m.agente, style: AppTheme.mono(context, size: 11, color: c.accentText)),
           if (tieneFuentes) ...[
             const SizedBox(height: 8),
             Wrap(spacing: 6, children: [
@@ -319,75 +459,121 @@ class _Mio extends StatelessWidget {
       );
 }
 
-/// Ruta de preguntas guía del agente (Frente A): seis preguntas en tres niveles. La siguiente aparece
-/// solo cuando la anterior tiene respuesta; las que abordan una señal grave del análisis suben primero.
-class _RutaPreguntas extends StatelessWidget {
-  const _RutaPreguntas();
+class GuiaSintesisScreen extends StatefulWidget {
+  const GuiaSintesisScreen({super.key});
+  @override
+  State<GuiaSintesisScreen> createState() => _GuiaSintesisScreenState();
+}
+
+class _GuiaSintesisScreenState extends State<GuiaSintesisScreen> {
+  late final List<TextEditingController> _responsables;
+  late final List<TextEditingController> _fechas;
+
+  @override
+  void initState() {
+    super.initState();
+    final acuerdos = context.read<AppState>().acuerdosGuia;
+    _responsables = List.generate(5, (i) => TextEditingController(text: acuerdos[i]?['responsable'] ?? ''));
+    _fechas = List.generate(5, (i) => TextEditingController(text: acuerdos[i]?['fecha'] ?? ''));
+  }
+
+  @override
+  void dispose() {
+    for (final controller in [..._responsables, ..._fechas]) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final st = context.watch<AppState>();
+    final c = context.c;
+    final fuentes = <Map<String, dynamic>>[];
+    final vistas = <String>{};
+    for (final m in st.mensajes.where((m) => m.rol == 'ai')) {
+      for (final f in m.fuentes) {
+        final clave = '${f['documento'] ?? st.docActivo}::${f['pagina'] ?? '?'}::${f['preview'] ?? ''}';
+        if (vistas.add(clave)) fuentes.add(f);
+      }
+    }
+    final respuestas = st.respuestasGuia;
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Síntesis y seguimiento')),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 28),
+          children: [
+            const PageHead(title: 'Cinco temas revisados', subtitle: 'Separa la evidencia del documento del contexto que aportó gerencia.'),
+            GgCard(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const SecTitle('Evidencia del documento'),
+                if (fuentes.isEmpty)
+                  Text('La conversación todavía no tiene referencias de página.', style: TextStyle(color: c.text2, fontSize: 12.5))
+                else
+                  for (final f in fuentes.take(8))
+                    _InfoFila(
+                      titulo: '${nombreDoc(st.docActivoMap)} · pág. ${f['pagina'] ?? '?'}',
+                      detalle: '${f['preview'] ?? 'Fragmento citado por el asistente.'}',
+                      icon: Icons.description_outlined,
+                    ),
+              ]),
+            ),
+            GgCard(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const SecTitle('Contexto de gerencia'),
+                for (var i = 0; i < _temasGuia.length; i++)
+                  if (respuestas[i] != null)
+                    _InfoFila(titulo: _temasGuia[i].tema, detalle: respuestas[i]!, icon: Icons.person_outline_rounded),
+              ]),
+            ),
+            const SecTitle('Acuerdos para seguimiento'),
+            for (var i = 0; i < _temasGuia.length; i++)
+              GgCard(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(_temasGuia[i].tema, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _responsables[i],
+                    decoration: const InputDecoration(labelText: 'Responsable o área'),
+                    onChanged: (v) => st.guardarAcuerdoGuia(i, responsable: v, fecha: _fechas[i].text),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _fechas[i],
+                    decoration: const InputDecoration(labelText: 'Fecha de seguimiento', hintText: 'dd/mm/aaaa'),
+                    onChanged: (v) => st.guardarAcuerdoGuia(i, responsable: _responsables[i].text, fecha: v),
+                  ),
+                ]),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoFila extends StatelessWidget {
+  const _InfoFila({required this.titulo, required this.detalle, required this.icon});
+  final String titulo;
+  final String detalle;
+  final IconData icon;
+
   @override
   Widget build(BuildContext context) {
     final c = context.c;
-    final st = context.watch<AppState>();
-    final ruta = st.rutaActual;
-    if (ruta.isEmpty) return const SizedBox.shrink();
-    final hechas = st.rutaRespondidas.length + st.rutaSaltadas.length;
-    final q = st.siguienteDeRuta;
-    final nombre = st.nombreAgente(st.agenteActual);
-    Widget marco(Widget hijo) => Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
-          decoration: BoxDecoration(
-            color: c.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: c.border2),
-          ),
-          child: hijo,
-        );
-    if (st.rutaEnCurso != null) {
-      return marco(Row(children: [
-        const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 1.8)),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Icon(icon, size: 17, color: c.accentText),
         const SizedBox(width: 8),
-        Expanded(child: Text('Ruta de $nombre: esperando la respuesta para mostrar la siguiente pregunta…',
-            style: TextStyle(fontSize: 11.5, color: c.text3))),
-      ]));
-    }
-    if (q == null) {
-      return marco(Row(children: [
-        Icon(Icons.flag_outlined, size: 16, color: c.low),
-        const SizedBox(width: 8),
-        Expanded(child: Text('Ruta de $nombre completa ($hechas de ${ruta.length}).', style: TextStyle(fontSize: 12, color: c.text2))),
-        TextButton(onPressed: st.reiniciarRuta, child: const Text('Reiniciar', style: TextStyle(fontSize: 12))),
-      ]));
-    }
-    final nivel = nivelesGuia['${q['nivel']}'] ?? '${q['nivel']}';
-    final prioridad = (q['prioridad'] as num?)?.toInt() ?? 0;
-    final saltable = q['puede_saltarse'] == true;
-    return marco(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [
-        Icon(Icons.route_outlined, size: 15, color: c.accentText),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text('Ruta de $nombre · ${hechas + 1} de ${ruta.length} · $nivel',
-              maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: c.accentText, letterSpacing: 0.2)),
-        ),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(titulo, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 3),
+          Text(detalle, style: TextStyle(fontSize: 12, height: 1.4, color: c.text2)),
+        ])),
       ]),
-      const SizedBox(height: 4),
-      Text('${q['pregunta']}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, height: 1.35)),
-      if (prioridad > 0 || saltable) ...[
-        const SizedBox(height: 3),
-        Text(prioridad > 0 ? '${q['motivo']}' : '${q['motivo_salto']}', maxLines: 2, overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 11.2, color: prioridad > 0 ? c.high : c.text3)),
-      ],
-      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-        TextButton(onPressed: () => st.saltarDeRuta('${q['id']}'), child: const Text('Saltar', style: TextStyle(fontSize: 12.5))),
-        const SizedBox(width: 4),
-        FilledButton.tonalIcon(
-          onPressed: st.consultando ? null : () => st.preguntarDeRuta(q),
-          icon: const Icon(Icons.send_rounded, size: 16),
-          label: const Text('Preguntar', style: TextStyle(fontSize: 12.5)),
-          style: FilledButton.styleFrom(visualDensity: VisualDensity.compact),
-        ),
-      ]),
-    ]));
+    );
   }
 }

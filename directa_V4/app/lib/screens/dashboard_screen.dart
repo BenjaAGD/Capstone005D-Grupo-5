@@ -10,6 +10,7 @@ import '../core/store.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
+import '../widgets/demo_offline.dart';
 
 const estadosPlan = [('pendiente', 'Pendiente'), ('curso', 'En curso'), ('hecho', 'Hecha')];
 
@@ -135,8 +136,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final c = context.c;
     final app = context.watch<AppState>();
     final head = PageHead(
-      title: 'Dashboard',
-      subtitle: 'Indicadores para el Gerente General calculados con el análisis que se hizo al subir cada documento.',
+      title: 'Dashboard ejecutivo',
+      subtitle: 'Lectura rápida del análisis: nivel de preparación, señales y temas que requieren seguimiento.',
       actions: [
         GgButton('Descargar PDF', icon: Icons.picture_as_pdf_outlined, ghost: true, loading: pdfCargando,
             onTap: data == null
@@ -147,7 +148,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ],
     );
     final List<Widget> cuerpo;
-    if (!app.backendOk && data == null) {
+    if (app.docActivoMap == null) {
+      cuerpo = [_demoDashboard(context)];
+    } else if (!app.backendOk && data == null) {
       cuerpo = [const BackendAviso()];
     } else if (app.documentos.isEmpty) {
       cuerpo = [const GgCard(child: EmptyState(icon: Icons.description_outlined, title: 'Todavía no hay documentos',
@@ -180,6 +183,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Text('Documento: ${nombreDoc(app.docActivoMap)}', style: TextStyle(fontSize: 12.5, color: c.text3)),
         ),
       ...cuerpo,
+    ]);
+  }
+
+  Widget _demoDashboard(BuildContext context) {
+    final c = context.c;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      GgCard(child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Icon(Icons.insights_outlined, color: c.accentText), const SizedBox(width: 10),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('Panel de análisis ejecutivo', style: TextStyle(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 4),
+          Text('Cuando selecciones un documento analizado, este panel mostrará sus resultados y gráficos. Puedes explorar la estructura desde ahora.', style: TextStyle(fontSize: 12.5, height: 1.4, color: c.text2)),
+        ])),
+      ])),
+      GridCols(cols: 2, children: const [
+        DemoDato(valor: '—', titulo: 'Preparación global', detalle: 'Se calcula con los agentes'),
+        DemoDato(valor: '—', titulo: 'Señales críticas y altas', detalle: 'Del documento analizado'),
+        DemoDato(valor: '—', titulo: 'Omisiones', detalle: 'Temas no cubiertos'),
+        DemoDato(valor: '—', titulo: 'Agentes con hallazgos', detalle: 'Resultados disponibles'),
+      ]),
+      GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const SecTitle('Gráficos del análisis'),
+        for (final x in [('Señales por gravedad', Icons.donut_large_outlined), ('Puntaje por área', Icons.bar_chart_outlined), ('Evolución entre documentos', Icons.show_chart_outlined)])
+          Padding(padding: const EdgeInsets.symmetric(vertical: 7), child: Row(children: [Icon(x.$2, color: c.accentText, size: 18), const SizedBox(width: 9), Expanded(child: Text(x.$1, style: TextStyle(color: c.text2))), Text('Sin datos', style: TextStyle(color: c.text3, fontSize: 11.5))])),
+        const SizedBox(height: 4),
+        Text('Los gráficos se completan con información de tus documentos, sin estimar cifras.', style: TextStyle(fontSize: 11.5, color: c.text3)),
+      ])),
+      GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const SecTitle('Prioridades para la sesión'),
+        Text('Las prioridades aparecerán al seleccionar un documento con análisis.', style: TextStyle(color: c.text2, fontSize: 12.5)),
+      ])),
     ]);
   }
 
@@ -231,24 +265,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ]),
       ),
       GridCols(cols: 2, children: [
-        for (final s in severidades)
-          KpiTile(
-            value: '${sen[s] ?? 0}',
-            label: 'Señales ${sevPlural(s).toLowerCase()}',
-            leading: Container(width: 9, height: 9, decoration: BoxDecoration(color: sevColor(context, s), shape: BoxShape.circle)),
-            color: filtroSev == s ? sevColor(context, s) : null,
-            onTap: () {
-              setState(() {
-                filtroSev = s;
-                verTodasSen = false;
-              });
-              _irASenales();
-            },
-          ),
-        KpiTile(value: '${r['agentes_analizados']}/${r['agentes_total']}', label: 'Agentes analizados'),
-        KpiTile(value: '${r['omisiones']}', label: 'Omisiones'),
-        KpiTile(value: '${r['preguntas']}', label: 'Preguntas probables'),
-        KpiTile(value: '${r['recomendaciones']}', label: 'Recomendaciones'),
+        KpiTile(value: '${r['agentes_analizados']}/${r['agentes_total']}', label: 'Agentes analizados', leading: Icon(Icons.groups_2_outlined, size: 17, color: c.accentText)),
+        KpiTile(value: '${(sen['crítica'] as num? ?? 0) + (sen['alta'] as num? ?? 0)}', label: 'Señales críticas y altas', leading: Icon(Icons.warning_amber_rounded, size: 17, color: c.high), onTap: _irASenales),
+        KpiTile(value: '${r['omisiones']}', label: 'Omisiones detectadas', leading: Icon(Icons.checklist_outlined, size: 17, color: c.accentText)),
+        KpiTile(value: '${r['preguntas']}', label: 'Preguntas para la sesión', leading: Icon(Icons.help_outline, size: 17, color: c.accentText)),
       ]),
       if ((r['senales_transversales'] as num? ?? 0) > 0)
         Padding(

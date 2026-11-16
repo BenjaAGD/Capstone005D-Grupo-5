@@ -11,6 +11,7 @@ import '../core/store.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
+import '../widgets/demo_offline.dart';
 
 const estadosSol = [
   ('pendiente', 'Pendiente'),
@@ -66,6 +67,9 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
   Map<String, dynamic>? sug;
   bool cargando = false, pdfCargando = false;
   String? errorSug, _doc;
+  String _tipoVista = 'KPI';
+  String _filtroEstado = 'todos';
+  bool _ordenAlfabetico = false;
   late List<Map<String, dynamic>> propios;
   late Map<String, dynamic> ajustes;
   final Set<String> iaCargando = {};
@@ -131,9 +135,16 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
     if (mounted) setState(() => cargando = false);
   }
 
+  Map<String, dynamic> _autoConAjustes(Map raw) {
+    final base = Map<String, dynamic>.from(raw);
+    final edit = _aj('${base['id']}');
+    final combinado = {...base, ...edit, 'origen': 'auto'};
+    combinado['estado'] = semaforo(combinado['valor'], combinado['meta'], combinado['limite'], '${combinado['direccion'] ?? 'mayor'}');
+    return combinado;
+  }
+
   List<Map<String, dynamic>> _todos() => [
-    for (final i in (sug?['indicadores'] as List? ?? const []))
-      {...Map<String, dynamic>.from(i as Map), 'origen': 'auto'},
+    for (final i in (sug?['indicadores'] as List? ?? const [])) _autoConAjustes(i as Map),
     for (final p in propios)
       {
         ...p,
@@ -150,12 +161,7 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
       final partes = k.split('|');
       if (partes.first == '$_doc') {
         final m = v as Map;
-        aj[partes.sublist(1).join('|')] = {
-          'responsable': m['responsable'],
-          'fecha': m['fecha'],
-          'estado_solucion': m['estado'],
-          'solucion': m['solucion'],
-        };
+        aj[partes.sublist(1).join('|')] = {...Map<String, dynamic>.from(m), 'estado_solucion': m['estado'] ?? m['estado_solucion']};
       }
     });
     setState(() => pdfCargando = true);
@@ -173,6 +179,25 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
       );
     } catch (e) {
       st.toast('No se pudo generar el PDF: $e', err: true);
+    }
+    if (mounted) setState(() => pdfCargando = false);
+  }
+
+  Future<void> _excel() async {
+    final aj = <String, dynamic>{};
+    ajustes.forEach((k, v) {
+      final partes = k.split('|');
+      if (partes.first == '$_doc') {
+        final m = v as Map;
+        aj[partes.sublist(1).join('|')] = {...Map<String, dynamic>.from(m), 'estado_solucion': m['estado'] ?? m['estado_solucion']};
+      }
+    });
+    setState(() => pdfCargando = true);
+    try {
+      final bytes = await st.api.download('/api/indicadores/excel', json: {'documento_id': _doc, 'propios': propios, 'ajustes': aj});
+      st.toast(await guardarArchivo('Plan_Indicadores_${DateTime.now().toIso8601String().substring(0, 10)}.xlsx', bytes, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'));
+    } catch (e) {
+      st.toast('No se pudo generar el Excel: $e', err: true);
     }
     if (mounted) setState(() => pdfCargando = false);
   }
@@ -251,6 +276,29 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
     if (mounted) setState(() => iaCargando.remove(id));
   }
 
+  Future<void> _editarAuto(Map<String, dynamic> indicador) async {
+    final id = '${indicador['id']}';
+    final actual = {...indicador, ..._aj(id)};
+    actual['solucion'] = _aj(id)['solucion'] ?? (indicador['soluciones'] as List? ?? const []).join('\n');
+    actual['responsable'] = _aj(id)['responsable'] ?? '';
+    actual['fecha'] = _aj(id)['fecha'] ?? '';
+    final r = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context, isScrollControlled: true, useSafeArea: true,
+      constraints: const BoxConstraints(maxWidth: 640),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => _FormIndicador(previo: actual, doc: _doc, api: st),
+    );
+    if (r == null) return;
+    final a = _aj(id);
+    for (final k in ['tipo', 'nombre', 'valor', 'unidad', 'meta', 'limite', 'direccion', 'solucion', 'responsable', 'fecha']) {
+      a[k] = r[k];
+    }
+    ajustes[_claveAj(id)] = a;
+    _saveAj();
+    if (mounted) setState(() {});
+    st.toast('Cambios guardados en este dispositivo');
+  }
+
   Future<void> _form([Map<String, dynamic>? previo]) async {
     final r = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
@@ -279,28 +327,16 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
     for (final i in todos) {
       cont['${i['estado']}'] = (cont['${i['estado']}'] ?? 0) + 1;
     }
+    final sinDocumento = app.docActivoMap == null;
     Widget? aviso;
-    if (!app.backendOk && sug == null) {
-      aviso = GgCard(
-        borderColor: c.med,
-        child: Text(
-          'No se pudo conectar con el servidor. Los indicadores sugeridos no están disponibles, pero puedes ver y editar los tuyos.',
-          style: TextStyle(color: c.text2),
-        ),
-      );
+    if (sinDocumento) {
+      aviso = const GgCard(child: Text('Selecciona un documento para ver los KPI/KRI calculados por los agentes. Puedes crear y guardar indicadores propios mientras tanto.'));
+    } else if (!app.backendOk && sug == null) {
+      aviso = GgCard(borderColor: c.med, child: Text('No hay conexión con el servidor. Tus indicadores propios siguen disponibles; los valores calculados por IA aparecerán cuando vuelvas a conectarte.', style: TextStyle(color: c.text2)));
     } else if (errorSug != null) {
-      aviso = GgCard(
-        borderColor: c.med,
-        child: Text(
-          'No se pudieron calcular los indicadores sugeridos para este documento. $errorSug',
-        ),
-      );
+      aviso = GgCard(borderColor: c.med, child: Text('No se pudieron calcular los indicadores para este documento. $errorSug'));
     } else if (app.backendOk && app.documentos.isEmpty) {
-      aviso = const GgCard(
-        child: Text(
-          'Todavía no hay documentos analizados, así que no hay indicadores sugeridos. Puedes agregar los tuyos con el botón de arriba.',
-        ),
-      );
+      aviso = const GgCard(child: Text('Todavía no hay documentos analizados. Puedes agregar indicadores propios y editarlos desde este dispositivo.'));
     }
 
     return Column(
@@ -317,10 +353,18 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
               ghost: true,
               small: true,
               loading: pdfCargando,
-              onTap: _pdf,
+              onTap: app.backendOk ? _pdf : null,
             ),
             GgButton(
-              'Guardar copia',
+              'Exportar Excel',
+              icon: Icons.table_view_outlined,
+              ghost: true,
+              small: true,
+              loading: pdfCargando,
+              onTap: app.backendOk ? _excel : null,
+            ),
+            GgButton(
+              'Copia JSON',
               icon: Icons.save_alt,
               ghost: true,
               small: true,
@@ -373,7 +417,11 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
                   ),
                 ],
               ),
-              for (final tipo in ['KPI', 'KRI']) _seccion(context, tipo, todos),
+              Padding(padding: const EdgeInsets.only(top: 16, bottom: 2), child: Wrap(spacing: 8, children: [
+                ChipBtn('KPI · Desempeño (${todos.where((i) => i['tipo'] == 'KPI').length})', on: _tipoVista == 'KPI', onTap: () => setState(() => _tipoVista = 'KPI')),
+                ChipBtn('KRI · Riesgo (${todos.where((i) => i['tipo'] == 'KRI').length})', on: _tipoVista == 'KRI', onTap: () => setState(() => _tipoVista = 'KRI')),
+              ])),
+              _seccion(context, _tipoVista, todos),
             ],
           ),
         ),
@@ -388,12 +436,10 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
   ) {
     final c = context.c;
     const ord = ['rojo', 'amarillo', 'sin_dato', 'verde'];
-    final lista = todos.where((i) => i['tipo'] == tipo).toList()
-      ..sort(
-        (a, b) => ord
-            .indexOf('${a['estado']}')
-            .compareTo(ord.indexOf('${b['estado']}')),
-      );
+    final lista = todos.where((i) => i['tipo'] == tipo && (_filtroEstado == 'todos' || i['estado'] == _filtroEstado)).toList()
+      ..sort((a, b) => _ordenAlfabetico
+          ? '${a['nombre']}'.toLowerCase().compareTo('${b['nombre']}'.toLowerCase())
+          : ord.indexOf('${a['estado']}').compareTo(ord.indexOf('${b['estado']}')));
     final t = tipo == 'KPI'
         ? (
             'KPI — ¿Cómo vamos?',
@@ -414,6 +460,12 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
         const SizedBox(height: 3),
         Text(t.$2, style: TextStyle(fontSize: 12.3, color: c.text2)),
         const SizedBox(height: 10),
+        Wrap(spacing: 6, runSpacing: 6, children: [
+          for (final f in [('todos', 'Todos'), ('rojo', 'Fuera de meta'), ('amarillo', 'En atención'), ('verde', 'En meta'), ('sin_dato', 'Sin dato')])
+            ChipBtn(f.$2, on: _filtroEstado == f.$1, onTap: () => setState(() => _filtroEstado = f.$1)),
+          GgButton(_ordenAlfabetico ? 'Orden: nombre' : 'Orden: estado', icon: Icons.swap_vert, ghost: true, small: true, onTap: () => setState(() => _ordenAlfabetico = !_ordenAlfabetico)),
+        ]),
+        const SizedBox(height: 10),
         if (lista.isEmpty)
           GgCard(
             child: Text(
@@ -431,285 +483,68 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
     final auto = i['origen'] == 'auto';
     final id = '${i['id']}';
     final a = auto ? _aj(id) : i;
-    final estSol = auto
-        ? '${a['estado'] ?? 'pendiente'}'
-        : '${i['estado_solucion'] ?? 'pendiente'}';
+    final estSol = '${(auto ? a['estado'] : i['estado_solucion']) ?? 'pendiente'}';
     final resp = '${(auto ? a['responsable'] : i['responsable']) ?? ''}';
     final fecha = '${(auto ? a['fecha'] : i['fecha']) ?? ''}';
-    final est = '${i['estado']}';
-    final hoy = DateTime.now().toIso8601String().substring(0, 10);
-    final vencida =
-        fecha.isNotEmpty &&
-        estSol != 'hecho' &&
-        fecha.compareTo(hoy) < 0 &&
-        est != 'verde';
-    final u = '${i['unidad'] ?? ''}';
+    final estado = '${i['estado'] ?? 'sin_dato'}';
+    final unidad = '${i['unidad'] ?? ''}';
     final menor = i['direccion'] == 'menor';
-    final metaTxt =
-        'Meta: ${menor ? '≤' : '≥'} ${fmtNum(i['meta'])}$u${numero(i['limite']) == null ? '' : ' · Rojo si ${menor ? '>' : '<'} ${fmtNum(i['limite'])}$u'}';
-    final soluciones = [
-      for (final s in (i['soluciones'] as List? ?? const [])) '$s',
-    ];
+    final meta = '${menor ? '≤' : '≥'} ${fmtNum(i['meta'])}$unidad';
+    final limite = numero(i['limite']) == null ? '—' : '${menor ? '>' : '<'} ${fmtNum(i['limite'])}$unidad';
+    final soluciones = [for (final x in (i['soluciones'] as List? ?? const [])) '$x'];
+    final vencida = fecha.isNotEmpty && estSol != 'hecho' && fecha.compareTo(DateTime.now().toIso8601String().substring(0, 10)) < 0 && estado != 'verde';
 
     void setCampo(String f, String v) {
-      if (auto) {
-        _setAj(id, f == 'estado' ? 'estado' : f, v);
-      } else {
-        final p = propios.firstWhere((x) => x['id'] == id);
-        f == 'estado' ? p['estado_solucion'] = v : p[f] = v;
-        _saveProp();
+      if (auto) _setAj(id, f, v);
+      else {
+        final idx = propios.indexWhere((x) => x['id'] == id);
+        if (idx >= 0) { propios[idx][f == 'estado' ? 'estado_solucion' : f] = v; _saveProp(); }
       }
       setState(() {});
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: c.border),
-      ),
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(color: c.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: c.border)),
       clipBehavior: Clip.antiAlias,
-      child: Stack(
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.fromLTRB(14, 8, 12, 8),
+        childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+        leading: Container(width: 38, height: 38, decoration: BoxDecoration(color: semColor(context, estado).withValues(alpha: .12), borderRadius: BorderRadius.circular(11)), child: Icon(i['tipo'] == 'KRI' ? Icons.shield_outlined : Icons.trending_up, size: 19, color: semColor(context, estado))),
+        title: Text('${i['nombre']}', maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13.8, fontWeight: FontWeight.w700)),
+        subtitle: Padding(padding: const EdgeInsets.only(top: 5), child: Row(children: [Flexible(child: Text('${fmtNum(i['valor'])} $unidad  ·  Meta $meta', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, color: c.text2))), const SizedBox(width: 6), Pill(semTxt[estado] ?? 'Sin dato', fg: semColor(context, estado))])),
         children: [
-          Positioned(
-            left: 0,
-            top: 0,
-            bottom: 0,
-            child: Container(width: 4, color: semColor(context, est)),
-          ),
-          SizedBox(
-            width: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Pill(
-                          '${i['tipo']} · ${auto ? 'sugerido' : 'propio'}',
-                          fg: c.text3,
-                          bg: c.surface3,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Spacer(),
-                      Flexible(
-                        child: Pill(
-                          semTxt[est]!.toUpperCase(),
-                          fg: semColor(context, est),
-                          dot: est != 'sin_dato',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${i['nombre']}',
-                    style: const TextStyle(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: fmtNum(i['valor']),
-                          style: const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: -1,
-                          ),
-                        ),
-                        TextSpan(
-                          text: ' $u',
-                          style: TextStyle(fontSize: 14, color: c.text3),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Text(metaTxt, style: TextStyle(fontSize: 12, color: c.text3)),
-                  _Bala(
-                    valor: numero(i['valor']),
-                    meta: numero(i['meta']),
-                    limite: numero(i['limite']),
-                    menor: menor,
-                  ),
-                  if ('${i['como'] ?? ''}'.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Text(
-                        '${i['como']}',
-                        style: TextStyle(fontSize: 12, color: c.text2),
-                      ),
-                    ),
-                  Divider(height: 24, color: c.border),
-                  const SecTitle('Solución', bottom: 6),
-                  if (auto) ...[
-                    if (soluciones.isNotEmpty)
-                      for (final s in soluciones)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 3),
-                          child: Text(
-                            '• $s',
-                            style: TextStyle(fontSize: 12.5, color: c.text2),
-                          ),
-                        )
-                    else
-                      Text(
-                        est == 'verde'
-                            ? 'En meta: no requiere acción por ahora.'
-                            : 'Sin solución sugerida: escribe la tuya abajo.',
-                        style: TextStyle(fontSize: 12.5, color: c.text3),
-                      ),
-                    const SizedBox(height: 8),
-                    GgButton(
-                      'Sugerir solución con IA',
-                      icon: Icons.auto_awesome,
-                      ghost: true,
-                      small: true,
-                      loading: iaCargando.contains(id),
-                      onTap: () => _iaSolucion(i),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      key: ValueKey(
-                        'sol-$_doc-$id-${a['solucion']?.toString().length ?? 0}',
-                      ),
-                      initialValue: '${a['solucion'] ?? ''}',
-                      minLines: 2,
-                      maxLines: 5,
-                      decoration: const InputDecoration(
-                        labelText: 'Mi solución (opcional)',
-                      ),
-                      onChanged: (v) => _setAj(id, 'solucion', v),
-                    ),
-                  ] else
-                    Text(
-                      '${i['solucion'] ?? ''}'.isEmpty
-                          ? 'Sin solución definida. Pulsa "Editar" para escribirla.'
-                          : '${i['solucion']}',
-                      style: TextStyle(
-                        fontSize: 12.8,
-                        color: '${i['solucion'] ?? ''}'.isEmpty
-                            ? c.text3
-                            : c.text,
-                      ),
-                    ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    key: ValueKey('resp-$_doc-$id'),
-                    initialValue: resp,
-                    decoration: const InputDecoration(
-                      labelText: 'Responsable',
-                      hintText: 'Nombre o área',
-                    ),
-                    onChanged: (v) => auto
-                        ? _setAj(id, 'responsable', v)
-                        : setCampo('responsable', v),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: c.text,
-                            side: BorderSide(color: c.border2),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 13),
-                          ),
-                          onPressed: () async {
-                            final f = await showDatePicker(
-                              context: context,
-                              initialDate:
-                                  DateTime.tryParse(fecha) ?? DateTime.now(),
-                              firstDate: DateTime(2020),
-                              lastDate: DateTime(2035),
-                            );
-                            if (f != null) {
-                              setCampo(
-                                'fecha',
-                                f.toIso8601String().substring(0, 10),
-                              );
-                            }
-                          },
-                          icon: const Icon(Icons.event, size: 16),
-                          label: Text(
-                            fecha.isEmpty ? 'Fecha límite' : fecha,
-                            style: const TextStyle(fontSize: 12.5),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: GgSelect<String>(
-                          label: 'Estado',
-                          value: estSol,
-                          items: estadosSol,
-                          onChanged: (v) => setCampo('estado', v),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (vencida)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        '⚠ La fecha límite ya pasó y la solución no está hecha.',
-                        style: TextStyle(
-                          color: c.crit,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  if (!auto) ...[
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      children: [
-                        GgButton(
-                          'Editar',
-                          ghost: true,
-                          small: true,
-                          onTap: () =>
-                              _form(propios.firstWhere((x) => x['id'] == id)),
-                        ),
-                        GgButton(
-                          'Eliminar',
-                          danger: true,
-                          small: true,
-                          onTap: () async {
-                            if (await confirmar(
-                              context,
-                              '¿Eliminar el indicador "${i['nombre']}"?',
-                              ok: 'Eliminar',
-                            )) {
-                              propios.removeWhere((x) => x['id'] == id);
-                              _saveProp();
-                              setState(() {});
-                              st.toast('Indicador eliminado');
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
+          Divider(height: 1, color: c.border), const SizedBox(height: 12),
+          Row(children: [Expanded(child: _valorCol(context, 'VALOR ACTUAL', '${fmtNum(i['valor'])} $unidad')), Expanded(child: _valorCol(context, 'META', meta)), Expanded(child: _valorCol(context, 'LÍMITE', limite))]),
+          const SizedBox(height: 10),
+          _Bala(valor: numero(i['valor']), meta: numero(i['meta']), limite: numero(i['limite']), menor: menor),
+          if ('${i['como'] ?? ''}'.trim().isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10), child: Text('${i['como']}', style: TextStyle(fontSize: 12.2, color: c.text2, height: 1.4))),
+          const SizedBox(height: 14),
+          Row(children: [const Expanded(child: SecTitle('Plan de acción', bottom: 0)), if (auto) Pill('SUGERIDO', fg: c.accentText)]),
+          const SizedBox(height: 8),
+          if (auto && soluciones.isNotEmpty && '${a['solucion'] ?? ''}'.trim().isEmpty)
+            for (final sol in soluciones.take(2)) Padding(padding: const EdgeInsets.only(bottom: 5), child: Text('• $sol', style: TextStyle(fontSize: 12.2, color: c.text2))),
+          TextFormField(key: ValueKey('sol-$id-${a['solucion']?.toString().length ?? 0}'), initialValue: '${a['solucion'] ?? (!auto ? i['solucion'] : '') ?? ''}', minLines: 1, maxLines: 3, decoration: const InputDecoration(labelText: 'Acción / solución'), onChanged: (v) => setCampo('solucion', v)),
+          const SizedBox(height: 8),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            SizedBox(width: 190, child: TextFormField(key: ValueKey('resp-$id-$resp'), initialValue: resp, decoration: const InputDecoration(labelText: 'Responsable'), onChanged: (v) => setCampo('responsable', v))),
+            SizedBox(width: 160, child: TextFormField(key: ValueKey('fecha-$id-$fecha'), initialValue: fecha, decoration: const InputDecoration(labelText: 'Fecha objetivo', hintText: 'AAAA-MM-DD'), onChanged: (v) => setCampo('fecha', v))),
+            SizedBox(width: 170, child: GgSelect<String>(label: 'Estado de acción', value: estadosSol.any((x) => x.$1 == estSol) ? estSol : 'pendiente', items: estadosSol, onChanged: (v) => setCampo('estado', v))),
+          ]),
+          if (vencida) Padding(padding: const EdgeInsets.only(top: 8), child: Text('La fecha objetivo ya pasó y la acción sigue pendiente.', style: TextStyle(color: c.crit, fontWeight: FontWeight.w600, fontSize: 12))),
+          const SizedBox(height: 10),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            GgButton('Editar indicador', icon: Icons.edit_outlined, ghost: true, small: true, onTap: () => auto ? _editarAuto(i) : _form(i)),
+            if (auto) GgButton('Sugerir acción con IA', icon: Icons.auto_awesome, ghost: true, small: true, loading: iaCargando.contains(id), onTap: () => _iaSolucion(i)),
+            if (!auto) GgButton('Eliminar', icon: Icons.delete_outline, danger: true, small: true, onTap: () async { if (await confirmar(context, '¿Eliminar el indicador "${i['nombre']}"?', ok: 'Eliminar')) { propios.removeWhere((x) => x['id'] == id); _saveProp(); setState(() {}); st.toast('Indicador eliminado'); } }),
+          ]),
         ],
       ),
     );
   }
+
+  Widget _valorCol(BuildContext context, String label, String value) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: TextStyle(fontSize: 9.5, letterSpacing: .4, color: context.c.text3)), const SizedBox(height: 3), Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700))]);
+
 }
 
 /// Barra de "bala": zonas verde/amarilla/roja, marca del valor actual y línea de la meta.
@@ -1012,42 +847,20 @@ class _FormIndicadorState extends State<_FormIndicador> {
                 ),
               ],
             ),
-            if (error != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  error!,
-                  style: TextStyle(color: c.crit, fontWeight: FontWeight.w600),
-                ),
-              ),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                GgButton('Guardar indicador', onTap: _guardar),
-                GgButton(
-                  'Sugerir con IA',
-                  icon: Icons.auto_awesome,
-                  ghost: true,
-                  loading: ia,
-                  onTap: _ia,
-                ),
-                GgButton(
-                  'Cancelar',
-                  ghost: true,
-                  onTap: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-            if (iaMsg.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  iaMsg,
-                  style: TextStyle(fontSize: 12, color: c.text3),
-                ),
-              ),
+            GgCard(borderColor: Brand.accent.withValues(alpha: .65), color: c.accentSoft,
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [Icon(Icons.auto_awesome, size: 18, color: c.accentText), const SizedBox(width: 8), const Expanded(child: Text('Sugerencia con IA', style: TextStyle(fontWeight: FontWeight.w700)))]),
+                const SizedBox(height: 4),
+                Text('Completa los campos vacíos con una sugerencia basada en el análisis disponible. Revisa y ajusta cada dato antes de guardar.', style: TextStyle(fontSize: 11.8, height: 1.35, color: c.text2)),
+                if (iaMsg.isNotEmpty) ...[const SizedBox(height: 7), Text(iaMsg, style: TextStyle(fontSize: 11.8, color: iaMsg.startsWith('No se pudo') ? c.crit : c.text2))],
+                const SizedBox(height: 8), GgButton('Sugerir con IA', icon: Icons.auto_awesome, ghost: true, small: true, loading: ia, onTap: _ia),
+              ])),
+            if (error != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(error!, style: TextStyle(color: c.crit, fontWeight: FontWeight.w600))),
+            const SizedBox(height: 12),
+            Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
+              GgButton('Guardar indicador', icon: Icons.check, onTap: _guardar),
+              GgButton('Cancelar', ghost: true, onTap: () => Navigator.pop(context)),
+            ]),
           ],
         ),
       ),
