@@ -17,7 +17,7 @@ services:
     build: ./app
     image: directa-web
     environment:
-      BACKEND_URL: http://backend:8000
+      BACKEND_URL: https://directa-backend.onrender.com
     ports:
       - "8081:80"
     depends_on:
