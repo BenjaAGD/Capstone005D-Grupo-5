@@ -871,3 +871,5 @@ class _Dumbbell extends StatelessWidget {
   Widget _dot(Color col, Color borde) => Container(
         width: 14, height: 14,
         decoration: BoxDecoration(color: col, shape: BoxShape.circle, border: Border.all(color: borde, width: 2)),
+      );
+}

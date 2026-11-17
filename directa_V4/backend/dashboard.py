@@ -672,4 +672,4 @@ def crear_router(get_supabase):
             return FileResponse(ruta, media_type="text/html")
         return JSONResponse({"ok": False, "error": "dashboard.html no está en la carpeta web/"}, status_code=404)
 
-    r
+    return router

@@ -210,3 +210,6 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
           ),
         ),
       ),
+    );
+  }
+}
