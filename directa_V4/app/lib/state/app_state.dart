@@ -190,6 +190,9 @@ class AppState extends ChangeNotifier {
   String? docActivo;
   Map<String, Map<String, dynamic>>? analisis; // {agente: resultado} del documento activo
   bool cargandoAnalisis = false;
+  List<Map<String, dynamic>> diagnosticosAgentes = [];
+  bool cargandoDiagnosticos = false;
+  String diagnosticoFase = 'desconocida';
   Timer? _watch;
 
   Map<String, dynamic>? get docActivoMap {
@@ -293,6 +296,51 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  Future<void> cargarDiagnosticos([String? documentId]) async {
+    final id = documentId ?? docActivo;
+    if (id == null) {
+      diagnosticosAgentes = [];
+      diagnosticoFase = 'desconocida';
+      return;
+    }
+    cargandoDiagnosticos = true;
+    notifyListeners();
+    try {
+      final data = await api.getJson('/api/diagnosticos/${Uri.encodeComponent(id)}');
+      if (id != docActivo && documentId == null) return;
+      diagnosticosAgentes = [
+        for (final row in (data['agentes'] as List? ?? const []))
+          if (row is Map) Map<String, dynamic>.from(row),
+      ];
+      diagnosticoFase = '${data['fase'] ?? 'desconocida'}';
+    } catch (_) {
+      diagnosticosAgentes = [];
+    } finally {
+      cargandoDiagnosticos = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> reintentarAgentes() async {
+    final id = docActivo;
+    if (id == null) {
+      toast('Selecciona un documento para reintentar', err: true);
+      return;
+    }
+    try {
+      final data = await api.postJson('/api/analisis-reintentar/${Uri.encodeComponent(id)}', {});
+      if (data['ok'] != true) {
+        toast('${data['error'] ?? 'No se pudo iniciar el reintento'}', err: true);
+        return;
+      }
+      toast('Reintento iniciado para los agentes pendientes');
+      await cargarDiagnosticos(id);
+      await cargarDocumentos(silencioso: true);
+    } catch (e) {
+      toast('No se pudo iniciar el reintento: $e', err: true);
+    }
+  }
+
   Future<bool> cambiarDocumento(String id) async {
     if (consultando) {
       toast('Espera a que termine la respuesta en curso', err: true);
@@ -304,6 +352,8 @@ class AppState extends ChangeNotifier {
     store.setString(Store.kDoc, id);
     sugerencias = [];
     analisis = null;
+    diagnosticosAgentes = [];
+    diagnosticoFase = 'desconocida';
     borrador = '';
     prepPreguntas = [];
     prepSenales = [];

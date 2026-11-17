@@ -142,6 +142,12 @@ class _ResultadosScreenState extends State<ResultadosScreen> {
                 const SizedBox(height: 3),
                 Text('No se pudieron analizar al subir el archivo. El análisis no se repite solo. El puntaje global solo considera los agentes que tienen resultado.',
                     style: TextStyle(fontSize: 12, color: c.text2)),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: () => st.go('diagnosticos'),
+                  icon: const Icon(Icons.troubleshoot_outlined, size: 17),
+                  label: const Text('Ver causa y reintentar agentes'),
+                ),
               ]),
             ),
           GgCard(
