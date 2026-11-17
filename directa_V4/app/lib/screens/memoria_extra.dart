@@ -154,6 +154,8 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
     final c = context.c;
     final anioPortada = anio ?? DateTime.now().year;
     final docsAnio = [for (final g in anios) if ((g['anio'] as num?)?.toInt() == anio) ...(g['documentos'] as List? ?? const [])];
+    final aniosDisponibles = anios.map((x) => (x['anio'] as num).toInt()).toSet();
+    final opcionesAnio = {...List.generate(DateTime.now().year - 2014, (i) => 2015 + i), ...aniosDisponibles}.toList()..sort((a, b) => b.compareTo(a));
     final caps = widget.caps();
     final terminados = caps.values.where((v) => v is Map && ['listo', 'completo', 'hecho'].contains('${v['estado']}'.toLowerCase())).length;
     final totalCaps = caps.length;
@@ -172,10 +174,10 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
         const SizedBox(height: 10),
         LayoutBuilder(builder: (context, box) => Wrap(spacing: 10, runSpacing: 10, children: [
           SizedBox(width: box.maxWidth > 520 ? (box.maxWidth - 10) / 2 : box.maxWidth, child: DropdownButtonFormField<int>(
-            value: anios.isEmpty ? anioPortada : anio,
+            value: opcionesAnio.contains(anioPortada) ? anioPortada : opcionesAnio.first,
             decoration: const InputDecoration(labelText: 'Año del informe', prefixIcon: Icon(Icons.calendar_today_outlined)),
-            items: (anios.isEmpty ? [anioPortada] : anios.map((x) => (x['anio'] as num).toInt()).toList()).map((a) => DropdownMenuItem(value: a, child: Text('$a'))).toList(),
-            onChanged: anios.isEmpty ? null : (v) => setState(() => anio = v),
+            items: opcionesAnio.map((a) => DropdownMenuItem(value: a, child: Text('$a${aniosDisponibles.contains(a) ? '' : ' · sin documentos'}'))).toList(),
+            onChanged: (v) => setState(() { anio = v; resultado = null; error = null; }),
           )),
           SizedBox(width: box.maxWidth > 520 ? (box.maxWidth - 10) / 2 : box.maxWidth, child: TextField(controller: _destinatario, decoration: const InputDecoration(labelText: 'Preparada para', prefixIcon: Icon(Icons.person_outline)), onChanged: (_) { _guardarMarca(); setState(() {}); })),
         ])),
@@ -184,11 +186,9 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
           Icon(Icons.info_outline, size: 16, color: c.text3),
           const SizedBox(width: 7),
           Expanded(child: Text(
-            anios.isEmpty
-                ? 'El año se habilita cuando hay documentos procesados con un período identificable.'
-                : anios.length == 1
-                    ? 'Solo hay documentos procesados de ${anios.first['anio']}. Para usar otro año, agrega documentos de ese período.'
-                    : 'El año filtra los documentos que se usarán en el PDF. El documento activo de la barra superior no cambia.',
+            docsAnio.isEmpty
+                ? 'Puedes elegir el año de portada. Para generar el borrador, debe haber al menos un documento procesado de ese período.'
+                : 'Se incluirán solo documentos procesados de $anio. El documento activo de la barra superior no cambia.',
             style: TextStyle(color: c.text3, fontSize: 11.5, height: 1.35),
           )),
         ]),
@@ -229,9 +229,9 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
         if (totalCaps > 0) Text('$terminados de $totalCaps capítulos marcados como listos en tus notas.', style: TextStyle(color: c.text2, fontSize: 12.5)),
         if (totalCaps > 0) ...[const SizedBox(height: 7), GgBar(value: terminados / totalCaps)],
         const SizedBox(height: 8),
-        Text(anios.isEmpty ? 'Agrega documentos procesados para revisar evidencia y habilitar el PDF.' : 'Documentos incluidos: ${docsAnio.map((d) => d['nombre']).join(', ')}', style: TextStyle(color: c.text3, fontSize: 12, height: 1.35)),
+        Text(docsAnio.isEmpty ? 'No hay documentos procesados de $anio. Agrega documentos de este período para generar el borrador.' : 'Documentos incluidos: ${docsAnio.map((d) => d['nombre']).join(', ')}', style: TextStyle(color: c.text3, fontSize: 12, height: 1.35)),
         const SizedBox(height: 14),
-        GgButton(generando ? 'Generando memoria…' : 'Generar borrador PDF', icon: Icons.picture_as_pdf_outlined, expand: true, loading: generando, onTap: anio == null || anios.isEmpty ? null : _generar),
+        GgButton(generando ? 'Generando memoria…' : 'Generar borrador PDF', icon: Icons.picture_as_pdf_outlined, expand: true, loading: generando, onTap: anio == null || docsAnio.isEmpty ? null : _generar),
         const SizedBox(height: 8),
         Text('El PDF incluye portada, índice, carta, capítulos, indicadores, gráficos, cobertura normativa y revisión de cifras. Revisa y valida el contenido antes de distribuirlo.', style: TextStyle(fontSize: 11.5, color: c.text3, height: 1.35)),
       ])),
@@ -424,6 +424,3 @@ class _PerfilTonoState extends State<PerfilTono> {
             ]),
           ]),
         ),
-    ]);
-  }
-}

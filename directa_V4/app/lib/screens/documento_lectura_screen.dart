@@ -27,7 +27,18 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
   int _total = 0;
   bool _cargando = false;
   bool _hayMas = true;
+  int _paginaActual = 0;
   String? _error;
+
+  Map<int, List<Map<String, dynamic>>> get _paginas {
+    final paginas = <int, List<Map<String, dynamic>>>{};
+    for (var i = 0; i < _fragmentos.length; i++) {
+      final raw = _fragmentos[i]['page_number'];
+      final numero = raw is num ? raw.toInt() : i + 1;
+      paginas.putIfAbsent(numero, () => []).add(_fragmentos[i]);
+    }
+    return paginas;
+  }
 
   @override
   void initState() {
@@ -141,27 +152,44 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
                   title: 'No hay texto disponible',
                   text: 'Este documento no tiene fragmentos de texto guardados para mostrar.',
                 ),
-              for (var i = 0; i < _fragmentos.length; i++)
-                Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: c.surface.withValues(alpha: 0.62),
-                    border: Border.all(color: c.border),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              if (_fragmentos.isNotEmpty) ...[
+                Builder(builder: (context) {
+                  final paginas = _paginas;
+                  final numeros = paginas.keys.toList()..sort();
+                  final indice = _paginaActual.clamp(0, numeros.length - 1);
+                  final numero = numeros[indice];
+                  final textos = paginas[numero]!;
+                  return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                     Row(children: [
-                      Icon(Icons.description_outlined, size: 16, color: c.accentText),
-                      const SizedBox(width: 7),
-                      Text('Página ${_fragmentos[i]['page_number'] ?? '—'}',
-                          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: c.accentText)),
+                      Text('LECTURA', style: TextStyle(fontSize: 11, letterSpacing: 1.4, fontWeight: FontWeight.w600, color: c.text2)),
+                      const Spacer(),
+                      Text('Página ${indice + 1} de ${numeros.length}${_hayMas ? '+' : ''}', style: TextStyle(fontSize: 11.5, color: c.text3)),
                     ]),
-                    const SizedBox(height: 10),
-                    SelectableText('${_fragmentos[i]['content'] ?? ''}',
-                        style: TextStyle(fontSize: 13.5, height: 1.6, color: c.text)),
-                  ]),
-                ),
+                    const SizedBox(height: 8),
+                    ClipRRect(borderRadius: BorderRadius.circular(8), child: LinearProgressIndicator(value: (indice + 1) / (numeros.length + (_hayMas ? 1 : 0)), minHeight: 4, backgroundColor: c.surface2)),
+                    const SizedBox(height: 12),
+                    Container(
+                      constraints: const BoxConstraints(minHeight: 360),
+                      padding: const EdgeInsets.fromLTRB(22, 24, 22, 28),
+                      decoration: BoxDecoration(color: c.surface, border: Border.all(color: c.border), borderRadius: BorderRadius.circular(8), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .14), blurRadius: 18, offset: const Offset(0, 5))]),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Row(children: [Icon(Icons.menu_book_outlined, size: 17, color: c.accentText), const SizedBox(width: 7), Text('Página $numero', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: c.accentText))]),
+                        const SizedBox(height: 18),
+                        for (var i = 0; i < textos.length; i++) ...[
+                          if (i > 0) const SizedBox(height: 14),
+                          SelectableText('${textos[i]['content'] ?? ''}', style: TextStyle(fontSize: 14, height: 1.8, color: c.text)),
+                        ],
+                      ]),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(children: [
+                      OutlinedButton.icon(onPressed: indice > 0 ? () => setState(() => _paginaActual = indice - 1) : null, icon: const Icon(Icons.chevron_left), label: const Text('Anterior')),
+                      const Spacer(),
+                      OutlinedButton.icon(onPressed: indice + 1 < numeros.length ? () => setState(() => _paginaActual = indice + 1) : (_hayMas && !_cargando ? _cargarMas : null), icon: const Icon(Icons.chevron_right), label: Text(indice + 1 < numeros.length ? 'Siguiente' : _hayMas ? 'Cargar siguiente' : 'Fin')),
+                    ]),
+                  ]);
+                }),
+              ],
               if (_hayMas)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
@@ -170,7 +198,7 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
                     icon: _cargando
                         ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.expand_more),
-                    label: Text(_cargando ? 'Cargando contenido…' : 'Cargar más contenido'),
+                    label: Text(_cargando ? 'Cargando contenido…' : 'Cargar páginas restantes'),
                   ),
                 ),
               if (_fragmentos.isNotEmpty && !_hayMas)
@@ -182,6 +210,3 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
           ),
         ),
       ),
-    );
-  }
-}
