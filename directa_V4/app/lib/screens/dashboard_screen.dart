@@ -34,12 +34,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String accEstado = '', accAg = '';
   late Map<String, dynamic> acciones;
   String cmpId = '';
+  final _competidor = TextEditingController();
   Map<String, dynamic>? cmp;
   bool cmpCargando = false, pdfCargando = false, excelCargando = false, cmpPdfCargando = false;
   String? cmpError;
   final _kSenales = GlobalKey();
 
   AppState get st => context.read<AppState>();
+
+  @override
+  void dispose() {
+    _competidor.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -206,7 +213,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _pestanasDashboard(BuildContext context) {
     final c = context.c;
-    const tabs = ['Resumen', 'Señales', 'Plan de acción', 'Comparar'];
+    const tabs = ['Resumen', 'Señales', 'Plan de acción', 'Comparar', 'Competencia'];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(children: [
@@ -319,6 +326,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final maxSen = math.max(1, severidades.fold<int>(0, (m, k) => math.max(m, (sen[k] as num?)?.toInt() ?? 0)));
     final ags = [for (final a in d['agentes'] as List) if (a['con_info'] == true && a['score'] != null) a]
       ..sort((a, b) => (a['score'] as num).compareTo(b['score'] as num));
+    final maxActividad = math.max(
+      (d['omisiones'] as List? ?? const []).length,
+      math.max((d['preguntas'] as List? ?? const []).length, (d['recomendaciones'] as List? ?? const []).length),
+    );
     return GridCols(cols: 2, minItemWidth: 300, children: [
       GgCard(
         margin: EdgeInsets.zero,
@@ -349,6 +360,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 SizedBox(width: 30, child: Text('${a['score']}', textAlign: TextAlign.right, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
               ]),
             ),
+        ]),
+      ),
+      GgCard(
+        margin: EdgeInsets.zero,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const SecTitle('Distribución de puntajes'),
+          Text('Agentes con información sustantiva por tramo', style: TextStyle(fontSize: 12, color: c.text3)),
+          const SizedBox(height: 10),
+          for (final tramo in [
+            ('0–39', 0, 39, c.crit),
+            ('40–54', 40, 54, c.high),
+            ('55–74', 55, 74, c.med),
+            ('75–89', 75, 89, c.accentText),
+            ('90–100', 90, 100, c.low),
+          ])
+            Builder(builder: (context) {
+              final n = ags.where((a) => (a['score'] as num).toInt() >= tramo.$2 && (a['score'] as num).toInt() <= tramo.$3).length;
+              return Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Row(children: [
+                SizedBox(width: 58, child: Text(tramo.$1, style: TextStyle(fontSize: 11.5, color: c.text2))),
+                Expanded(child: GgBar(value: n / math.max(1, ags.length), color: tramo.$4, height: 9)),
+                SizedBox(width: 25, child: Text('$n', textAlign: TextAlign.right, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
+              ]));
+            }),
+        ]),
+      ),
+      GgCard(
+        margin: EdgeInsets.zero,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const SecTitle('Trabajo generado por los agentes'),
+          Text('Volumen detectado en el documento', style: TextStyle(fontSize: 12, color: c.text3)),
+          const SizedBox(height: 10),
+          for (final item in [
+            ('Omisiones', (d['omisiones'] as List? ?? const []).length, c.accentText),
+            ('Preguntas', (d['preguntas'] as List? ?? const []).length, c.med),
+            ('Recomendaciones', (d['recomendaciones'] as List? ?? const []).length, c.low),
+          ])
+            Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Row(children: [
+              SizedBox(width: 100, child: Text(item.$1, style: TextStyle(fontSize: 12, color: c.text2))),
+              Expanded(child: GgBar(value: item.$2 / math.max(1, maxActividad), color: item.$3, height: 10)),
+              SizedBox(width: 30, child: Text('${item.$2}', textAlign: TextAlign.right, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
+            ])),
         ]),
       ),
     ]);
@@ -572,8 +624,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final otros = app.documentos.where((x) => x['id'] != _doc && ((x['analisis_count'] as num?) ?? 0) > 0).toList();
     final hijos = <Widget>[
       const SizedBox(height: 18),
-      const Text('Comparar con otro documento', style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700)),
+      Text(_tab == 4 ? 'Comparación de competencia' : 'Comparar con otro documento', style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700)),
       const SizedBox(height: 3),
+      if (_tab == 4) ...[
+        Text('Selecciona un documento cargado que represente a la empresa competidora. La comparación usa solo documentos de tu espacio; no consulta fuentes externas.', style: TextStyle(fontSize: 12.3, color: c.text2)),
+        const SizedBox(height: 8),
+        TextField(controller: _competidor, decoration: const InputDecoration(labelText: 'Nombre de la empresa competidora', prefixIcon: Icon(Icons.business_outlined))),
+        const SizedBox(height: 8),
+      ],
     ];
     if (otros.isEmpty) {
       hijos.add(Text('Cuando tengas un segundo documento analizado (por ejemplo, el trimestre anterior) podrás ver aquí cómo cambió cada agente.',
@@ -581,9 +639,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: hijos);
     }
     hijos.addAll([
-      Text('Elige el documento anterior; se compara contra el que estás viendo.', style: TextStyle(fontSize: 12.3, color: c.text2)),
+      Text(_tab == 4 ? 'Elige el documento de la empresa competidora; se compara con el documento activo. Los resultados son referenciales y dependen del contenido cargado.' : 'Elige el documento anterior; se compara contra el que estás viendo.', style: TextStyle(fontSize: 12.3, color: c.text2)),
       const SizedBox(height: 10),
-      GgSelect<String>(label: 'Documento anterior', value: cmpId, items: [('', 'Elegir…'), for (final o in otros) ('${o['id']}', nombreDoc(o))],
+      GgSelect<String>(label: _tab == 4 ? 'Documento de la empresa competidora' : 'Documento anterior', value: cmpId, items: [('', 'Elegir…'), for (final o in otros) ('${o['id']}', nombreDoc(o))],
           onChanged: _comparar),
       const SizedBox(height: 10),
     ]);
@@ -614,6 +672,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ]);
       hijos.add(GgCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          if (_tab == 4) Padding(padding: const EdgeInsets.only(bottom: 10), child: Text('Comparación basada en el documento cargado “${nombreDoc(x['a'] as Map?)}” y el documento activo. No representa investigación de mercado externa.', style: TextStyle(fontSize: 11.5, color: c.text3))),
           Align(
             alignment: Alignment.centerRight,
             child: GgButton('Descargar comparación (PDF)', icon: Icons.picture_as_pdf_outlined, small: true, loading: cmpPdfCargando,
@@ -622,7 +681,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 10),
           Wrap(spacing: 18, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
-            _bloqueCmp(context, 'Antes', g['a'], nombreDoc(x['a'] as Map?)),
+            _bloqueCmp(context, _tab == 4 ? (_competidor.text.trim().isEmpty ? 'Competidor' : _competidor.text.trim()) : 'Antes', g['a'], nombreDoc(x['a'] as Map?)),
             Text('→', style: TextStyle(fontSize: 24, color: c.text3)),
             _bloqueCmp(context, 'Ahora', g['b'], nombreDoc(x['b'] as Map?)),
             delta(g['delta'], size: 20),
@@ -812,5 +871,3 @@ class _Dumbbell extends StatelessWidget {
   Widget _dot(Color col, Color borde) => Container(
         width: 14, height: 14,
         decoration: BoxDecoration(color: col, shape: BoxShape.circle, border: Border.all(color: borde, width: 2)),
-      );
-}

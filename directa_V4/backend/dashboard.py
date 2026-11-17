@@ -306,6 +306,36 @@ def html_pdf_comparacion(c):
     return pagina_pdf("Comparación de Documentos", "Evolución entre dos versiones analizadas", cuerpo, meta, "Comparación de Documentos")
 
 
+def _excel_text(value):
+    """Elimina caracteres de control que hacen fallar el XML interno de XLSX."""
+    import re
+    if value is None:
+        return ""
+    text = str(value)
+    return re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", "", text)
+
+
+def _excel_count(values, key):
+    """Lee conteos tolerando claves ausentes o texto mal codificado en datos antiguos."""
+    if not isinstance(values, dict):
+        return 0
+    if key in values:
+        return values[key] or 0
+    aliases = {
+        "crítica": ("critica", "critical", "crítica"),
+        "alta": ("alta", "high"),
+        "media": ("media", "medium"),
+        "baja": ("baja", "low"),
+    }
+    wanted = aliases.get(key, (key,))
+    for raw, value in values.items():
+        normalized = str(raw).lower().replace("Ã­", "i").replace("Ã¡", "a")
+        normalized = normalized.replace("Ã£", "a").replace("Ã©", "e").replace("Ã³", "o")
+        if normalized in wanted or normalized.strip() in wanted:
+            return value or 0
+    return 0
+
+
 def excel_plan(d, acciones=None):
     """Libro de trabajo del plan de acciÃ³n con identidad visual DIRECTA."""
     import io
@@ -329,12 +359,12 @@ def excel_plan(d, acciones=None):
     muted = "66738A"
     line = "C9D0DA"
     white = "FFFFFF"
-    doc_name = str((d.get("documento") or {}).get("nombre") or "Documento analizado")
+    doc_name = _excel_text((d.get("documento") or {}).get("nombre") or "Documento analizado")
     emitted = datetime.now().strftime("%d/%m/%Y %H:%M")
 
     def merged_band(ws, row, last_col, text, fill, font, height, align=None):
         ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=last_col)
-        cell = ws.cell(row=row, column=1, value=text)
+        cell = ws.cell(row=row, column=1, value=_excel_text(text))
         cell.fill = PatternFill("solid", fgColor=fill)
         cell.font = font
         cell.alignment = align or Alignment(vertical="center", horizontal="left")
@@ -370,7 +400,7 @@ def excel_plan(d, acciones=None):
         for i, fila in enumerate(data_rows, 1):
             max_lines = 1
             for j, value in enumerate(fila, 1):
-                cell = ws.cell(row=header_row + i, column=j, value=value)
+                cell = ws.cell(row=header_row + i, column=j, value=_excel_text(value) if isinstance(value, str) else value)
                 cell.font = Font(name="Calibri", size=10, color=ink)
                 cell.alignment = Alignment(vertical="top", wrap_text=True)
                 cell.border = Border(bottom=Side(style="thin", color=line))
@@ -409,8 +439,8 @@ def excel_plan(d, acciones=None):
     agents_total = resumen.get("agentes_total", len(d.get("agentes", [])))
     agents_done = resumen.get("agentes_analizados", sum(1 for a in d.get("agentes", []) if a.get("con_info")))
     score_value = resumen.get("score_global")
-    high_count = severities.get("crítica", 0) + severities.get("alta", 0)
-    done_count = sum(1 for item in recommendations if (acciones.get(item["id"]) or {}).get("estado") == "hecho")
+    high_count = _excel_count(severities, "crítica") + _excel_count(severities, "alta")
+    done_count = sum(1 for item in recommendations if (acciones.get(item.get("id", "")) or {}).get("estado") == "hecho")
 
     # Portada de resumen en Excel: composiciÃ³n inspirada en el informe ejecutivo entregado.
     cover = wb.active
@@ -461,10 +491,10 @@ def excel_plan(d, acciones=None):
                 Alignment(vertical="center", horizontal="left", indent=1))
     reading = (f"El documento {doc_name} fue revisado por {agents_done} de {agents_total} agentes. "
                f"Se detectaron {resumen.get('senales_total', sum(severities.values()))} seÃ±ales, incluidas "
-               f"{severities.get('crítica', 0)} críticas y {severities.get('alta', 0)} altas. "
+               f"{_excel_count(severities, 'crítica')} críticas y {_excel_count(severities, 'alta')} altas. "
                f"El plan registra {len(recommendations)} acciones y {done_count} completadas.")
     cover.merge_cells(start_row=13, start_column=1, end_row=15, end_column=10)
-    c = cover.cell(row=13, column=1, value=reading)
+    c = cover.cell(row=13, column=1, value=_excel_text(reading))
     c.fill = PatternFill("solid", fgColor="F2F5F9")
     c.font = Font(name="Calibri", size=11, color=ink)
     c.alignment = Alignment(vertical="center", wrap_text=True, indent=1)
@@ -480,10 +510,10 @@ def excel_plan(d, acciones=None):
         area = str(item.get("agente_nombre") or "Ãrea")
         text = str(item.get("texto") or "")
         cover.merge_cells(start_row=i, start_column=1, end_row=i, end_column=2)
-        cover.cell(row=i, column=1, value=area.upper()).font = Font(name="Calibri", size=9, bold=True, color=purple)
+        cover.cell(row=i, column=1, value=_excel_text(area.upper())).font = Font(name="Calibri", size=9, bold=True, color=purple)
         cover.cell(row=i, column=1).fill = PatternFill("solid", fgColor="F2F5F9")
         cover.merge_cells(start_row=i, start_column=3, end_row=i, end_column=10)
-        cell = cover.cell(row=i, column=3, value=text)
+        cell = cover.cell(row=i, column=3, value=_excel_text(text))
         cell.font = Font(name="Calibri", size=10, color=ink)
         cell.alignment = Alignment(vertical="center", wrap_text=True)
         cell.border = Border(bottom=Side(style="thin", color=line))
@@ -504,9 +534,9 @@ def excel_plan(d, acciones=None):
     ws.title = "Plan de acciÃ³n"
     rows = []
     for item in d.get("recomendaciones", []):
-        action = acciones.get(item["id"]) or {}
+        action = acciones.get(item.get("id", "")) or {}
         status = action.get("estado") if action.get("estado") in _ESTADOS_PLAN else "pendiente"
-        rows.append([item["agente_nombre"], item["texto"], action.get("responsable", "") or "",
+        rows.append([_excel_text(item.get("agente_nombre", "")), _excel_text(item.get("texto", "")), _excel_text(action.get("responsable", "") or ""),
                      action.get("fecha", "") or "", _ESTADOS_PLAN[status]])
     hoja(ws, "Plan de acciÃ³n", "Informe ejecutivo  /  Seguimiento de recomendaciones",
          ["Ãrea", "AcciÃ³n recomendada", "Responsable", "Fecha lÃ­mite", "Estado"],
@@ -515,7 +545,7 @@ def excel_plan(d, acciones=None):
     ws2 = wb.create_sheet("SeÃ±ales")
     order = {key: i for i, key in enumerate(SEVERIDADES)}
     signals = sorted(d.get("senales", []), key=lambda x: (order.get(x["severidad"], 9), x.get("transversal", False)))
-    rows = [[item["severidad"].capitalize(), item["agente_nombre"], item["titulo"], item.get("descripcion", "")]
+    rows = [[_excel_text(item.get("severidad", "")).capitalize(), _excel_text(item.get("agente_nombre", "")), _excel_text(item.get("titulo", "")), _excel_text(item.get("descripcion", ""))]
             for item in signals]
     hoja(ws2, "SeÃ±ales detectadas", "Informe ejecutivo  /  Alertas para revisiÃ³n",
          ["Severidad", "Ãrea", "SeÃ±al", "DescripciÃ³n"], rows, [16, 22, 48, 78])
@@ -525,7 +555,7 @@ def excel_plan(d, acciones=None):
     for item in sorted(d.get("agentes", []), key=lambda a: (a["score"] is None, a["score"] if a["score"] is not None else 999, a["nombre"])):
         signals = item["senales"]
         rows.append([item["nombre"], item["score"] if item["con_info"] else None, item["etiqueta"],
-                     signals["crítica"], signals["alta"], signals["media"], signals["baja"],
+                     _excel_count(signals, "crítica"), _excel_count(signals, "alta"), _excel_count(signals, "media"), _excel_count(signals, "baja"),
                      item["n_omisiones"], item["n_preguntas"], item["n_recomendaciones"]])
     hoja(ws3, "Estado por Ã¡rea", "Informe ejecutivo  /  Resumen de anÃ¡lisis",
          ["Ãrea", "Puntaje", "Estado", "CrÃ­ticas", "Altas", "Medias", "Bajas", "Omisiones", "Preguntas", "Recomend."],
@@ -642,4 +672,4 @@ def crear_router(get_supabase):
             return FileResponse(ruta, media_type="text/html")
         return JSONResponse({"ok": False, "error": "dashboard.html no está en la carpeta web/"}, status_code=404)
 
-    return router
+    r
