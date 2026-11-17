@@ -17,7 +17,7 @@ const estadosProcesando = ['Procesando', 'Analizando', 'Iniciando'];
 /// Estado principal de la app: equivale al objeto `state` del index.html del MVP.
 class AppState extends ChangeNotifier {
   AppState(this.store, {http.Client? client})
-      : api = Api(store.getString(Store.kApi) ?? Config.apiPorDefecto(), client: client) {
+      : api = Api(_apiInicial(store), client: client) {
     themeMode = store.getString(Store.kTheme) == 'light' ? ThemeMode.light : ThemeMode.dark;
     textScale = store.getDouble(Store.kFont) ?? 1.0;
     docActivo = store.getString(Store.kDoc);
@@ -33,6 +33,29 @@ class AppState extends ChangeNotifier {
 
   final Store store;
   final Api api;
+
+  static String _apiInicial(Store store) {
+    final guardada = store.getString(Store.kApi)?.trim();
+    if (guardada == null || guardada.isEmpty || _esUrlLocal(guardada)) {
+      final predeterminada = Config.apiPorDefecto();
+      unawaited(store.setString(Store.kApi, predeterminada));
+      return predeterminada;
+    }
+    return guardada;
+  }
+
+  static bool _esUrlLocal(String valor) {
+    final host = Uri.tryParse(valor)?.host.toLowerCase();
+    if (host == null || host.isEmpty) return true;
+    if (host == 'localhost' || host == '127.0.0.1' || host == '10.0.2.2' || host == '::1') return true;
+    if (host.startsWith('10.') || host.startsWith('192.168.')) return true;
+    final partes = host.split('.');
+    if (partes.length == 4 && partes[0] == '172') {
+      final segundo = int.tryParse(partes[1]);
+      if (segundo != null && segundo >= 16 && segundo <= 31) return true;
+    }
+    return false;
+  }
 
   // ---------------------------------------------------------------- preferencias
   late ThemeMode themeMode;
