@@ -33,6 +33,10 @@ class MasScreen extends StatelessWidget {
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const PageHead(title: 'Más', subtitle: 'Preparación, aprendizaje y configuración de la aplicación.'),
+      const SecTitle('Tus archivos'),
+      item('documentos', Icons.folder_open_outlined, 'Documentos', 'Revisa los documentos cargados y su estado de análisis.'),
+      item('archivos', Icons.download_outlined, 'Archivos descargados', 'Consulta y comparte los PDF y Excel guardados en este teléfono.'),
+      const SecTitle('Preparación'),
       item('preparar', Icons.event_note_outlined, 'Preparar mi reunión', 'Anticipa preguntas y temas para el directorio.'),
       item('aprendizaje', Icons.school_outlined, 'Aprendizaje de los agentes', 'Revisa valoraciones y lecciones de los agentes.'),
       const SecTitle('Ayuda y configuración'),
