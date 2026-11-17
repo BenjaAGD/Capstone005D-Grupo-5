@@ -11,6 +11,7 @@ import 'ajustes_screen.dart';
 import 'archivos_screen.dart';
 import 'aprendizaje_screen.dart';
 import 'dashboard_screen.dart';
+import 'detalle_analisis_screen.dart';
 import 'documentos_screen.dart';
 import 'analisis_screen.dart';
 import 'gestion_screen.dart';
@@ -51,6 +52,7 @@ const _secundarias = {
   'preparar': 'Preparar mi reunión',
   'informe': 'Informe IA',
   'dashboard': 'Dashboard',
+  'diagnosticos': 'Detalle del análisis',
   'memoria': 'Memoria Anual',
   'indicadores': 'Indicadores',
   'aprendizaje': 'Aprendizaje de los agentes',
@@ -170,6 +172,7 @@ class _Secundaria extends StatelessWidget {
       'preparar' => const PrepararScreen(),
       'informe' => const InformeScreen(),
       'dashboard' => const DashboardScreen(),
+      'diagnosticos' => const DetalleAnalisisScreen(),
       'memoria' => const MemoriaScreen(),
       'indicadores' => const IndicadoresScreen(),
       'aprendizaje' => const AprendizajeScreen(),
