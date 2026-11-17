@@ -2048,6 +2048,81 @@ def api_preparar_respuestas(document_id: str, payload: dict = Body(default={})):
         return {"ok": False, "error": str(e)}
 
 
+@app.post("/api/preparar-reunion/{document_id}/pdf")
+def api_preparar_reunion_pdf(document_id: str, payload: str = Form(...)):
+    """Genera un PDF breve con las respuestas que ya fueron sugeridas y revisadas en la app."""
+    try:
+        data = json.loads(payload)
+        items = data.get("items", [])
+        if not isinstance(items, list) or not items:
+            return HTMLResponse(content="No hay respuestas sugeridas para exportar", status_code=400)
+
+        nombre_doc = _esc_html(_nombre_documento(document_id) or "Documento")
+        fecha = datetime.now().strftime("%d/%m/%Y")
+        from modulos_base import CSS_PDF, CLASIFICACION
+
+        tarjetas = []
+        for numero, it in enumerate(items[:50], 1):
+            pregunta = _esc_html(str(it.get("pregunta") or ""))
+            respuesta = _render_markdown_a_html(str(it.get("respuesta") or ""))
+            agente = _esc_html(str(it.get("agente") or "Asistente"))
+            verif = it.get("verificacion") if isinstance(it.get("verificacion"), dict) else {}
+            estado = str(verif.get("estado") or "")
+            color = "#2F6B4F" if estado in ("cifras_ok", "verificada") else "#A67C00"
+            etiqueta = _esc_html(str(verif.get("etiqueta") or "Verificación pendiente"))
+            resumen = _esc_html(str(verif.get("resumen") or "Confirma la respuesta directamente en el documento antes de utilizarla."))
+            falta = _esc_html(str(it.get("falta") or ""))
+            alertas = "".join(f"<li>{_esc_html(str(a))}</li>" for a in (it.get("alertas") or [])[:5])
+            pendiente_html = f"<div class='pendiente'><b>Pendiente:</b> {falta}</div>" if falta else ""
+            alertas_html = f"<ul>{alertas}</ul>" if alertas else ""
+            tarjetas.append(
+                f"<table class='pregunta' width='100%' cellpadding='0' cellspacing='0'><tr><td>"
+                f"<div class='tema'>{numero:02d} &nbsp; {_esc_html(agente)}</div>"
+                f"<div class='preg'>{pregunta}</div>"
+                f"<div class='respuesta'>{respuesta}</div>"
+                f"<div class='verif' style='color:{color}'><b>{etiqueta}</b> &middot; {resumen}</div>"
+                f"{pendiente_html}{alertas_html}"
+                f"</td></tr></table>"
+            )
+
+        html = f'''<!DOCTYPE html><html lang="es"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<title>Preguntas y respuestas para reunión</title><style>{CSS_PDF}
+.subtitulo {{ color:#5F6877; font-size:10pt; }}
+.pregunta {{ margin:0 0 12pt 0; border:0.75pt solid #D9DEE7; }}
+.pregunta td {{ padding:10pt; }}
+.tema {{ color:#128B9A; font-size:8pt; font-weight:bold; text-transform:uppercase; }}
+.preg {{ color:#1B2F4B; font-size:11pt; font-weight:bold; margin:5pt 0; }}
+.respuesta {{ color:#2B2F36; font-size:9.5pt; line-height:1.45; }}
+.verif {{ font-size:8pt; margin-top:6pt; }}
+.pendiente {{ color:#8A5A00; font-size:8.5pt; margin-top:5pt; }}
+</style></head><body>
+<table class="brand" width="100%"><tr><td><b>DIRECTA</b> &nbsp;/&nbsp; INTELIGENCIA PARA DIRECTORIOS</td><td align="right">GERENCIA GENERAL</td></tr></table>
+<table class="portada" width="100%"><tr><td>
+<span class="eyebrow">GERENCIA GENERAL &nbsp;|&nbsp; DIRECTA</span><br/>
+<span class="tit">Preparación de reunión</span><br/>
+<span class="subtit">Preguntas y respuestas sugeridas</span>
+</td></tr></table>
+<table class="meta" width="100%"><tr><td class="k">Documento</td><td>{nombre_doc}</td><td class="k">Fecha</td><td>{fecha}</td></tr>
+<tr><td class="k">Respuestas</td><td>{len(items[:50])}</td><td class="k">Clasificación</td><td>{_esc_html(CLASIFICACION)}</td></tr></table>
+<p class="subtitulo">Las respuestas son sugerencias basadas en el documento. Revisa las fuentes y los pendientes antes de compartirlas.</p>
+{''.join(tarjetas)}
+</body></html>'''
+        html = _entidades_para_pdf(html)
+        pdf_buffer = io.BytesIO()
+        pisa_status = pisa.CreatePDF(src=html, dest=pdf_buffer, encoding="utf-8")
+        if pisa_status.err:
+            raise Exception("Error generando PDF de respuestas")
+        pdf_buffer.seek(0)
+        nombre = f"DIRECTA_Respuestas_Reunion_{datetime.now().strftime('%Y-%m-%d')}.pdf"
+        return StreamingResponse(pdf_buffer, media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="{nombre}"'})
+    except Exception as e:
+        print("[PREPARAR PDF] Error:", e, flush=True)
+        traceback.print_exc()
+        return HTMLResponse(content="Error generando el PDF de respuestas", status_code=500)
+
+
 # ============================================================================
 # SUGERENCIAS
 # ============================================================================

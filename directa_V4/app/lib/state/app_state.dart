@@ -702,6 +702,59 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  /// Genera un PDF independiente con las respuestas sugeridas del documento activo.
+  Future<Uint8List?> descargarRespuestasPreparacionPdf() async {
+    final docId = docActivo;
+    if (docId == null) {
+      toast('Selecciona un documento para generar el PDF', err: true);
+      return null;
+    }
+    final respuestas = prepPreguntas.where((it) => it['sugerida'] is Map).toList();
+    if (respuestas.isEmpty) {
+      toast('Todavía no hay respuestas sugeridas para exportar', err: true);
+      return null;
+    }
+
+    final doc = docActivoMap;
+    final payload = {
+      'documento': {
+        'nombre': nombreDoc(doc).isEmpty ? 'Documento' : nombreDoc(doc),
+        'paginas': doc?['total_paginas'] ?? '?',
+      },
+      'items': [
+        for (final it in respuestas)
+          (() {
+            final sugerida = it['sugerida'] as Map;
+            return {
+              'tipo': 'chat',
+              'agente': nombreAgente('${it['agente']}'),
+              'agente_key': '${it['agente']}',
+              'pregunta': it['pregunta'] ?? '',
+              'respuesta': sugerida['respuesta'] ?? '',
+              'fuentes': sugerida['fuentes'] ?? const [],
+              'falta': sugerida['falta'] ?? '',
+              'alertas': sugerida['alertas'] ?? const [],
+              if (sugerida['verificacion'] is Map) 'verificacion': sugerida['verificacion'],
+            };
+          })(),
+      ],
+    };
+
+    generandoPdf = true;
+    notifyListeners();
+    try {
+      return await api.download('/api/preparar-reunion/${Uri.encodeComponent(docId)}/pdf', form: {
+        'payload': jsonEncode(payload),
+      });
+    } catch (e) {
+      toast('Error generando el PDF de respuestas: $e', err: true);
+      return null;
+    } finally {
+      generandoPdf = false;
+      notifyListeners();
+    }
+  }
+
   /// Agrega una pregunta preparada (con su respuesta sugerida) al informe del directorio.
   void prepAlInforme(Map<String, dynamic> it) {
     final id = 'prep_${it['id']}';
