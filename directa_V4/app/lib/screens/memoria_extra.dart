@@ -75,7 +75,11 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
     try {
       final r = await st.api.getJson('/api/memoria/anios', timeout: const Duration(seconds: 6));
       anios = [for (final a in (r['anios'] as List? ?? const [])) if (a is Map) Map<String, dynamic>.from(a)];
-      anio ??= anios.isEmpty ? null : (anios.first['anio'] as num).toInt();
+      if (anios.isEmpty) {
+        anio = null;
+      } else if (anio == null || !anios.any((a) => (a['anio'] as num?)?.toInt() == anio)) {
+        anio = (anios.first['anio'] as num).toInt();
+      }
       error = null;
     } catch (e) {
       error = '$e';
@@ -175,6 +179,19 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
           )),
           SizedBox(width: box.maxWidth > 520 ? (box.maxWidth - 10) / 2 : box.maxWidth, child: TextField(controller: _destinatario, decoration: const InputDecoration(labelText: 'Preparada para', prefixIcon: Icon(Icons.person_outline)), onChanged: (_) { _guardarMarca(); setState(() {}); })),
         ])),
+        const SizedBox(height: 6),
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Icon(Icons.info_outline, size: 16, color: c.text3),
+          const SizedBox(width: 7),
+          Expanded(child: Text(
+            anios.isEmpty
+                ? 'El año se habilita cuando hay documentos procesados con un período identificable.'
+                : anios.length == 1
+                    ? 'Solo hay documentos procesados de ${anios.first['anio']}. Para usar otro año, agrega documentos de ese período.'
+                    : 'El año filtra los documentos que se usarán en el PDF. El documento activo de la barra superior no cambia.',
+            style: TextStyle(color: c.text3, fontSize: 11.5, height: 1.35),
+          )),
+        ]),
         const SizedBox(height: 10),
         TextField(controller: _firmante, decoration: const InputDecoration(labelText: 'Nombre o cargo de quien firma', prefixIcon: Icon(Icons.draw_outlined)), onChanged: (_) => _guardarMarca()),
         if (error != null || anios.isEmpty) ...[
@@ -222,7 +239,7 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
       if (error != null && !cargando) GgCard(borderColor: c.crit, child: Text(error!, style: TextStyle(color: c.crit))),
       if (resultado != null) GgCard(borderColor: c.low, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [Icon(Icons.check_circle_outline, color: c.low), const SizedBox(width: 8), const Expanded(child: Text('Borrador PDF listo', style: TextStyle(fontWeight: FontWeight.w700)))]),
-        const SizedBox(height: 6), Text('Memoria_Anual_$anioPortada_borrador.pdf · ${(resultado!['revision'] as List? ?? const []).length} alertas de cifras. Revisa el archivo antes de aprobarlo.', style: TextStyle(fontSize: 12.5, color: c.text2)),
+        const SizedBox(height: 6), Text('Memoria_Anual_${anioPortada}_borrador.pdf · ${(resultado!['revision'] as List? ?? const []).length} alertas de cifras. Revisa el archivo antes de aprobarlo.', style: TextStyle(fontSize: 12.5, color: c.text2)),
       ])),
     ]);
   }
