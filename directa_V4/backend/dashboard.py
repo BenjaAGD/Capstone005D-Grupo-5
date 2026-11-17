@@ -4,6 +4,7 @@ import time
 from datetime import datetime
 from fastapi import APIRouter, Body
 from fastapi.responses import FileResponse, JSONResponse, Response
+from ia_config import llamar_llm_chat
 
 from modulos_base import (
     SEVERIDADES, agentes_analizables, nombre_corto, es_integrador, tiene_info, score_de,
@@ -408,7 +409,7 @@ def excel_plan(d, acciones=None):
     agents_total = resumen.get("agentes_total", len(d.get("agentes", [])))
     agents_done = resumen.get("agentes_analizados", sum(1 for a in d.get("agentes", []) if a.get("con_info")))
     score_value = resumen.get("score_global")
-    high_count = severities.get("crÃ­tica", 0) + severities.get("alta", 0)
+    high_count = severities.get("crítica", 0) + severities.get("alta", 0)
     done_count = sum(1 for item in recommendations if (acciones.get(item["id"]) or {}).get("estado") == "hecho")
 
     # Portada de resumen en Excel: composiciÃ³n inspirada en el informe ejecutivo entregado.
@@ -460,7 +461,7 @@ def excel_plan(d, acciones=None):
                 Alignment(vertical="center", horizontal="left", indent=1))
     reading = (f"El documento {doc_name} fue revisado por {agents_done} de {agents_total} agentes. "
                f"Se detectaron {resumen.get('senales_total', sum(severities.values()))} seÃ±ales, incluidas "
-               f"{severities.get('crÃ­tica', 0)} crÃ­ticas y {severities.get('alta', 0)} altas. "
+               f"{severities.get('crítica', 0)} críticas y {severities.get('alta', 0)} altas. "
                f"El plan registra {len(recommendations)} acciones y {done_count} completadas.")
     cover.merge_cells(start_row=13, start_column=1, end_row=15, end_column=10)
     c = cover.cell(row=13, column=1, value=reading)
@@ -524,7 +525,7 @@ def excel_plan(d, acciones=None):
     for item in sorted(d.get("agentes", []), key=lambda a: (a["score"] is None, a["score"] if a["score"] is not None else 999, a["nombre"])):
         signals = item["senales"]
         rows.append([item["nombre"], item["score"] if item["con_info"] else None, item["etiqueta"],
-                     signals["crÃ­tica"], signals["alta"], signals["media"], signals["baja"],
+                     signals["crítica"], signals["alta"], signals["media"], signals["baja"],
                      item["n_omisiones"], item["n_preguntas"], item["n_recomendaciones"]])
     hoja(ws3, "Estado por Ã¡rea", "Informe ejecutivo  /  Resumen de anÃ¡lisis",
          ["Ãrea", "Puntaje", "Estado", "CrÃ­ticas", "Altas", "Medias", "Bajas", "Omisiones", "Preguntas", "Recomend."],
@@ -559,6 +560,36 @@ def crear_router(get_supabase):
         if data is None:
             return JSONResponse({"ok": False, "error": "Documento no encontrado"})
         return data
+
+    @router.post("/api/dashboard/{document_id}/responsable")
+    def api_sugerir_responsable(document_id: str, payload: dict = Body(default={})):
+        """Sugiere un cargo o área para una acción real del dashboard, sin inventar nombres de personas."""
+        try:
+            data = dashboard_cacheado(get_supabase(), document_id)
+            if data is None:
+                return JSONResponse({"ok": False, "error": "Documento no encontrado"}, status_code=404)
+            recomendacion_id = str((payload or {}).get("recomendacion_id") or "")
+            recomendacion = next((r for r in data["recomendaciones"] if str(r["id"]) == recomendacion_id), None)
+            if recomendacion is None:
+                return JSONResponse({"ok": False, "error": "La acción ya no está disponible"}, status_code=404)
+            sistema = (
+                "Eres un asistente para gestión de acciones corporativas. Sugiere solo el cargo o área funcional "
+                "que razonablemente debería coordinar esta tarea. No inventes nombres de personas, responsables "
+                "existentes, fechas ni compromisos. Devuelve una recomendación breve de máximo 12 palabras y "
+                "deja claro que debe ser revisada por el usuario."
+            )
+            usuario = (f"Área que detectó el hallazgo: {recomendacion['agente_nombre']}\n"
+                       f"Acción recomendada por el análisis: {recomendacion['texto']}\n"
+                       "Indica un cargo o área sugerida, no el nombre de una persona.")
+            sugerido = str(llamar_llm_chat(sistema, usuario, temperatura=0.1, max_tokens=80) or "").strip()
+            sugerido = sugerido.strip('"\'“”')[:140]
+            if not sugerido:
+                return JSONResponse({"ok": False, "error": "La IA no devolvió una sugerencia"}, status_code=502)
+            return {"ok": True, "responsable_sugerido": sugerido,
+                    "nota": "Es una sugerencia de cargo o área; revísala antes de guardarla."}
+        except Exception as e:
+            print(f"[DASHBOARD] Error sugiriendo responsable: {e}", flush=True)
+            return JSONResponse({"ok": False, "error": "No se pudo generar la sugerencia con IA"}, status_code=502)
 
     @router.post("/api/dashboard/{document_id}/pdf")
     def api_dashboard_pdf(document_id: str, payload: dict = Body(default={})):
