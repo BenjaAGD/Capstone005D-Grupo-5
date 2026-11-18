@@ -14,10 +14,14 @@ services:
     restart: unless-stopped
 
   web:
-    build: ./app
+    build:
+      context: ./app
+      args:
+        SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:?Falta SUPABASE_PUBLIC_URL en .env}
+        SUPABASE_PUBLIC_KEY: ${SUPABASE_PUBLIC_KEY:?Falta SUPABASE_PUBLIC_KEY en .env}
     image: directa-web
     environment:
-      BACKEND_URL: https://directa-backend.onrender.com
+      BACKEND_URL: https://capstone005d-grupo-5.onrender.com
     ports:
       - "8081:80"
     depends_on:

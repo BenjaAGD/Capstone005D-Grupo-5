@@ -20,7 +20,12 @@ RUN flutter pub get
 COPY . .
 # Vacío = la app usa el mismo dominio donde se publica (nginx reenvía /api al backend)
 ARG API_BASE_URL=
-RUN flutter build web --release --dart-define=API_BASE_URL=${API_BASE_URL}
+ARG SUPABASE_PUBLIC_URL
+ARG SUPABASE_PUBLIC_KEY
+RUN flutter build web --release \
+    "--dart-define=API_BASE_URL=${API_BASE_URL}" \
+    "--dart-define=SUPABASE_PUBLIC_URL=${SUPABASE_PUBLIC_URL}" \
+    "--dart-define=SUPABASE_PUBLIC_KEY=${SUPABASE_PUBLIC_KEY}"
 
 # ---- 2) Servir con nginx -----------------------------------------------------
 FROM nginx:1.27-alpine
