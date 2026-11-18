@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/config.dart';
 import '../core/theme.dart';
@@ -61,6 +62,25 @@ class _AjustesScreenState extends State<AjustesScreen> {
     final st = context.watch<AppState>();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const PageHead(title: 'Mi cuenta y ajustes', subtitle: 'Preferencias de DIRECTA para este dispositivo.'),
+      TextButton.icon(
+        onPressed: () async {
+          try {
+            await Supabase.instance.client.auth.signOut();
+          } catch (_) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'No se pudo cerrar sesión. Inténtalo nuevamente.',
+                  ),
+                ),
+              );
+            }
+          }
+        },
+        icon: const Icon(Icons.logout),
+        label: const Text('Cerrar sesión'),
+      ),
       GgCard(
         child: Row(children: [
           CircleAvatar(radius: 23, backgroundColor: c.accentSoft, child: Icon(Icons.person_outline_rounded, color: c.accentText)),
@@ -68,7 +88,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
           const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Gerencia General', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
             SizedBox(height: 3),
-            Text('Perfil local · cuenta de acceso pendiente', style: TextStyle(fontSize: 12)),
+            Text('Cuenta autenticada con Supabase', style: TextStyle(fontSize: 12)),
           ])),
         ]),
       ),

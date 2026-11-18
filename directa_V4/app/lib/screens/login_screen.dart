@@ -1,15 +1,70 @@
 import 'package:flutter/material.dart';
+import 'registro_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'shell.dart';
 
-/// Acceso visual de DIRECTA. La autenticación real queda pendiente de Supabase.
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
-  void _entrarSinLogin(BuildContext context) {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(builder: (_) => const Shell()),
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _correo = TextEditingController();
+  final _clave = TextEditingController();
+  bool _entrando = false;
+
+  @override
+  void dispose() {
+    _correo.dispose();
+    _clave.dispose();
+    super.dispose();
+  }
+
+  void _avisar(String mensaje) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(mensaje)),
     );
+  }
+
+  Future<void> _iniciarSesion() async {
+    if (_entrando) return;
+
+    if (!_correo.text.trim().contains('@') || _clave.text.isEmpty) {
+      _avisar('Escribe tu correo y contraseña.');
+      return;
+    }
+
+    setState(() => _entrando = true);
+
+    try {
+      final respuesta =
+          await Supabase.instance.client.auth.signInWithPassword(
+        email: _correo.text.trim(),
+        password: _clave.text,
+      );
+
+      if (respuesta.session == null) {
+        _avisar('No se pudo iniciar sesión.');
+      } else if (respuesta.user?.emailConfirmedAt == null) {
+        _avisar('Confirma tu correo antes de ingresar.');
+        await Supabase.instance.client.auth.signOut();
+      }
+    } on AuthException catch (e) {
+      _avisar(
+        authErrorMessage(
+          e,
+          fallback:
+              'No se pudo ingresar. Revisa el correo y la contraseña.',
+        ),
+      );
+    } catch (_) {
+      _avisar('No se pudo conectar con Supabase. Inténtalo nuevamente.');
+    } finally {
+      if (mounted) setState(() => _entrando = false);
+    }
   }
 
   @override
@@ -79,37 +134,35 @@ class LoginScreen extends StatelessWidget {
                           child: const Row(children: [
                             Icon(Icons.info_outline, color: Color(0xFF16859A), size: 18),
                             SizedBox(width: 8),
-                            Expanded(child: Text('El acceso real aún no está configurado.', style: TextStyle(color: ink, fontSize: 12.5))),
+                            Expanded(child: Text('Ingresa con tu cuenta de DIRECTA.', style: TextStyle(color: ink, fontSize: 12.5))),
                           ]),
                         ),
                         const SizedBox(height: 18),
                         const Text('Correo electrónico', style: TextStyle(color: ink, fontSize: 12, fontWeight: FontWeight.w600)),
                         const SizedBox(height: 6),
-                        const TextField(
+                        TextField(
+                          controller: _correo,
+                          enabled: !_entrando,
                           keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(hintText: 'Escribe tu correo electrónico', prefixIcon: Icon(Icons.alternate_email, size: 19)),
+                          decoration: const InputDecoration(hintText: 'Escribe tu correo electrónico', prefixIcon: Icon(Icons.alternate_email, size: 19)),
                         ),
                         const SizedBox(height: 14),
                         const Text('Contraseña', style: TextStyle(color: ink, fontSize: 12, fontWeight: FontWeight.w600)),
                         const SizedBox(height: 6),
-                        const TextField(
+                        TextField(
+                          controller: _clave,
+                          enabled: !_entrando,
+                          onSubmitted: (_) => _iniciarSesion(),
                           obscureText: true,
-                          decoration: InputDecoration(hintText: 'Escribe tu contraseña', prefixIcon: Icon(Icons.lock_outline, size: 19)),
-                        ),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: null,
-                            child: Text('Olvidé mi contraseña', style: TextStyle(color: muted, fontSize: 12)),
-                          ),
+                          decoration: const InputDecoration(hintText: 'Escribe tu contraseña', prefixIcon: Icon(Icons.lock_outline, size: 19)),
                         ),
                         const SizedBox(height: 4),
                         SizedBox(
                           width: double.infinity,
                           child: FilledButton.icon(
-                            onPressed: () => _entrarSinLogin(context),
+                            onPressed: _entrando ? null : _iniciarSesion,
                             icon: const Icon(Icons.arrow_forward, size: 18),
-                            label: const Text('Entrar en modo de prueba'),
+                            label: Text(_entrando ? 'Verificando…' : 'Iniciar sesión'),
                             style: FilledButton.styleFrom(
                               backgroundColor: cyan,
                               foregroundColor: const Color(0xFF062B31),
@@ -119,24 +172,36 @@ class LoginScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 9),
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton(
-                            onPressed: null,
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              side: const BorderSide(color: line),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            ),
-                            child: const Text('Iniciar sesión · pendiente de Supabase'),
+                        TextButton(
+                          onPressed: _entrando
+                              ? null
+                              : () => Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) => const RegistroScreen(),
+                                    ),
+                                  ),
+                          child: const Text('¿No tienes cuenta? Regístrate'),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: _entrando
+                                ? null
+                                : () => Navigator.of(context).push(
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => RecuperarClaveScreen(
+                                          correo: _correo.text.trim(),
+                                        ),
+                                      ),
+                                    ),
+                            child: const Text('¿Olvidaste tu contraseña?'),
                           ),
                         ),
                         const Divider(height: 26, color: line),
                         const Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Icon(Icons.science_outlined, size: 16, color: muted),
+                          Icon(Icons.verified_user_outlined, size: 16, color: muted),
                           SizedBox(width: 8),
-                          Expanded(child: Text('En modo de prueba no se valida identidad. El acceso real estará disponible cuando Supabase esté conectado.',
+                          Expanded(child: Text('Utiliza el correo y la contraseña de tu cuenta de Supabase Auth.',
                               style: TextStyle(color: muted, fontSize: 11.5, height: 1.4))),
                         ]),
                       ]),

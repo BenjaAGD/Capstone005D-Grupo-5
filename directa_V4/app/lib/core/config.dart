@@ -9,9 +9,7 @@ class Config {
 
   static String apiPorDefecto() {
     if (_definida.isNotEmpty) return _definida;
-    // En la versión web servida por Docker (nginx), /api va al backend en el mismo dominio.
-    if (kIsWeb) return Uri.base.origin;
-    // En Android/iOS, conecta al servicio publicado sin pedir que ingresen la URL.
-    return _servidorDirecta;
+
+    return 'https://capstone005d-grupo-5.onrender.com';
   }
 }
