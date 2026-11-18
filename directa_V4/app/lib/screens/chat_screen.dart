@@ -24,6 +24,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final _input = TextEditingController();
+  final _inputFocus = FocusNode();
   final _scroll = ScrollController();
   final Map<String, String> _tab = {};
   bool _modoGuia = true;
@@ -40,6 +41,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     _input.dispose();
+    _inputFocus.dispose();
     _scroll.dispose();
     super.dispose();
   }
@@ -48,6 +50,19 @@ class _ChatScreenState extends State<ChatScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scroll.hasClients) _scroll.jumpTo(_scroll.position.maxScrollExtent);
     });
+  }
+
+  void _usarPreguntaEnChat(AppState st) {
+    final pregunta = _temasGuia[st.guiaTemaSeleccionado].pregunta;
+    setState(() => _modoGuia = false);
+    _input.value = TextEditingValue(
+      text: pregunta,
+      selection: TextSelection.collapsed(offset: pregunta.length),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _inputFocus.requestFocus();
+    });
+    st.toast('Pregunta lista para revisar y enviar');
   }
 
   Future<void> _enviar(AppState st) async {
@@ -211,6 +226,22 @@ class _ChatScreenState extends State<ChatScreen> {
           Text('Respuesta registrada: ${respuestas[seleccion]}',
               maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: c.text3)),
         ],
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: st.docActivo == null ? null : () => _usarPreguntaEnChat(st),
+            icon: const Icon(Icons.chat_bubble_outline, size: 18),
+            label: const Text('Usar pregunta en el chat'),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          st.docActivo == null
+              ? 'Selecciona un documento para consultar esta pregunta.'
+              : 'Se copiará al chat para que puedas revisarla antes de enviarla.',
+          style: TextStyle(fontSize: 11, color: c.text3, height: 1.35),
+        ),
         if (completados.length == 5) ...[
           const SizedBox(height: 7),
           Align(
@@ -285,6 +316,10 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ]),
       ),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+        child: _selectorModo(st),
+      ),
       Expanded(
         child: ListView(
           controller: _scroll,
@@ -318,6 +353,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ])),
                 ]),
               ),
+            if (_modoGuia) _panelGuia(st),
             for (final m in st.mensajes) m.rol == 'me' ? _Mio(m.texto) : _burbujaIA(context, st, m),
           ],
         ),
@@ -328,15 +364,11 @@ class _ChatScreenState extends State<ChatScreen> {
         child: SafeArea(
           top: false,
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            _selectorModo(st),
-            if (_modoGuia) ...[
-              const SizedBox(height: 7),
-              _panelGuia(st),
-            ],
             Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
               Expanded(
                 child: TextField(
                   controller: _input,
+                  focusNode: _inputFocus,
                   enabled: (doc != null || _modoGuia) && !st.consultando,
                   minLines: 1,
                   maxLines: 4,
@@ -369,6 +401,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final c = context.c;
     final enInforme = st.chatEnInforme(m.id);
     final tieneFuentes = m.fuentes.isNotEmpty && !m.streaming;
+    final paginas = m.fuentes.map((f) => '${f['pagina'] ?? '?'}').toSet().join(', ');
     final tab = _tab[m.id] ?? 'respuesta';
     Widget cuerpo;
     if (tab == 'fuentes' && tieneFuentes) {
@@ -417,6 +450,34 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
           const SizedBox(height: 8),
           cuerpo,
+          if (tieneFuentes && tab != 'fuentes') ...[
+            const SizedBox(height: 9),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+              decoration: BoxDecoration(
+                color: c.surface2,
+                borderRadius: BorderRadius.circular(9),
+                border: Border.all(color: c.border),
+              ),
+              child: Row(children: [
+                Icon(Icons.description_outlined, size: 16, color: c.accentText),
+                const SizedBox(width: 7),
+                Expanded(
+                  child: Text(
+                    'Fuente del documento · pág. $paginas',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 11.5, color: c.text2),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => setState(() => _tab[m.id] = 'fuentes'),
+                  style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 6), visualDensity: VisualDensity.compact),
+                  child: const Text('Ver citas', style: TextStyle(fontSize: 11.5)),
+                ),
+              ]),
+            ),
+          ],
           if (!m.streaming && !m.error) ...[
             const SizedBox(height: 8),
             Wrap(spacing: 12, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [

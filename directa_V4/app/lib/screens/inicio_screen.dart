@@ -176,6 +176,12 @@ class InicioScreen extends StatelessWidget {
                 icon: const Icon(Icons.folder_open_outlined, size: 17),
                 label: const Text('Ver documentos'),
               ),
+              if (!procesando && (doc['analisis_count'] ?? 0) < st.totalAgentes)
+                TextButton.icon(
+                  onPressed: () => st.go('diagnosticos'),
+                  icon: const Icon(Icons.info_outline, size: 17),
+                  label: const Text('Ver detalle de agentes'),
+                ),
             ]),
           ]),
         ),

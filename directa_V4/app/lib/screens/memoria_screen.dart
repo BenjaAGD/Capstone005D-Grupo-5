@@ -140,14 +140,19 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
           Text('La memoria reúne la gestión, los resultados y la información de la empresa durante el año. DIRECTA te ayuda a ordenar la evidencia y preparar un borrador revisable.',
               style: TextStyle(fontSize: 13, height: 1.45, color: context.c.text2)),
           const SizedBox(height: 14),
-          GridCols(cols: 3, minItemWidth: 175, children: [
-            _opcionMemoria('borrador', Icons.auto_awesome_outlined, 'Crear memoria',
-                'Elige el año y genera un borrador con la información disponible.', 'Comenzar'),
-            _opcionMemoria('capitulos', Icons.fact_check_outlined, 'Revisar avance',
-                'Revisa capítulos, evidencia encontrada y datos que faltan.', 'Ver capítulos'),
-            _opcionMemoria('tono', Icons.tune_outlined, 'Personalizar estilo',
-                'Ajusta el tono de redacción para que sea coherente con la empresa.', 'Configurar tono'),
-          ]),
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: context.c.surface2,
+              border: Border.all(color: context.c.border),
+              borderRadius: BorderRadius.circular(13),
+            ),
+            child: Row(children: [
+              _opcionMemoria('borrador', Icons.auto_awesome_outlined, 'Crear memoria'),
+              _opcionMemoria('capitulos', Icons.fact_check_outlined, 'Revisar avance'),
+              _opcionMemoria('tono', Icons.tune_outlined, 'Personalizar estilo'),
+            ]),
+          ),
         ]),
       ),
       const SizedBox(height: 12),
@@ -157,29 +162,34 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
     ]);
   }
 
-  Widget _opcionMemoria(String id, IconData icono, String titulo, String detalle, String accion) {
+  Widget _opcionMemoria(String id, IconData icono, String titulo) {
     final c = context.c;
     final activa = pestana == id;
-    return Material(
-      color: activa ? c.accentSoft : c.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: activa ? Brand.accent : c.border),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => setState(() => pestana = id),
-        child: Padding(
-          padding: const EdgeInsets.all(13),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Icon(icono, color: Brand.accent, size: 22),
-            const SizedBox(height: 9),
-            Text(titulo, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: c.text)),
-            const SizedBox(height: 5),
-            Text(detalle, style: TextStyle(fontSize: 12, height: 1.35, color: c.text2)),
-            const SizedBox(height: 8),
-            Text(accion, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Brand.accent)),
-          ]),
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2),
+        child: Material(
+          color: activa ? c.accentSoft : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => setState(() => pestana = id),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 9),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Icon(icono, color: activa ? Brand.accent : c.text2, size: 18),
+                const SizedBox(height: 4),
+                Text(
+                  titulo,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 10.5, height: 1.15, fontWeight: FontWeight.w700,
+                      color: activa ? c.accentText : c.text2),
+                ),
+              ]),
+            ),
+          ),
         ),
       ),
     );
@@ -200,7 +210,7 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
         controlAffinity: ListTileControlAffinity.leading,
         value: soloMarcados,
         onChanged: (v) => setState(() => soloMarcados = v ?? true),
-        title: Text('En el PDF, solo los temas que marqué', style: TextStyle(fontSize: 13, color: c.text2)),
+        title: Text('En el PDF, solo los temas que marqué como revisados', style: TextStyle(fontSize: 13, color: c.text2)),
       ),
       GgSelect<String>(
         label: 'Buscar evidencia en',
@@ -210,6 +220,17 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
           setState(() => fuente = v);
           _cargar();
         },
+      ),
+      Padding(
+        padding: const EdgeInsets.only(top: 2, bottom: 10),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Icon(Icons.info_outline, size: 16, color: c.text3),
+          const SizedBox(width: 7),
+          Expanded(child: Text(
+            'La casilla marca que revisaste el tema. La evidencia se calcula aparte a partir de los documentos.',
+            style: TextStyle(fontSize: 11.5, height: 1.35, color: c.text3),
+          )),
+        ]),
       ),
       const SizedBox(height: 12),
     ];
@@ -343,6 +364,17 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
           Text('${x['descripcion']}', style: TextStyle(fontSize: 12.8, color: c.text2)),
           const SizedBox(height: 12),
           const SecTitle('Temas que pide la norma'),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Icon(Icons.info_outline, size: 16, color: c.text3),
+              const SizedBox(width: 7),
+              Expanded(child: Text(
+                'Marca cada casilla cuando hayas revisado ese tema. El nivel de evidencia se muestra por separado.',
+                style: TextStyle(fontSize: 11.5, height: 1.35, color: c.text3),
+              )),
+            ]),
+          ),
           for (var i = 0; i < temas.length; i++) _tema(context, temas[i], m, unico, i == temas.length - 1),
         ]),
       ),
@@ -440,12 +472,15 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
       padding: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(border: ultimo ? null : Border(bottom: BorderSide(color: c.border))),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Checkbox(
-          value: rev['${t['id']}'] == true,
-          onChanged: (v) {
-            setState(() => v == true ? rev['${t['id']}'] = true : rev.remove('${t['id']}'));
-            _save();
-          },
+        Tooltip(
+          message: 'Marcar como revisado por mí',
+          child: Checkbox(
+            value: rev['${t['id']}'] == true,
+            onChanged: (v) {
+              setState(() => v == true ? rev['${t['id']}'] = true : rev.remove('${t['id']}'));
+              _save();
+            },
+          ),
         ),
         Expanded(
           child: Padding(
@@ -453,6 +488,21 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
                 Text('${t['nombre']}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: (rev['${t['id']}'] == true ? c.low : c.text3).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(rev['${t['id']}'] == true ? Icons.check_circle_outline : Icons.radio_button_unchecked,
+                        size: 12, color: rev['${t['id']}'] == true ? c.low : c.text3),
+                    const SizedBox(width: 4),
+                    Text(rev['${t['id']}'] == true ? 'Revisado por mí' : 'Sin revisar',
+                        style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600,
+                            color: rev['${t['id']}'] == true ? c.low : c.text3)),
+                  ]),
+                ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(color: col.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(20)),

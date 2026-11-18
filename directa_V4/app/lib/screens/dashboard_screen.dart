@@ -26,6 +26,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool cargando = false;
   String? error;
   String? _doc;
+  int _tab = 0;
   String orden = 'puntaje';
   String? filtroSev;
   String filtroAg = '';
@@ -33,12 +34,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String accEstado = '', accAg = '';
   late Map<String, dynamic> acciones;
   String cmpId = '';
+  final _competidor = TextEditingController();
   Map<String, dynamic>? cmp;
   bool cmpCargando = false, pdfCargando = false, excelCargando = false, cmpPdfCargando = false;
   String? cmpError;
   final _kSenales = GlobalKey();
 
   AppState get st => context.read<AppState>();
+
+  @override
+  void dispose() {
+    _competidor.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -52,6 +60,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final d = context.watch<AppState>().docActivo;
     if (d != _doc) {
       _doc = d;
+      _tab = 0;
       filtroSev = null;
       filtroAg = '';
       verTodasSen = false;
@@ -84,11 +93,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Map<String, dynamic> accDe(String id) =>
       Map<String, dynamic>.from(acciones[id] as Map? ?? {'estado': 'pendiente', 'responsable': '', 'fecha': ''});
 
-  void _setAcc(String id, String campo, String valor) {
-    final a = accDe(id)..[campo] = valor;
+  void _guardarAccion(String id, Map<String, String> cambios) {
+    final a = accDe(id)..addAll(cambios);
     acciones[id] = a;
     st.store.setJson(Store.kAcciones, acciones);
+    st.toast('Cambios guardados en este teléfono');
     setState(() {});
+  }
+
+  Future<String?> _sugerirResponsable(Map<String, dynamic> recomendacion) async {
+    try {
+      final r = await st.api.postJson('/api/dashboard/${Uri.encodeComponent(_doc!)}/responsable',
+          {'recomendacion_id': '${recomendacion['id']}'});
+      if (r['ok'] != true) throw Exception(r['error'] ?? 'No se pudo generar la sugerencia');
+      return '${r['responsable_sugerido'] ?? ''}'.trim();
+    } catch (e) {
+      st.toast('No se pudo sugerir un responsable: $e', err: true);
+      return null;
+    }
   }
 
   String _base() {
@@ -126,10 +148,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (mounted) setState(() => cmpCargando = false);
   }
 
-  void _irASenales() => WidgetsBinding.instance.addPostFrameCallback((_) {
+  void _irASenales() {
+    setState(() => _tab = 1);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
         final ctx = _kSenales.currentContext;
         if (ctx != null) Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 350));
       });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -166,12 +191,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final d = data!;
       cuerpo = [
         Opacity(opacity: cargando ? 0.55 : 1, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          _hero(context, d),
-          _graficos(context, d),
-          _semaforo(context, d),
-          _senales(context, d),
-          _plan(context, d),
-          _comparar_(context, d),
+          _pestanasDashboard(context),
+          const SizedBox(height: 12),
+          if (_tab == 0) ...[_hero(context, d), _graficos(context, d)]
+          else if (_tab == 1) ...[_semaforo(context, d), _senales(context, d)]
+          else if (_tab == 2) _plan(context, d)
+          else _comparar_(context, d),
         ])),
       ];
     }
@@ -184,6 +209,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ...cuerpo,
     ]);
+  }
+
+  Widget _pestanasDashboard(BuildContext context) {
+    final c = context.c;
+    const tabs = ['Resumen', 'Señales', 'Plan de acción', 'Comparar', 'Competencia'];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(children: [
+        for (var i = 0; i < tabs.length; i++) ...[
+          if (i > 0) const SizedBox(width: 7),
+          ChipBtn(tabs[i], on: _tab == i, onTap: () => setState(() => _tab = i)),
+        ],
+      ]),
+    );
   }
 
   Widget _demoDashboard(BuildContext context) {
@@ -284,41 +323,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final c = context.c;
     final sen = Map<String, dynamic>.from((d['resumen'] as Map)['senales'] as Map);
     final tot = severidades.fold<int>(0, (s, k) => s + ((sen[k] as num?)?.toInt() ?? 0));
+    final maxSen = math.max(1, severidades.fold<int>(0, (m, k) => math.max(m, (sen[k] as num?)?.toInt() ?? 0)));
     final ags = [for (final a in d['agentes'] as List) if (a['con_info'] == true && a['score'] != null) a]
       ..sort((a, b) => (a['score'] as num).compareTo(b['score'] as num));
+    final maxActividad = math.max(
+      (d['omisiones'] as List? ?? const []).length,
+      math.max((d['preguntas'] as List? ?? const []).length, (d['recomendaciones'] as List? ?? const []).length),
+    );
     return GridCols(cols: 2, minItemWidth: 300, children: [
       GgCard(
         margin: EdgeInsets.zero,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const SecTitle('Alertas por gravedad'),
-          Row(children: [
-            SizedBox(
-              width: 120,
-              height: 120,
-              child: CustomPaint(
-                painter: _Donut([for (final k in severidades) ((sen[k] as num?)?.toDouble() ?? 0, sevColor(context, k))], c.border2),
-                child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  Text('$tot', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
-                  Text('alertas', style: TextStyle(fontSize: 10, color: c.text3)),
-                ])),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                for (final k in severidades)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 3),
-                    child: Row(children: [
-                      Container(width: 10, height: 10, decoration: BoxDecoration(color: sevColor(context, k), borderRadius: BorderRadius.circular(3))),
-                      const SizedBox(width: 8),
-                      Text('${sevLabel(k)}: ', style: TextStyle(fontSize: 12.5, color: c.text2)),
-                      Text('${sen[k] ?? 0}', style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
-                    ]),
-                  ),
-              ]),
-            ),
-          ]),
+          Text('$tot señales en el análisis', style: TextStyle(fontSize: 12, color: c.text3)),
+          const SizedBox(height: 10),
+          for (final k in severidades)
+            Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Row(children: [
+              SizedBox(width: 82, child: Text(sevLabel(k), style: TextStyle(fontSize: 12, color: c.text2))),
+              Expanded(child: GgBar(value: ((sen[k] as num?)?.toInt() ?? 0) / maxSen, color: sevColor(context, k), height: 10)),
+              SizedBox(width: 30, child: Text('${sen[k] ?? 0}', textAlign: TextAlign.right,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
+            ])),
         ]),
       ),
       GgCard(
@@ -335,6 +360,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 SizedBox(width: 30, child: Text('${a['score']}', textAlign: TextAlign.right, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
               ]),
             ),
+        ]),
+      ),
+      GgCard(
+        margin: EdgeInsets.zero,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const SecTitle('Distribución de puntajes'),
+          Text('Agentes con información sustantiva por tramo', style: TextStyle(fontSize: 12, color: c.text3)),
+          const SizedBox(height: 10),
+          for (final tramo in [
+            ('0–39', 0, 39, c.crit),
+            ('40–54', 40, 54, c.high),
+            ('55–74', 55, 74, c.med),
+            ('75–89', 75, 89, c.accentText),
+            ('90–100', 90, 100, c.low),
+          ])
+            Builder(builder: (context) {
+              final n = ags.where((a) => (a['score'] as num).toInt() >= tramo.$2 && (a['score'] as num).toInt() <= tramo.$3).length;
+              return Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Row(children: [
+                SizedBox(width: 58, child: Text(tramo.$1, style: TextStyle(fontSize: 11.5, color: c.text2))),
+                Expanded(child: GgBar(value: n / math.max(1, ags.length), color: tramo.$4, height: 9)),
+                SizedBox(width: 25, child: Text('$n', textAlign: TextAlign.right, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
+              ]));
+            }),
+        ]),
+      ),
+      GgCard(
+        margin: EdgeInsets.zero,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const SecTitle('Trabajo generado por los agentes'),
+          Text('Volumen detectado en el documento', style: TextStyle(fontSize: 12, color: c.text3)),
+          const SizedBox(height: 10),
+          for (final item in [
+            ('Omisiones', (d['omisiones'] as List? ?? const []).length, c.accentText),
+            ('Preguntas', (d['preguntas'] as List? ?? const []).length, c.med),
+            ('Recomendaciones', (d['recomendaciones'] as List? ?? const []).length, c.low),
+          ])
+            Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Row(children: [
+              SizedBox(width: 100, child: Text(item.$1, style: TextStyle(fontSize: 12, color: c.text2))),
+              Expanded(child: GgBar(value: item.$2 / math.max(1, maxActividad), color: item.$3, height: 10)),
+              SizedBox(width: 30, child: Text('${item.$2}', textAlign: TextAlign.right, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
+            ])),
         ]),
       ),
     ]);
@@ -537,7 +603,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onChanged: (v) => setState(() => accAg = v)),
           const SizedBox(height: 10),
           if (vis.isEmpty) const EmptyState(icon: Icons.filter_alt_off, title: 'No hay tareas con estos filtros.'),
-          for (final r in vis) _Tarea(r: r, acc: accDe('${r['id']}'), onSet: (f, v) => _setAcc('${r['id']}', f, v)),
+          for (final r in vis) _Tarea(
+            key: ValueKey('${r['id']}'),
+            r: r,
+            acc: accDe('${r['id']}'),
+            onSave: (draft) => _guardarAccion('${r['id']}', draft),
+            onSuggest: () => _sugerirResponsable(r),
+          ),
           if (lista.length > 12)
             GgButton(verTodasAcc ? 'Mostrar menos' : 'Mostrar las ${lista.length} tareas', ghost: true, small: true,
                 onTap: () => setState(() => verTodasAcc = !verTodasAcc)),
@@ -552,8 +624,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final otros = app.documentos.where((x) => x['id'] != _doc && ((x['analisis_count'] as num?) ?? 0) > 0).toList();
     final hijos = <Widget>[
       const SizedBox(height: 18),
-      const Text('Comparar con otro documento', style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700)),
+      Text(_tab == 4 ? 'Comparación de competencia' : 'Comparar con otro documento', style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700)),
       const SizedBox(height: 3),
+      if (_tab == 4) ...[
+        Text('Selecciona un documento cargado que represente a la empresa competidora. La comparación usa solo documentos de tu espacio; no consulta fuentes externas.', style: TextStyle(fontSize: 12.3, color: c.text2)),
+        const SizedBox(height: 8),
+        TextField(controller: _competidor, decoration: const InputDecoration(labelText: 'Nombre de la empresa competidora', prefixIcon: Icon(Icons.business_outlined))),
+        const SizedBox(height: 8),
+      ],
     ];
     if (otros.isEmpty) {
       hijos.add(Text('Cuando tengas un segundo documento analizado (por ejemplo, el trimestre anterior) podrás ver aquí cómo cambió cada agente.',
@@ -561,9 +639,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: hijos);
     }
     hijos.addAll([
-      Text('Elige el documento anterior; se compara contra el que estás viendo.', style: TextStyle(fontSize: 12.3, color: c.text2)),
+      Text(_tab == 4 ? 'Elige el documento de la empresa competidora; se compara con el documento activo. Los resultados son referenciales y dependen del contenido cargado.' : 'Elige el documento anterior; se compara contra el que estás viendo.', style: TextStyle(fontSize: 12.3, color: c.text2)),
       const SizedBox(height: 10),
-      GgSelect<String>(label: 'Documento anterior', value: cmpId, items: [('', 'Elegir…'), for (final o in otros) ('${o['id']}', nombreDoc(o))],
+      GgSelect<String>(label: _tab == 4 ? 'Documento de la empresa competidora' : 'Documento anterior', value: cmpId, items: [('', 'Elegir…'), for (final o in otros) ('${o['id']}', nombreDoc(o))],
           onChanged: _comparar),
       const SizedBox(height: 10),
     ]);
@@ -594,6 +672,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ]);
       hijos.add(GgCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          if (_tab == 4) Padding(padding: const EdgeInsets.only(bottom: 10), child: Text('Comparación basada en el documento cargado “${nombreDoc(x['a'] as Map?)}” y el documento activo. No representa investigación de mercado externa.', style: TextStyle(fontSize: 11.5, color: c.text3))),
           Align(
             alignment: Alignment.centerRight,
             child: GgButton('Descargar comparación (PDF)', icon: Icons.picture_as_pdf_outlined, small: true, loading: cmpPdfCargando,
@@ -602,7 +681,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 10),
           Wrap(spacing: 18, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
-            _bloqueCmp(context, 'Antes', g['a'], nombreDoc(x['a'] as Map?)),
+            _bloqueCmp(context, _tab == 4 ? (_competidor.text.trim().isEmpty ? 'Competidor' : _competidor.text.trim()) : 'Antes', g['a'], nombreDoc(x['a'] as Map?)),
             Text('→', style: TextStyle(fontSize: 24, color: c.text3)),
             _bloqueCmp(context, 'Ahora', g['b'], nombreDoc(x['b'] as Map?)),
             delta(g['delta'], size: 20),
@@ -646,29 +725,86 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ]);
 }
 
-class _Tarea extends StatelessWidget {
-  const _Tarea({required this.r, required this.acc, required this.onSet});
+class _Tarea extends StatefulWidget {
+  const _Tarea({super.key, required this.r, required this.acc, required this.onSave, required this.onSuggest});
   final Map<String, dynamic> r, acc;
-  final void Function(String campo, String valor) onSet;
+  final void Function(Map<String, String> cambios) onSave;
+  final Future<String?> Function() onSuggest;
+
+  @override
+  State<_Tarea> createState() => _TareaState();
+}
+
+class _TareaState extends State<_Tarea> {
+  late final TextEditingController _responsable;
+  late String _fecha;
+  late String _estado;
+  bool _dirty = false;
+  bool _guardado = false;
+  bool _sugiriendo = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _responsable = TextEditingController(text: '${widget.acc['responsable'] ?? ''}');
+    _fecha = '${widget.acc['fecha'] ?? ''}';
+    _estado = '${widget.acc['estado'] ?? 'pendiente'}';
+  }
+
+  @override
+  void didUpdateWidget(covariant _Tarea oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_dirty && oldWidget.acc != widget.acc) {
+      _responsable.text = '${widget.acc['responsable'] ?? ''}';
+      _fecha = '${widget.acc['fecha'] ?? ''}';
+      _estado = '${widget.acc['estado'] ?? 'pendiente'}';
+    }
+  }
+
+  @override
+  void dispose() {
+    _responsable.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pedirSugerencia() async {
+    setState(() => _sugiriendo = true);
+    final sugerido = await widget.onSuggest();
+    if (!mounted) return;
+    setState(() {
+      _sugiriendo = false;
+      if (sugerido != null && sugerido.isNotEmpty) {
+        _responsable.text = sugerido;
+        _dirty = true;
+        _guardado = false;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = context.c;
-    final hecho = acc['estado'] == 'hecho';
+    final hecho = _estado == 'hecho';
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(color: c.surface2, borderRadius: BorderRadius.circular(10), border: Border.all(color: c.border)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('${r['agente_nombre']}', style: TextStyle(fontSize: 11.5, color: c.accentText, fontWeight: FontWeight.w700)),
+        Text('${widget.r['agente_nombre']}', style: TextStyle(fontSize: 11.5, color: c.accentText, fontWeight: FontWeight.w700)),
         const SizedBox(height: 3),
-        Text('${r['texto']}', style: TextStyle(fontSize: 13, decoration: hecho ? TextDecoration.lineThrough : null, color: hecho ? c.text3 : c.text)),
+        Text('${widget.r['texto']}', style: TextStyle(fontSize: 13, decoration: hecho ? TextDecoration.lineThrough : null, color: hecho ? c.text3 : c.text)),
         const SizedBox(height: 10),
         TextFormField(
-          initialValue: '${acc['responsable'] ?? ''}',
+          controller: _responsable,
           decoration: const InputDecoration(labelText: 'Responsable'),
-          onChanged: (v) => onSet('responsable', v),
+          onChanged: (_) => setState(() { _dirty = true; _guardado = false; }),
         ),
+        const SizedBox(height: 5),
+        GgButton(_sugiriendo ? 'Buscando sugerencia…' : 'Sugerir responsable con IA',
+          icon: Icons.auto_awesome, small: true, ghost: true, loading: _sugiriendo,
+          onTap: _sugiriendo ? null : _pedirSugerencia),
+        if (_dirty) Padding(padding: const EdgeInsets.only(top: 5), child: Text(
+          'Revisa el responsable y guarda los cambios.', style: TextStyle(fontSize: 11, color: c.text3))),
         const SizedBox(height: 8),
         Row(children: [
           Expanded(
@@ -676,52 +812,37 @@ class _Tarea extends StatelessWidget {
               style: OutlinedButton.styleFrom(foregroundColor: c.text, side: BorderSide(color: c.border2),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), padding: const EdgeInsets.symmetric(vertical: 13)),
               onPressed: () async {
-                final ini = DateTime.tryParse('${acc['fecha'] ?? ''}') ?? DateTime.now();
+                final ini = DateTime.tryParse(_fecha) ?? DateTime.now();
                 final f = await showDatePicker(context: context, initialDate: ini, firstDate: DateTime(2020), lastDate: DateTime(2035));
-                if (f != null) onSet('fecha', f.toIso8601String().substring(0, 10));
+                if (f != null) setState(() {
+                  _fecha = f.toIso8601String().substring(0, 10);
+                  _dirty = true;
+                  _guardado = false;
+                });
               },
               icon: const Icon(Icons.event, size: 16),
-              label: Text('${acc['fecha'] ?? ''}'.isEmpty ? 'Fecha límite' : '${acc['fecha']}', style: const TextStyle(fontSize: 12.5)),
+              label: Text(_fecha.isEmpty ? 'Fecha límite' : _fecha, style: const TextStyle(fontSize: 12.5)),
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: GgSelect<String>(label: 'Estado', value: '${acc['estado'] ?? 'pendiente'}', items: estadosPlan,
-                onChanged: (v) => onSet('estado', v)),
+            child: GgSelect<String>(label: 'Estado', value: _estado, items: estadosPlan,
+                onChanged: (v) => setState(() { _estado = v; _dirty = true; _guardado = false; })),
           ),
         ]),
+        const SizedBox(height: 10),
+        GgButton('Guardar cambios', icon: Icons.save_outlined, expand: true, onTap: _dirty ? () {
+          widget.onSave({'responsable': _responsable.text.trim(), 'fecha': _fecha, 'estado': _estado});
+          setState(() { _dirty = false; _guardado = true; });
+        } : null),
+        if (_guardado) Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [
+          Icon(Icons.check_circle_outline, size: 16, color: c.low),
+          const SizedBox(width: 6),
+          Text('Guardado en este teléfono', style: TextStyle(fontSize: 11.5, color: c.low)),
+        ])),
       ]),
     );
   }
-}
-
-class _Donut extends CustomPainter {
-  _Donut(this.valores, this.vacio);
-  final List<(double, Color)> valores;
-  final Color vacio;
-  @override
-  void paint(Canvas canvas, Size size) {
-    final tot = valores.fold<double>(0, (s, v) => s + v.$1);
-    final r = size.width / 2 - 12;
-    final rect = Rect.fromCircle(center: size.center(Offset.zero), radius: r);
-    final p = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 20;
-    if (tot == 0) {
-      canvas.drawCircle(size.center(Offset.zero), r, p..color = vacio);
-      return;
-    }
-    var ini = -math.pi / 2;
-    for (final (v, col) in valores) {
-      if (v <= 0) continue;
-      final ang = 2 * math.pi * v / tot;
-      canvas.drawArc(rect, ini, ang, false, p..color = col);
-      ini += ang;
-    }
-  }
-
-  @override
-  bool shouldRepaint(_Donut o) => true;
 }
 
 class _Dumbbell extends StatelessWidget {

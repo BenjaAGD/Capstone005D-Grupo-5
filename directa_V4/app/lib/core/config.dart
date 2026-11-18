@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 class Config {
   Config._();
   static const _definida = String.fromEnvironment('API_BASE_URL');
+  static const _servidorDirecta = 'https://capstone005d-grupo-5.onrender.com';
 
   static String apiPorDefecto() {
     if (_definida.isNotEmpty) return _definida;

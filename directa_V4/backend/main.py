@@ -118,6 +118,7 @@ for _carpeta in ("css", "js"):
         app.mount(f"/{_carpeta}", StaticFiles(directory=os.path.join(_WEB, _carpeta)), name=_carpeta)
 
 progreso_documentos = {}
+diagnosticos_en_memoria = {}
 jobs_analisis = {}
 
 CHUNKS_POR_AGENTE = 12
@@ -1164,10 +1165,26 @@ def _verificar_senales_grupo(resultados, chunks):
     return resumen
 
 
-def ejecutar_analisis_completo(document_id, on_progreso=None):
+def ejecutar_analisis_completo(document_id, on_progreso=None, solo_reintentables=False):
     memoria = {}
     completados = 0
     total = len(TODOS_LOS_AGENTES)
+    existentes_diag = _leer_diagnosticos(document_id)
+    analisis_previos = _obtener_todos_los_analisis(document_id)
+    _actualizar_diagnosticos(document_id, [
+        {
+            "document_id": document_id,
+            "agente": key,
+            "estado": "listo" if _analisis_valido(analisis_previos.get(key)) else (
+                "sin_evidencia" if solo_reintentables and (existentes_diag.get(key) or {}).get("estado") == "sin_evidencia" else "pendiente"),
+            "codigo_error": (existentes_diag.get(key) or {}).get("codigo_error") if solo_reintentables and (existentes_diag.get(key) or {}).get("estado") == "sin_evidencia" else None,
+            "mensaje": (existentes_diag.get(key) or {}).get("mensaje") if solo_reintentables and (existentes_diag.get(key) or {}).get("estado") == "sin_evidencia" else None,
+            "intentos": int((existentes_diag.get(key) or {}).get("intentos", 0)) + (
+                0 if _analisis_valido(analisis_previos.get(key)) or (solo_reintentables and (existentes_diag.get(key) or {}).get("estado") == "sin_evidencia") else 1),
+            "reintentable": False if _analisis_valido(analisis_previos.get(key)) or (solo_reintentables and (existentes_diag.get(key) or {}).get("estado") == "sin_evidencia") else True,
+        }
+        for key in TODOS_LOS_AGENTES
+    ])
     for i, grupo in enumerate(GRUPOS_ANALISIS):
         agentes_a_analizar = []
         for key in grupo["agentes"]:
@@ -1175,6 +1192,8 @@ def ejecutar_analisis_completo(document_id, on_progreso=None):
             if _analisis_valido(existente):
                 memoria[key] = existente
                 completados += 1
+            elif solo_reintentables and (existentes_diag.get(key) or {}).get("estado") == "sin_evidencia":
+                continue
             else:
                 agentes_a_analizar.append(key)
         if not agentes_a_analizar:
@@ -1186,13 +1205,86 @@ def ejecutar_analisis_completo(document_id, on_progreso=None):
         for key, r in resultados.items():
             memoria[key] = r
             completados += 1
+            _actualizar_diagnosticos(document_id, [{
+                "document_id": document_id, "agente": key, "estado": "listo",
+                "codigo_error": None, "mensaje": None, "reintentable": False,
+            }])
             print(f"[ANALISIS] {key} OK (score {r.get('score')})", flush=True)
         if error:
             print(f"[ANALISIS] {grupo['nombre']}: {error}", flush=True)
+        pendientes = [key for key in agentes_a_analizar if key not in resultados]
+        if pendientes:
+            codigo, mensaje, reintentable = _clasificar_error_agente(error)
+            estado = "sin_evidencia" if codigo == "SIN_FRAGMENTOS" else "error"
+            _actualizar_diagnosticos(document_id, [{
+                "document_id": document_id, "agente": key, "estado": estado,
+                "codigo_error": codigo, "mensaje": mensaje, "reintentable": reintentable,
+            } for key in pendientes])
         if on_progreso: on_progreso(completados, total)
         if i < len(GRUPOS_ANALISIS) - 1:
             time.sleep(PAUSA_ENTRE_GRUPOS)
     return completados, total
+
+
+def _clasificar_error_agente(error):
+    """Convierte errores internos en códigos y mensajes breves aptos para mostrar en la app."""
+    texto = str(error or "").lower()
+    if "sin fragmentos" in texto or "no se encontraron fragmentos" in texto:
+        return "SIN_FRAGMENTOS", "No se encontraron fragmentos disponibles para este agente en el documento.", False
+    if any(x in texto for x in ("429", "rate limit", "too many requests", "límite de solicitudes")):
+        return "API_RATE_LIMIT", "El proveedor de IA limitó temporalmente las solicitudes. Puedes reintentar más tarde.", True
+    if any(x in texto for x in ("401", "403", "unauthorized", "forbidden", "api key", "authentication")):
+        return "API_AUTH", "El proveedor de IA rechazó la autenticación. Revisa la configuración de la API en el servidor.", True
+    if any(x in texto for x in ("timeout", "timed out", "read timed out", "tiempo de espera")):
+        return "API_TIMEOUT", "La solicitud al proveedor de IA excedió el tiempo de espera.", True
+    if any(x in texto for x in ("connecterror", "connection", "network", "disconnected", "remoteprotocol")):
+        return "API_CONNECTION", "No se pudo establecer conexión con el proveedor de IA.", True
+    if any(x in texto for x in ("supabase", "postgrest", "postgres", "database", "document_chunks")):
+        return "BACKEND_DATABASE", "El servidor no pudo recuperar o guardar datos del análisis en la base de datos.", True
+    if any(x in texto for x in ("internal server error", "traceback", "attributeerror", "keyerror", "typeerror")):
+        return "BACKEND_ERROR", "El servidor encontró un error interno al ejecutar este análisis.", True
+    if "ilegible" in texto or "json" in texto or "respuesta válida" in texto:
+        return "RESPUESTA_INVALIDA", "El proveedor respondió, pero el contenido no tuvo el formato esperado.", True
+    if not error:
+        return "SIN_RESULTADO", "El agente no devolvió un resultado. No quedó un detalle técnico para esta ejecución.", True
+    return "ERROR_ANALISIS", "El análisis del agente falló. Revisa los registros del servidor para ver el detalle técnico.", True
+
+
+def _leer_diagnosticos(document_id):
+    """Carga diagnósticos guardados; usa la caché local si Supabase no está disponible."""
+    try:
+        resp = (supabase.table("analisis_diagnosticos")
+                .select("document_id, agente, estado, codigo_error, mensaje, intentos, reintentable, actualizado_en")
+                .eq("document_id", document_id).execute())
+        filas = resp.data or []
+        if filas:
+            cache = diagnosticos_en_memoria.setdefault(document_id, {})
+            cache.update({row["agente"]: row for row in filas})
+            return {row["agente"]: row for row in filas}
+    except Exception as e:
+        print(f"[DIAGNOSTICOS] No se pudieron leer de Supabase: {e}", flush=True)
+    return diagnosticos_en_memoria.get(document_id, {})
+
+
+def _actualizar_diagnosticos(document_id, filas):
+    """Guarda resultados por agente en Supabase y los conserva en memoria como respaldo temporal."""
+    if not filas:
+        return
+    cache = diagnosticos_en_memoria.setdefault(document_id, {})
+    anteriores = cache if cache else _leer_diagnosticos(document_id)
+    normalizadas = []
+    for fila in filas:
+        anterior = anteriores.get(fila["agente"], {})
+        registro = {**anterior, **fila, "document_id": document_id,
+                    "actualizado_en": datetime.now().isoformat(timespec="seconds")}
+        registro.setdefault("intentos", int(anterior.get("intentos", 0)))
+        registro.setdefault("reintentable", False)
+        cache[fila["agente"]] = registro
+        normalizadas.append(registro)
+    try:
+        supabase.table("analisis_diagnosticos").upsert(normalizadas, on_conflict="document_id,agente").execute()
+    except Exception as e:
+        print(f"[DIAGNOSTICOS] No se pudieron guardar en Supabase: {e}", flush=True)
 
 
 def _procesar_documento_bg(document_id, ruta_temporal, nombre_archivo):
@@ -1310,6 +1402,71 @@ def consultar_progreso(document_id: str):
     return progreso_documentos[document_id]
 
 
+@app.get("/api/diagnosticos/{document_id}")
+def consultar_diagnosticos(document_id: str):
+    """Devuelve el estado individual de cada agente y la causa disponible si quedó incompleto."""
+    guardados = _leer_diagnosticos(document_id)
+    resultados = _obtener_todos_los_analisis(document_id)
+    progreso = progreso_documentos.get(document_id, {})
+    filas = []
+    for key in TODOS_LOS_AGENTES:
+        registro = dict(guardados.get(key) or {})
+        if _analisis_valido(resultados.get(key)):
+            registro.update({"agente": key, "estado": "listo", "codigo_error": None,
+                             "mensaje": None, "reintentable": False})
+        elif not registro:
+            procesando = progreso.get("fase") in ("iniciando", "embeddings", "analisis")
+            registro = {"agente": key,
+                        "estado": "pendiente" if procesando else "sin_detalle",
+                        "codigo_error": None if procesando else "DIAGNOSTICO_NO_DISPONIBLE",
+                        "mensaje": None if procesando else "No hay un motivo guardado para esta ejecución anterior. Puedes reintentar el análisis.",
+                        "intentos": 0, "reintentable": not procesando}
+        filas.append(registro)
+    return {"ok": True, "document_id": document_id, "agentes": filas,
+            "total": len(filas), "procesados": sum(1 for x in filas if x.get("estado") == "listo"),
+            "fase": progreso.get("fase", "desconocida"), "estado_documento": progreso.get("estado")}
+
+
+def _reintentar_analisis_bg(document_id):
+    inicio = time.time()
+    estimado = len(GRUPOS_ANALISIS) * (SEGUNDOS_POR_GRUPO + PAUSA_ENTRE_GRUPOS)
+    progreso_documentos[document_id] = {"fase": "analisis", "total": len(TODOS_LOS_AGENTES),
+                                         "procesados": len(_obtener_todos_los_analisis(document_id)),
+                                         "errores": 0, "estado": "Analizando", "estimado_seg": estimado}
+    try:
+        actualizar_estado(document_id, "Analizando")
+        def on_progreso(completados, total):
+            progreso_documentos[document_id]["procesados"] = completados
+            progreso_documentos[document_id]["estimado_seg"] = max(0, estimado - int(time.time() - inicio))
+        completados, total = ejecutar_analisis_completo(document_id, on_progreso=on_progreso, solo_reintentables=True)
+        estado = "Listo" if completados >= total else "Listo con errores"
+        actualizar_estado(document_id, estado)
+        progreso_documentos[document_id].update({"fase": "listo", "estado": estado, "estimado_seg": 0})
+    except Exception as e:
+        print(f"[REINTENTO] Error: {e}", flush=True)
+        codigo, mensaje, _ = _clasificar_error_agente(e)
+        faltantes = [k for k in TODOS_LOS_AGENTES if not _analisis_valido(_obtener_analisis_guardado(document_id, k))]
+        _actualizar_diagnosticos(document_id, [{"document_id": document_id, "agente": k,
+            "estado": "error", "codigo_error": codigo, "mensaje": mensaje, "reintentable": True} for k in faltantes])
+        actualizar_estado(document_id, "Listo con errores")
+        progreso_documentos[document_id].update({"fase": "listo", "estado": "Listo con errores", "estimado_seg": 0})
+
+
+@app.post("/api/analisis-reintentar/{document_id}")
+def reintentar_analisis_documento(document_id: str):
+    actual = progreso_documentos.get(document_id, {})
+    if actual.get("fase") in ("iniciando", "embeddings", "analisis"):
+        return {"ok": False, "codigo": "ANALISIS_EN_CURSO", "error": "El análisis de este documento ya está en curso."}
+    if not _contar_chunks_doc(document_id):
+        return {"ok": False, "codigo": "SIN_FRAGMENTOS", "error": "No hay fragmentos indexados para reintentar. Vuelve a subir el documento."}
+    progreso_documentos[document_id] = {"fase": "analisis", "total": len(TODOS_LOS_AGENTES),
+                                         "procesados": len(_obtener_todos_los_analisis(document_id)),
+                                         "errores": 0, "estado": "Analizando", "estimado_seg": 0}
+    hilo = threading.Thread(target=_reintentar_analisis_bg, args=(document_id,), daemon=True)
+    hilo.start()
+    return {"ok": True, "mensaje": "Se inició el reintento de los agentes sin resultado."}
+
+
 _CACHE_CHUNKS = {}
 
 
@@ -1409,9 +1566,14 @@ def eliminar_documento(document_id: str):
     try:
         supabase.table("document_chunks").delete().eq("document_id", document_id).execute()
         supabase.table("analisis").delete().eq("document_id", document_id).execute()
+        try:
+            supabase.table("analisis_diagnosticos").delete().eq("document_id", document_id).execute()
+        except Exception:
+            pass  # La tabla se agrega con la migración v4; borrar documentos sigue funcionando antes de ejecutarla.
         supabase.table("documentos").delete().eq("id", document_id).execute()
         if document_id in progreso_documentos:
             del progreso_documentos[document_id]
+        diagnosticos_en_memoria.pop(document_id, None)
         return {"ok": True, "mensaje": "Documento eliminado"}
     except Exception as e:
         print("[ELIMINAR] Error:", e, flush=True)
@@ -2046,6 +2208,81 @@ def api_preparar_respuestas(document_id: str, payload: dict = Body(default={})):
     except Exception as e:
         traceback.print_exc()
         return {"ok": False, "error": str(e)}
+
+
+@app.post("/api/preparar-reunion/{document_id}/pdf")
+def api_preparar_reunion_pdf(document_id: str, payload: str = Form(...)):
+    """Genera un PDF breve con las respuestas que ya fueron sugeridas y revisadas en la app."""
+    try:
+        data = json.loads(payload)
+        items = data.get("items", [])
+        if not isinstance(items, list) or not items:
+            return HTMLResponse(content="No hay respuestas sugeridas para exportar", status_code=400)
+
+        nombre_doc = _esc_html(_nombre_documento(document_id) or "Documento")
+        fecha = datetime.now().strftime("%d/%m/%Y")
+        from modulos_base import CSS_PDF, CLASIFICACION
+
+        tarjetas = []
+        for numero, it in enumerate(items[:50], 1):
+            pregunta = _esc_html(str(it.get("pregunta") or ""))
+            respuesta = _render_markdown_a_html(str(it.get("respuesta") or ""))
+            agente = _esc_html(str(it.get("agente") or "Asistente"))
+            verif = it.get("verificacion") if isinstance(it.get("verificacion"), dict) else {}
+            estado = str(verif.get("estado") or "")
+            color = "#2F6B4F" if estado in ("cifras_ok", "verificada") else "#A67C00"
+            etiqueta = _esc_html(str(verif.get("etiqueta") or "Verificación pendiente"))
+            resumen = _esc_html(str(verif.get("resumen") or "Confirma la respuesta directamente en el documento antes de utilizarla."))
+            falta = _esc_html(str(it.get("falta") or ""))
+            alertas = "".join(f"<li>{_esc_html(str(a))}</li>" for a in (it.get("alertas") or [])[:5])
+            pendiente_html = f"<div class='pendiente'><b>Pendiente:</b> {falta}</div>" if falta else ""
+            alertas_html = f"<ul>{alertas}</ul>" if alertas else ""
+            tarjetas.append(
+                f"<table class='pregunta' width='100%' cellpadding='0' cellspacing='0'><tr><td>"
+                f"<div class='tema'>{numero:02d} &nbsp; {_esc_html(agente)}</div>"
+                f"<div class='preg'>{pregunta}</div>"
+                f"<div class='respuesta'>{respuesta}</div>"
+                f"<div class='verif' style='color:{color}'><b>{etiqueta}</b> &middot; {resumen}</div>"
+                f"{pendiente_html}{alertas_html}"
+                f"</td></tr></table>"
+            )
+
+        html = f'''<!DOCTYPE html><html lang="es"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<title>Preguntas y respuestas para reunión</title><style>{CSS_PDF}
+.subtitulo {{ color:#5F6877; font-size:10pt; }}
+.pregunta {{ margin:0 0 12pt 0; border:0.75pt solid #D9DEE7; }}
+.pregunta td {{ padding:10pt; }}
+.tema {{ color:#128B9A; font-size:8pt; font-weight:bold; text-transform:uppercase; }}
+.preg {{ color:#1B2F4B; font-size:11pt; font-weight:bold; margin:5pt 0; }}
+.respuesta {{ color:#2B2F36; font-size:9.5pt; line-height:1.45; }}
+.verif {{ font-size:8pt; margin-top:6pt; }}
+.pendiente {{ color:#8A5A00; font-size:8.5pt; margin-top:5pt; }}
+</style></head><body>
+<table class="brand" width="100%"><tr><td><b>DIRECTA</b> &nbsp;/&nbsp; INTELIGENCIA PARA DIRECTORIOS</td><td align="right">GERENCIA GENERAL</td></tr></table>
+<table class="portada" width="100%"><tr><td>
+<span class="eyebrow">GERENCIA GENERAL &nbsp;|&nbsp; DIRECTA</span><br/>
+<span class="tit">Preparación de reunión</span><br/>
+<span class="subtit">Preguntas y respuestas sugeridas</span>
+</td></tr></table>
+<table class="meta" width="100%"><tr><td class="k">Documento</td><td>{nombre_doc}</td><td class="k">Fecha</td><td>{fecha}</td></tr>
+<tr><td class="k">Respuestas</td><td>{len(items[:50])}</td><td class="k">Clasificación</td><td>{_esc_html(CLASIFICACION)}</td></tr></table>
+<p class="subtitulo">Las respuestas son sugerencias basadas en el documento. Revisa las fuentes y los pendientes antes de compartirlas.</p>
+{''.join(tarjetas)}
+</body></html>'''
+        html = _entidades_para_pdf(html)
+        pdf_buffer = io.BytesIO()
+        pisa_status = pisa.CreatePDF(src=html, dest=pdf_buffer, encoding="utf-8")
+        if pisa_status.err:
+            raise Exception("Error generando PDF de respuestas")
+        pdf_buffer.seek(0)
+        nombre = f"DIRECTA_Respuestas_Reunion_{datetime.now().strftime('%Y-%m-%d')}.pdf"
+        return StreamingResponse(pdf_buffer, media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="{nombre}"'})
+    except Exception as e:
+        print("[PREPARAR PDF] Error:", e, flush=True)
+        traceback.print_exc()
+        return HTMLResponse(content="Error generando el PDF de respuestas", status_code=500)
 
 
 # ============================================================================
