@@ -31,6 +31,14 @@ class AppState extends ChangeNotifier {
     ];
   }
 
+
+  bool _disposed = false;
+
+  @override
+  void notifyListeners() {
+    if (!_disposed) super.notifyListeners();
+  }
+
   final Store store;
   final Api api;
 
@@ -1227,6 +1235,7 @@ class AppState extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _watch?.cancel();
     _polling?.cancel();
     _toasts.close();

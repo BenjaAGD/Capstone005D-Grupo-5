@@ -5,7 +5,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Guardado local en el teléfono (equivale al localStorage del index.html).
 /// Mismas claves que el MVP para que se reconozca qué se guarda.
 class Store {
-  Store._(this._p);
+  Store._(this._p, [this._prefix = '']);
+  final String _prefix;
+  String _key(String k) => '$_prefix$k';
+  Store forUser(String id) => Store._(_p, 'directa.user.$id.');
   final SharedPreferences _p;
 
   static Future<Store> open() async => Store._(await SharedPreferences.getInstance());
@@ -25,20 +28,20 @@ class Store {
   static const kPrep = 'directa_preparar_reunion_v1';
   static const kValoraciones = 'directa_valoraciones_v1';
 
-  String? getString(String k) => _p.getString(k);
+  String? getString(String k) => _p.getString(_key(k));
   Future<void> setString(String k, String? v) async {
     if (v == null) {
-      await _p.remove(k);
+      await _p.remove(_key(k));
     } else {
-      await _p.setString(k, v);
+      await _p.setString(_key(k), v);
     }
   }
 
-  double? getDouble(String k) => _p.getDouble(k);
-  Future<void> setDouble(String k, double v) => _p.setDouble(k, v);
+  double? getDouble(String k) => _p.getDouble(_key(k));
+  Future<void> setDouble(String k, double v) => _p.setDouble(_key(k), v);
 
   T getJson<T>(String k, T def) {
-    final s = _p.getString(k);
+    final s = _p.getString(_key(k));
     if (s == null) return def;
     try {
       final v = jsonDecode(s);
@@ -48,5 +51,5 @@ class Store {
     }
   }
 
-  Future<void> setJson(String k, Object? v) => _p.setString(k, jsonEncode(v));
+  Future<void> setJson(String k, Object? v) => _p.setString(_key(k), jsonEncode(v));
 }

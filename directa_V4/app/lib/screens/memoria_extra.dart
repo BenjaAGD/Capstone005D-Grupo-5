@@ -222,7 +222,7 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
       if (error != null && !cargando) GgCard(borderColor: c.crit, child: Text(error!, style: TextStyle(color: c.crit))),
       if (resultado != null) GgCard(borderColor: c.low, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [Icon(Icons.check_circle_outline, color: c.low), const SizedBox(width: 8), const Expanded(child: Text('Borrador PDF listo', style: TextStyle(fontWeight: FontWeight.w700)))]),
-        const SizedBox(height: 6), Text('Memoria_Anual_$anioPortada_borrador.pdf · ${(resultado!['revision'] as List? ?? const []).length} alertas de cifras. Revisa el archivo antes de aprobarlo.', style: TextStyle(fontSize: 12.5, color: c.text2)),
+        const SizedBox(height: 6), Text('Memoria_Anual_${anioPortada}_borrador.pdf · ${(resultado!['revision'] as List? ?? const []).length} alertas de cifras. Revisa el archivo antes de aprobarlo.', style: TextStyle(fontSize: 12.5, color: c.text2)),
       ])),
     ]);
   }
