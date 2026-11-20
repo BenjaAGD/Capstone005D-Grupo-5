@@ -1,4 +1,4 @@
-# Diagramas del sistema DIRECTA
+# Diagramas del sistema DIRECTA (Modulo de Gerente General)
 
 Esta carpeta contiene los diagramas técnicos y funcionales del sistema DIRECTA. En conjunto, muestran cómo está organizado el sistema, dónde se ejecutan sus componentes, cómo se relacionan entre sí y cómo circula la información durante sus principales operaciones.
 
