@@ -200,7 +200,7 @@ Future<void> _recorrido(WidgetTester tester, Store store, List<String> errores) 
       ('memoria', 'AÑO DE LA MEMORIA'),
       ('indicadores', 'KPI — ¿Cómo vamos?'),
       ('aprendizaje', 'POR REVISAR'),
-      ('ajustes', 'SERVIDOR CONECTADO'),
+      ('ajustes', 'Servidor conectado'),
     ]) {
       st.go(id);
       for (var i = 0; i < 10; i++) {

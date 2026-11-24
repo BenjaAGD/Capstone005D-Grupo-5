@@ -39,9 +39,10 @@ class MasScreen extends StatelessWidget {
       const SecTitle('Preparación'),
       item('preparar', Icons.event_note_outlined, 'Preparar mi reunión', 'Anticipa preguntas y temas para el directorio.'),
       item('aprendizaje', Icons.school_outlined, 'Aprendizaje de los agentes', 'Revisa valoraciones y lecciones de los agentes.'),
+      item('competencia', Icons.compare_arrows, 'Comparar con competencia', 'Mira en qué se parece y en qué se diferencia tu memoria de la de otra empresa.'),
       const SecTitle('Ayuda y configuración'),
       item('guia', Icons.support_agent, 'Guía de uso', 'Pregunta cómo hacer algo en la aplicación.'),
-      item('ajustes', Icons.settings_outlined, 'Servidor y apariencia', 'Dirección del backend, tema y tamaño de letra.'),
+      item('ajustes', Icons.settings_outlined, 'Ajustes y estado del sistema', 'Tu cuenta, el estado del servidor y de la IA, tema y tamaño de letra.'),
     ]);
   }
 }

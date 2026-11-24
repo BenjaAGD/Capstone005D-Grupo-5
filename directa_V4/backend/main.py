@@ -97,7 +97,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for _mod in ("dashboard", "memoria", "indicadores", "guia", "tono", "memoria_pdf"):
+for _mod in ("dashboard", "memoria", "indicadores", "guia", "tono", "memoria_pdf", "lectura"):
     try:
         _m = __import__(_mod)
         app.include_router(_m.crear_router(lambda: supabase))
@@ -238,19 +238,32 @@ def _contar_chunks_doc(document_id):
         return None
 
 
+_CHUNKS_CON_ORDEN = True  # se apaga solo si la columna `orden` no existe (ver migracion_v5_orden_chunks.sql)
+
+
 def guardar_chunks_batch(document_id, items):
+    global _CHUNKS_CON_ORDEN
     if not items:
         return
-    payload = [
-        {"document_id": document_id, "content": it["content"], "page_number": it["page_number"], "entity": None, "embedding": it["embedding"]}
-        for it in items
-    ]
+    payload = []
+    for it in items:
+        fila = {"document_id": document_id, "content": it["content"], "page_number": it["page_number"],
+                "entity": None, "embedding": it["embedding"]}
+        if _CHUNKS_CON_ORDEN and it.get("orden") is not None:
+            fila["orden"] = it["orden"]
+        payload.append(fila)
     n0 = _contar_chunks_doc(document_id)
     for intento in (1, 2, 3):
         try:
             supabase.table("document_chunks").insert(payload).execute()
             return
         except Exception as e:
+            if _CHUNKS_CON_ORDEN and "orden" in str(e).lower() and any("orden" in f for f in payload):
+                # La columna no existe todavía: se guarda sin ella y no se vuelve a intentar con ella.
+                _CHUNKS_CON_ORDEN = False
+                print("[DB] Columna 'orden' ausente en document_chunks; se guarda sin orden.", flush=True)
+                payload = [{k: v for k, v in f.items() if k != "orden"} for f in payload]
+                continue
             if intento == 3 or not _es_error_conexion(e):
                 raise
             print(f"[DB] Conexión perdida guardando lote ({e}); reintentando {intento}/2", flush=True)
@@ -1317,8 +1330,8 @@ def _procesar_documento_bg(document_id, ruta_temporal, nombre_archivo):
             try:
                 embeddings = generar_embeddings_batch(textos)
                 items_con_emb = [
-                    {"content": it["content"], "page_number": it["page_number"], "embedding": emb}
-                    for it, emb in zip(lote, embeddings)
+                    {"content": it["content"], "page_number": it["page_number"], "embedding": emb, "orden": i + k}
+                    for k, (it, emb) in enumerate(zip(lote, embeddings))
                 ]
                 guardar_chunks_batch(document_id, items_con_emb)
                 cantidad_ok += len(items_con_emb)
@@ -1328,6 +1341,7 @@ def _procesar_documento_bg(document_id, ruta_temporal, nombre_archivo):
             except Exception as e:
                 cantidad_err += len(lote)
                 progreso_documentos[document_id]["errores"] = cantidad_err
+                progreso_documentos[document_id].setdefault("motivo", str(e)[:220])
                 print(f"[EMBEDDING] Lote falló: {e}", flush=True)
             restante = max(0, estimado_embed - int(time.time() - inicio))
             progreso_documentos[document_id]["estimado_seg"] = restante + estimado_analisis
@@ -1335,6 +1349,7 @@ def _procesar_documento_bg(document_id, ruta_temporal, nombre_archivo):
         if cantidad_ok == 0:
             actualizar_estado(document_id, "Error")
             progreso_documentos[document_id]["estado"] = "Error"
+            progreso_documentos[document_id].setdefault("motivo", "No se pudo indexar el documento.")
             return
         print(f"[BG] Embeddings listos ({cantidad_ok}). Iniciando análisis...", flush=True)
         actualizar_estado(document_id, "Analizando")
@@ -1367,7 +1382,7 @@ def _procesar_documento_bg(document_id, ruta_temporal, nombre_archivo):
 
 @app.get("/")
 def inicio():
-    return {"mensaje": "Backend Directa funcionando correctamente"}
+    return {"mensaje": "Backend Directa funcionando correctamente", "version": "v2-pdf"}
 
 
 @app.get("/api/agentes")
@@ -1388,7 +1403,12 @@ def api_estado():
         ia = _ia_mod.estado_keys()
     except Exception:
         ia = {}
-    return {"ok": True, "version": app.version,
+    proveedores = {
+        "gemini": bool(os.getenv("GEMINI_API_KEY")),
+        "groq": bool(os.getenv("GROQ_API_KEY") or os.getenv("GROQ_API_KEY_1")),
+        "nvidia": bool(os.getenv("NVIDIA_API_KEY")),
+    }
+    return {"ok": True, "version": app.version, "proveedores": proveedores,
             "verificador": {"chat": verificador.VERIFICAR_CHAT, "analisis": verificador.VERIFICAR_ANALISIS,
                             "subagentes": verificador.MODO_SUBAGENTES, "modelo_escritor": ia.get("llm_primary"),
                             "modelo_verificador": ia.get("verificador")},
@@ -2271,10 +2291,8 @@ def api_preparar_reunion_pdf(document_id: str, payload: str = Form(...)):
 {''.join(tarjetas)}
 </body></html>'''
         html = _entidades_para_pdf(html)
-        pdf_buffer = io.BytesIO()
-        pisa_status = pisa.CreatePDF(src=html, dest=pdf_buffer, encoding="utf-8")
-        if pisa_status.err:
-            raise Exception("Error generando PDF de respuestas")
+        from modulos_base import html_a_pdf as _html_a_pdf
+        pdf_buffer = io.BytesIO(_html_a_pdf(html))
         pdf_buffer.seek(0)
         nombre = f"DIRECTA_Respuestas_Reunion_{datetime.now().strftime('%Y-%m-%d')}.pdf"
         return StreamingResponse(pdf_buffer, media_type="application/pdf",
@@ -2609,10 +2627,8 @@ async def generar_informe(document_id: str = Form(...), payload: str = Form(...)
         # Barrido FINAL: convierte tildes a entidades, limpia caracteres raros
         html = _entidades_para_pdf(html)
 
-        pdf_buffer = io.BytesIO()
-        pisa_status = pisa.CreatePDF(src=html, dest=pdf_buffer, encoding="utf-8")
-        if pisa_status.err:
-            raise Exception("Error generando PDF")
+        from modulos_base import html_a_pdf as _html_a_pdf
+        pdf_buffer = io.BytesIO(_html_a_pdf(html))
         pdf_buffer.seek(0)
         nombre_pdf = f"Directa_Informe_{datetime.now().strftime('%Y-%m-%d')}.pdf"
         return StreamingResponse(pdf_buffer, media_type="application/pdf",

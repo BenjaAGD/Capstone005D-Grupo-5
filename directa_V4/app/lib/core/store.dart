@@ -27,6 +27,8 @@ class Store {
   static const kRuta = 'directa_ruta_preguntas_v1';
   static const kPrep = 'directa_preparar_reunion_v1';
   static const kValoraciones = 'directa_valoraciones_v1';
+  static const kAsistentePos = 'directa_asistente_pos_v1';
+  static const kAsistenteAyuda = 'directa_asistente_ayuda_v1';
 
   String? getString(String k) => _p.getString(_key(k));
   Future<void> setString(String k, String? v) async {

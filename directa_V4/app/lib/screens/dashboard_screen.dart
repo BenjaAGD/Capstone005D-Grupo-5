@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -27,6 +28,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? error;
   String? _doc;
   int _tab = 0;
+  bool _competencia = false;
+  Map<String, dynamic>? cob;
   String orden = 'puntaje';
   String? filtroSev;
   String filtroAg = '';
@@ -61,6 +64,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (d != _doc) {
       _doc = d;
       _tab = 0;
+      _competencia = false;
       filtroSev = null;
       filtroAg = '';
       verTodasSen = false;
@@ -76,6 +80,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       cmp = null;
       cmpId = '';
       cmpError = null;
+      cob = null;
     });
     try {
       final r = await st.api.getJson('/api/dashboard/${Uri.encodeComponent(id)}', query: forzar ? {'refrescar': '1'} : null);
@@ -83,11 +88,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (id != _doc) return;
       data = Map<String, dynamic>.from(r);
       error = null;
+      unawaited(_cargarCobertura(id));
     } catch (e) {
       error = e.toString().replaceFirst('Exception: ', '');
       data = null;
     }
     if (mounted) setState(() => cargando = false);
+  }
+
+  /// Cobertura NCG 461 del documento. Es un dato de apoyo: si falla, la tarjeta simplemente no aparece.
+  Future<void> _cargarCobertura(String id) async {
+    try {
+      final r = await st.api.getJson('/api/memoria/cobertura', query: {'docs': id}, timeout: const Duration(seconds: 8));
+      if (r['ok'] == true && mounted && id == _doc) setState(() => cob = Map<String, dynamic>.from(r));
+    } catch (_) {}
   }
 
   Map<String, dynamic> accDe(String id) =>
@@ -193,7 +207,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Opacity(opacity: cargando ? 0.55 : 1, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           _pestanasDashboard(context),
           const SizedBox(height: 12),
-          if (_tab == 0) ...[_hero(context, d), _graficos(context, d)]
+          if (_tab == 0) ...[
+            _hero(context, d),
+            _queAtender(context, d),
+            _kpis(context, d),
+            _areas(context, d),
+            _cobertura(context),
+            _masDetalle(context, d),
+          ]
           else if (_tab == 1) ...[_semaforo(context, d), _senales(context, d)]
           else if (_tab == 2) _plan(context, d)
           else _comparar_(context, d),
@@ -213,16 +234,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _pestanasDashboard(BuildContext context) {
     final c = context.c;
-    const tabs = ['Resumen', 'Señales', 'Plan de acción', 'Comparar', 'Competencia'];
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(children: [
-        for (var i = 0; i < tabs.length; i++) ...[
-          if (i > 0) const SizedBox(width: 7),
-          ChipBtn(tabs[i], on: _tab == i, onTap: () => setState(() => _tab = i)),
-        ],
-      ]),
-    );
+    const tabs = ['Resumen', 'Señales', 'Plan de acción', 'Comparar'];
+    return Wrap(spacing: 8, runSpacing: 8, children: [
+      for (var i = 0; i < tabs.length; i++) ChipBtn(tabs[i], on: _tab == i, onTap: () => setState(() => _tab = i)),
+    ]);
   }
 
   Widget _demoDashboard(BuildContext context) {
@@ -261,62 +276,235 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final c = context.c;
     final r = d['resumen'] as Map;
     final g = (r['score_global'] as num?)?.toInt();
-    final sen = Map<String, dynamic>.from(r['senales'] as Map);
     final bc = bandaColor(context, r['banda']);
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      GgCard(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const SecTitle('Preparación global'),
-          Text.rich(TextSpan(children: [
-            TextSpan(text: g?.toString() ?? '—', style: const TextStyle(fontSize: 44, fontWeight: FontWeight.w600, letterSpacing: -2, height: 1)),
-            TextSpan(text: ' /100', style: TextStyle(fontSize: 15, color: c.text3)),
-          ])),
-          const SizedBox(height: 8),
-          Row(children: [
-            Container(width: 10, height: 10, decoration: BoxDecoration(color: bc, shape: BoxShape.circle)),
-            const SizedBox(width: 8),
-            Text('${r['etiqueta']}', style: const TextStyle(fontWeight: FontWeight.w600)),
-          ]),
-          const SizedBox(height: 10),
-          LayoutBuilder(builder: (context, box) {
-            final w = box.maxWidth;
-            return Column(children: [
-              Stack(clipBehavior: Clip.none, children: [
-                GgBar(value: (g ?? 0) / 100, color: bc, height: 12),
-                for (final m in [55, 75, 90]) Positioned(left: w * m / 100, top: -3, bottom: -3, child: Container(width: 1, color: c.border2)),
-              ]),
-              const SizedBox(height: 5),
-              SizedBox(
-                height: 14,
-                child: Stack(children: [
-                  for (final m in [0, 55, 75, 90, 100])
-                    Positioned(
-                      left: (w * m / 100 - (m == 0 ? 0 : m == 100 ? 22 : 9)).clamp(0, w - 22),
-                      child: Text('$m', style: TextStyle(fontSize: 10.5, color: c.text3)),
+    return GgCard(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const SecTitle('Preparación global'),
+        Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          Text(g?.toString() ?? '—', style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w600, letterSpacing: -2, height: 1)),
+          const SizedBox(width: 4),
+          Padding(padding: const EdgeInsets.only(bottom: 6), child: Text('/100', style: TextStyle(fontSize: 15, color: c.text3))),
+          const Spacer(),
+          Flexible(child: Pill('${r['etiqueta']}', fg: bc, dot: true)),
+        ]),
+        const SizedBox(height: 16),
+        _barraPreparacion(context, g),
+        const SizedBox(height: 10),
+        Text('Promedio de ${r['agentes_con_info']} agentes con información relevante. Es el mismo cálculo del informe en PDF.',
+            style: TextStyle(fontSize: 12, color: c.text3)),
+      ]),
+    );
+  }
+
+  /// Barra por tramos (0–55, 55–75, 75–90, 90–100) con una marca en el puntaje actual.
+  Widget _barraPreparacion(BuildContext context, int? g) {
+    final c = context.c;
+    const cortes = [0, 55, 75, 90, 100];
+    final colores = [c.crit, c.med, c.lime, c.low];
+    return LayoutBuilder(builder: (context, box) {
+      final w = box.maxWidth;
+      final x = (g ?? 0) / 100 * w;
+      return Column(children: [
+        SizedBox(
+          height: 18,
+          child: Stack(clipBehavior: Clip.none, alignment: Alignment.centerLeft, children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: SizedBox(
+                height: 10,
+                width: w,
+                child: Row(children: [
+                  for (var i = 0; i < 4; i++)
+                    Expanded(
+                      flex: cortes[i + 1] - cortes[i],
+                      child: Container(margin: EdgeInsets.only(right: i < 3 ? 2 : 0), color: colores[i].withValues(alpha: 0.85)),
                     ),
                 ]),
               ),
-            ]);
-          }),
-          const SizedBox(height: 8),
-          Text('Promedio de ${r['agentes_con_info']} agentes con información relevante. Es el mismo cálculo del informe en PDF.',
-              style: TextStyle(fontSize: 12, color: c.text3)),
-        ]),
-      ),
-      GridCols(cols: 2, children: [
-        KpiTile(value: '${r['agentes_analizados']}/${r['agentes_total']}', label: 'Agentes analizados', leading: Icon(Icons.groups_2_outlined, size: 17, color: c.accentText)),
-        KpiTile(value: '${(sen['crítica'] as num? ?? 0) + (sen['alta'] as num? ?? 0)}', label: 'Señales críticas y altas', leading: Icon(Icons.warning_amber_rounded, size: 17, color: c.high), onTap: _irASenales),
-        KpiTile(value: '${r['omisiones']}', label: 'Omisiones detectadas', leading: Icon(Icons.checklist_outlined, size: 17, color: c.accentText)),
-        KpiTile(value: '${r['preguntas']}', label: 'Preguntas para la sesión', leading: Icon(Icons.help_outline, size: 17, color: c.accentText)),
-      ]),
-      if ((r['senales_transversales'] as num? ?? 0) > 0)
-        Padding(
-          padding: const EdgeInsets.only(top: 10),
-          child: MarkdownLite('${r['senales_transversales']} de las ${r['senales_total']} señales son **transversales** (Riesgos y Estrategia cruzan hechos que otros agentes ya reportaron, por lo que pueden repetir un tema).',
-              size: 12.3, color: c.text3),
+            ),
+            if (g != null)
+              Positioned(
+                left: math.max(0.0, math.min(w - 4, x - 2)),
+                child: Container(width: 4, height: 18, decoration: BoxDecoration(color: c.text, borderRadius: BorderRadius.circular(2))),
+              ),
+          ]),
         ),
-      const SizedBox(height: 12),
-    ]);
+        const SizedBox(height: 4),
+        SizedBox(
+          height: 14,
+          child: Stack(children: [
+            for (final m in cortes)
+              Positioned(
+                left: math.max(0.0, math.min(w - 22, w * m / 100 - (m == 0 ? 0 : (m == 100 ? 22 : 9)))),
+                child: Text('$m', style: TextStyle(fontSize: 10.5, color: c.text3)),
+              ),
+          ]),
+        ),
+      ]);
+    });
+  }
+
+  /// Las dos señales más graves, para saber por dónde empezar.
+  Widget _queAtender(BuildContext context, Map d) {
+    final c = context.c;
+    final top = [
+      for (final s in d['senales'] as List)
+        if (s['severidad'] == 'crítica' || s['severidad'] == 'alta') Map<String, dynamic>.from(s as Map)
+    ].take(2).toList();
+    if (top.isEmpty) return const SizedBox.shrink();
+    return GgCard(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          const Expanded(child: SecTitle('Qué atender ahora', bottom: 0)),
+          InkWell(
+            onTap: _irASenales,
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Text('Ver señales', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.accentText)),
+            ),
+          ),
+        ]),
+        const SizedBox(height: 12),
+        for (var i = 0; i < top.length; i++) ...[
+          if (i > 0) const SizedBox(height: 12),
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            SevPill('${top[i]['severidad']}'),
+            const SizedBox(width: 10),
+            Expanded(child: Text('${top[i]['titulo']}', style: const TextStyle(fontSize: 13, height: 1.35))),
+          ]),
+        ],
+      ]),
+    );
+  }
+
+  Widget _kpis(BuildContext context, Map d) {
+    final c = context.c;
+    final r = d['resumen'] as Map;
+    final sen = Map<String, dynamic>.from(r['senales'] as Map);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GridCols(cols: 2, children: [
+        KpiTile(value: '${r['agentes_analizados']}/${r['agentes_total']}', label: 'Agentes analizados',
+            leading: Icon(Icons.groups_2_outlined, size: 17, color: c.accentText)),
+        KpiTile(value: '${(sen['crítica'] as num? ?? 0) + (sen['alta'] as num? ?? 0)}', label: 'Señales críticas y altas',
+            leading: Icon(Icons.warning_amber_rounded, size: 17, color: c.high), onTap: _irASenales),
+      ]),
+    );
+  }
+
+  /// Áreas de menor a mayor puntaje; tocar una lleva a sus señales.
+  Widget _areas(BuildContext context, Map d) {
+    final c = context.c;
+    final todos = [for (final a in d['agentes'] as List) Map<String, dynamic>.from(a as Map)];
+    bool conPuntaje(Map a) => a['con_info'] == true && a['score'] != null;
+    final con = todos.where(conPuntaje).toList()..sort((a, b) => (a['score'] as num).compareTo(b['score'] as num));
+    final sin = todos.where((a) => !conPuntaje(a)).toList();
+    Widget fila(Map<String, dynamic> a, {required bool puntaje}) => InkWell(
+          onTap: () {
+            setState(() {
+              filtroAg = '${a['key']}';
+              filtroSev = null;
+              verTodasSen = false;
+            });
+            _irASenales();
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Row(children: [
+              SizedBox(width: 112, child: Text('${a['nombre']}', maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 12.5, color: puntaje ? c.text : c.text3))),
+              Expanded(
+                child: puntaje
+                    ? GgBar(value: (a['score'] as num) / 100, color: bandaColor(context, a['banda']), height: 8)
+                    : GgBar(value: 0, height: 8),
+              ),
+              SizedBox(
+                width: 62,
+                child: Text(puntaje ? '${a['score']}' : 'Sin datos', textAlign: TextAlign.right,
+                    style: TextStyle(fontSize: puntaje ? 13 : 11, fontWeight: puntaje ? FontWeight.w700 : FontWeight.w500,
+                        color: puntaje ? c.text : c.text3)),
+              ),
+            ]),
+          ),
+        );
+    return GgCard(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const SecTitle('Áreas · de menor a mayor puntaje', bottom: 6),
+        if (con.isEmpty && sin.isEmpty) Text('Aún no hay puntajes por área.', style: TextStyle(color: c.text3)),
+        for (final a in con) fila(a, puntaje: true),
+        for (final a in sin) fila(a, puntaje: false),
+      ]),
+    );
+  }
+
+  /// Cobertura de temas de la NCG 461 (viene de Memoria anual). Sin dato, no se muestra.
+  Widget _cobertura(BuildContext context) {
+    final c = context.c;
+    final r = cob?['resumen'];
+    if (r is! Map) return const SizedBox.shrink();
+    final f = (r['fuertes'] as num?)?.toInt() ?? 0;
+    final w = (r['debiles'] as num?)?.toInt() ?? 0;
+    final s = (r['sin_evidencia'] as num?)?.toInt() ?? 0;
+    final t = (r['temas_total'] as num?)?.toInt() ?? 0;
+    if (t == 0) return const SizedBox.shrink();
+    return GgCard(
+      onTap: () => st.go('memoria'),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          const Expanded(child: SecTitle('Cobertura NCG 461', bottom: 0)),
+          Text('$f de $t temas', style: TextStyle(fontSize: 12, color: c.text2)),
+        ]),
+        const SizedBox(height: 10),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(5),
+          child: SizedBox(
+            height: 10,
+            child: Row(children: [
+              if (f > 0) Expanded(flex: f, child: Container(margin: const EdgeInsets.only(right: 2), color: c.low)),
+              if (w > 0) Expanded(flex: w, child: Container(margin: const EdgeInsets.only(right: 2), color: c.med)),
+              if (s > 0) Expanded(flex: s, child: Container(color: c.crit)),
+            ]),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text('Con evidencia $f · Débil $w · Sin evidencia $s', style: TextStyle(fontSize: 11.5, color: c.text3)),
+      ]),
+    );
+  }
+
+  Widget _masDetalle(BuildContext context, Map d) {
+    final c = context.c;
+    final r = d['resumen'] as Map;
+    final transv = (r['senales_transversales'] as num? ?? 0) > 0;
+    return GgCard(
+      padding: EdgeInsets.zero,
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+          childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+          shape: const Border(),
+          collapsedShape: const Border(),
+          expandedCrossAxisAlignment: CrossAxisAlignment.start,
+          title: const Text('Más detalle', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+          subtitle: Text('Distribución por tramo y volumen detectado', style: TextStyle(fontSize: 11.5, color: c.text3)),
+          children: [
+            GridCols(cols: 2, children: [
+              KpiTile(value: '${r['omisiones']}', label: 'Omisiones detectadas', leading: Icon(Icons.checklist_outlined, size: 17, color: c.accentText)),
+              KpiTile(value: '${r['preguntas']}', label: 'Preguntas para la sesión', leading: Icon(Icons.help_outline, size: 17, color: c.accentText)),
+            ]),
+            if (transv)
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: MarkdownLite('${r['senales_transversales']} de las ${r['senales_total']} señales son **transversales** (Riesgos y Estrategia cruzan hechos que otros agentes ya reportaron, por lo que pueden repetir un tema).',
+                    size: 12.3, color: c.text3),
+              ),
+            const SizedBox(height: 12),
+            _graficos(context, d),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _graficos(BuildContext context, Map d) {
@@ -344,22 +532,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               SizedBox(width: 30, child: Text('${sen[k] ?? 0}', textAlign: TextAlign.right,
                 style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
             ])),
-        ]),
-      ),
-      GgCard(
-        margin: EdgeInsets.zero,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const SecTitle('Puntaje por área (0–100, más bajo = más atención)'),
-          if (ags.isEmpty) Text('Aún no hay puntajes por área.', style: TextStyle(color: c.text3)),
-          for (final a in ags)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3),
-              child: Row(children: [
-                SizedBox(width: 108, child: Text('${a['nombre']}', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: c.text2))),
-                Expanded(child: GgBar(value: (a['score'] as num) / 100, color: bandaColor(context, a['banda']), height: 10)),
-                SizedBox(width: 30, child: Text('${a['score']}', textAlign: TextAlign.right, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
-              ]),
-            ),
         ]),
       ),
       GgCard(
@@ -624,9 +796,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final otros = app.documentos.where((x) => x['id'] != _doc && ((x['analisis_count'] as num?) ?? 0) > 0).toList();
     final hijos = <Widget>[
       const SizedBox(height: 18),
-      Text(_tab == 4 ? 'Comparación de competencia' : 'Comparar con otro documento', style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700)),
+      Row(children: [
+        Expanded(child: _modo(context, 'Mi año anterior', !_competencia, () => _cambiarModo(false))),
+        const SizedBox(width: 8),
+        Expanded(child: _modo(context, 'Competencia', _competencia, () => _cambiarModo(true))),
+      ]),
+      const SizedBox(height: 14),
+      Text(_competencia ? 'Comparación de competencia' : 'Comparar con otro documento', style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700)),
       const SizedBox(height: 3),
-      if (_tab == 4) ...[
+      if (_competencia) ...[
         Text('Selecciona un documento cargado que represente a la empresa competidora. La comparación usa solo documentos de tu espacio; no consulta fuentes externas.', style: TextStyle(fontSize: 12.3, color: c.text2)),
         const SizedBox(height: 8),
         TextField(controller: _competidor, decoration: const InputDecoration(labelText: 'Nombre de la empresa competidora', prefixIcon: Icon(Icons.business_outlined))),
@@ -639,9 +817,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: hijos);
     }
     hijos.addAll([
-      Text(_tab == 4 ? 'Elige el documento de la empresa competidora; se compara con el documento activo. Los resultados son referenciales y dependen del contenido cargado.' : 'Elige el documento anterior; se compara contra el que estás viendo.', style: TextStyle(fontSize: 12.3, color: c.text2)),
+      Text(_competencia ? 'Elige el documento de la empresa competidora; se compara con el documento activo. Los resultados son referenciales y dependen del contenido cargado.' : 'Elige el documento anterior; se compara contra el que estás viendo.', style: TextStyle(fontSize: 12.3, color: c.text2)),
       const SizedBox(height: 10),
-      GgSelect<String>(label: _tab == 4 ? 'Documento de la empresa competidora' : 'Documento anterior', value: cmpId, items: [('', 'Elegir…'), for (final o in otros) ('${o['id']}', nombreDoc(o))],
+      GgSelect<String>(label: _competencia ? 'Documento de la empresa competidora' : 'Documento anterior', value: cmpId, items: [('', 'Elegir…'), for (final o in otros) ('${o['id']}', nombreDoc(o))],
           onChanged: _comparar),
       const SizedBox(height: 10),
     ]);
@@ -672,7 +850,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ]);
       hijos.add(GgCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (_tab == 4) Padding(padding: const EdgeInsets.only(bottom: 10), child: Text('Comparación basada en el documento cargado “${nombreDoc(x['a'] as Map?)}” y el documento activo. No representa investigación de mercado externa.', style: TextStyle(fontSize: 11.5, color: c.text3))),
+          if (_competencia) Padding(padding: const EdgeInsets.only(bottom: 10), child: Text('Comparación basada en el documento cargado “${nombreDoc(x['a'] as Map?)}” y el documento activo. No representa investigación de mercado externa.', style: TextStyle(fontSize: 11.5, color: c.text3))),
           Align(
             alignment: Alignment.centerRight,
             child: GgButton('Descargar comparación (PDF)', icon: Icons.picture_as_pdf_outlined, small: true, loading: cmpPdfCargando,
@@ -681,7 +859,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 10),
           Wrap(spacing: 18, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
-            _bloqueCmp(context, _tab == 4 ? (_competidor.text.trim().isEmpty ? 'Competidor' : _competidor.text.trim()) : 'Antes', g['a'], nombreDoc(x['a'] as Map?)),
+            _bloqueCmp(context, _competencia ? (_competidor.text.trim().isEmpty ? 'Competidor' : _competidor.text.trim()) : 'Antes', g['a'], nombreDoc(x['a'] as Map?)),
             Text('→', style: TextStyle(fontSize: 24, color: c.text3)),
             _bloqueCmp(context, 'Ahora', g['b'], nombreDoc(x['b'] as Map?)),
             delta(g['delta'], size: 20),
@@ -715,6 +893,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ));
     }
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: hijos);
+  }
+
+  void _cambiarModo(bool competencia) => setState(() {
+        _competencia = competencia;
+        cmp = null;
+        cmpId = '';
+        cmpError = null;
+        cmpCargando = false;
+      });
+
+  Widget _modo(BuildContext context, String texto, bool activo, VoidCallback onTap) {
+    final c = context.c;
+    return Material(
+      color: activo ? c.accentSoft : c.surface2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: activo ? Brand.accent : c.border)),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          child: Text(texto, textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: activo ? c.accentText : c.text2)),
+        ),
+      ),
+    );
   }
 
   Widget _bloqueCmp(BuildContext context, String t, Object? v, String nombre) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

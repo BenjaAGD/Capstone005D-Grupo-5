@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/models.dart';
+import '../core/servidor_estado.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/asistente.dart';
 import 'ajustes_screen.dart';
 import 'archivos_screen.dart';
+import 'competencia_screen.dart';
 import 'aprendizaje_screen.dart';
 import 'dashboard_screen.dart';
 import 'detalle_analisis_screen.dart';
@@ -56,7 +58,8 @@ const _secundarias = {
   'memoria': 'Memoria Anual',
   'indicadores': 'Indicadores',
   'aprendizaje': 'Aprendizaje de los agentes',
-  'ajustes': 'Mi cuenta y ajustes',
+  'competencia': 'Comparar con competencia',
+  'ajustes': 'Ajustes y estado',
 };
 
 class Shell extends StatefulWidget {
@@ -83,6 +86,16 @@ class _ShellState extends State<Shell> {
       ));
     }));
     _subs.add(st.navRequests.listen(_abrir));
+    ServidorEstado.instance.addListener(_alCambiarServidor);
+  }
+
+  /// Cuando el servidor termina de despertar y la app aún no tiene datos, los carga sola.
+  void _alCambiarServidor() {
+    if (!mounted) return;
+    final st = context.read<AppState>();
+    if (ServidorEstado.instance.estado == EstadoServidor.enLinea && !st.backendOk) {
+      unawaited(st.recargarTodo());
+    }
   }
 
   void _abrir(String id) {
@@ -97,6 +110,7 @@ class _ShellState extends State<Shell> {
 
   @override
   void dispose() {
+    ServidorEstado.instance.removeListener(_alCambiarServidor);
     for (final s in _subs) {
       s.cancel();
     }
@@ -127,8 +141,10 @@ class _ShellState extends State<Shell> {
     return Scaffold(
       key: _navKey,
       appBar: const BarraDirecta(),
-      floatingActionButton: (pantalla == 'analisis' || pantalla == 'inicio') ? null : AsistenteFab(pantalla: pantalla),
-      body: wide
+      body: AsistenteOverlay(
+        pantalla: pantalla,
+        visible: pantalla != 'analisis',
+        child: wide
           ? Row(children: [
               NavigationRail(
                 backgroundColor: c.bg2,
@@ -145,6 +161,7 @@ class _ShellState extends State<Shell> {
               Expanded(child: cuerpo),
             ])
           : cuerpo,
+      ),
       bottomNavigationBar: wide
           ? null
           : NavigationBar(
@@ -176,14 +193,17 @@ class _Secundaria extends StatelessWidget {
       'memoria' => const MemoriaScreen(),
       'indicadores' => const IndicadoresScreen(),
       'aprendizaje' => const AprendizajeScreen(),
+      'competencia' => const CompetenciaScreen(),
       _ => const AjustesScreen(),
     };
     return Scaffold(
-      appBar: BarraDirecta(titulo: titulo, mostrarDoc: id != 'ajustes' && id != 'aprendizaje'),
-      floatingActionButton: AsistenteFab(pantalla: id),
-      body: Pagina(
-        onRefresh: id == 'ajustes' ? null : (id == 'preparar' ? () => st.cargarPreparacion(forzar: true) : st.recargarTodo),
-        child: hijo,
+      appBar: BarraDirecta(titulo: titulo, mostrarDoc: id != 'ajustes' && id != 'aprendizaje' && id != 'competencia'),
+      body: AsistenteOverlay(
+        pantalla: id,
+        child: Pagina(
+          onRefresh: id == 'ajustes' ? null : (id == 'preparar' ? () => st.cargarPreparacion(forzar: true) : st.recargarTodo),
+          child: hijo,
+        ),
       ),
     );
   }

@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';     
 import 'package:provider/provider.dart';
 
 import '../core/saver.dart';
@@ -505,9 +505,11 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(color: c.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: c.border)),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: c.border)),
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
+        backgroundColor: c.surface,
+        collapsedBackgroundColor: c.surface,
         tilePadding: const EdgeInsets.fromLTRB(14, 8, 12, 8),
         childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
         leading: Container(width: 38, height: 38, decoration: BoxDecoration(color: semColor(context, estado).withValues(alpha: .12), borderRadius: BorderRadius.circular(11)), child: Icon(i['tipo'] == 'KRI' ? Icons.shield_outlined : Icons.trending_up, size: 19, color: semColor(context, estado))),

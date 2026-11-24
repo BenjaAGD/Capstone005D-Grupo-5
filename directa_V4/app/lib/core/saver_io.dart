@@ -12,12 +12,12 @@ const _downloads = MethodChannel('directa/downloads');
 Future<String> guardarArchivo(String nombre, Uint8List bytes, String mime) async {
   if (Platform.isAndroid) {
     try {
-      await _downloads.invokeMethod<void>('save', {
+      await _downloads.invokeMethod<Object?>('save', {
         'name': nombre,
         'mime': mime,
         'bytes': bytes,
       });
-      return 'Guardado en Descargas/DIRECTA: $nombre';
+      return 'Guardado en Documentos/Directa Gerente General: $nombre';
     } on PlatformException catch (e) {
       if (e.code != 'UNAVAILABLE') rethrow;
     }
@@ -43,6 +43,7 @@ Future<List<ArchivoGuardado>> listarArchivosGuardados() async {
                 bytes: (row['bytes'] as num?)?.toInt() ?? 0,
                 modificado: DateTime.fromMillisecondsSinceEpoch((row['modificado'] as num?)?.toInt() ?? 0),
                 mime: '${row['mime'] ?? 'application/octet-stream'}',
+                carpeta: '${row['carpeta'] ?? 'Otros'}',
               ),
         ];
       }
@@ -92,4 +93,15 @@ Future<void> eliminarArchivoGuardado(ArchivoGuardado archivo) async {
   }
   final file = File(archivo.ruta);
   if (await file.exists()) await file.delete();
+}
+
+/// Mueve a "Documentos/Directa Gerente General" lo que versiones anteriores dejaron en Descargas/DIRECTA.
+/// Devuelve cuántos archivos se movieron (0 si no había nada o no es Android).
+Future<int> migrarArchivosAntiguos() async {
+  if (!Platform.isAndroid) return 0;
+  try {
+    return await _downloads.invokeMethod<int>('migrate') ?? 0;
+  } on PlatformException {
+    return 0;
+  }
 }

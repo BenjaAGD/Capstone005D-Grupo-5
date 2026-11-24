@@ -86,6 +86,8 @@ class _Progreso extends StatelessWidget {
       'embeddings' => 'Indexando documento',
       'analisis' => 'Analizando con $total agentes',
       'listo' => 'Listo',
+      _ when p['estado'] == 'Error' || (p['motivo'] != null && '${p['motivo']}'.isNotEmpty) =>
+        'Falló: ${p['motivo'] ?? 'no se pudo indexar el documento'}. Vuelve a subirlo.',
       _ => '${p['estado'] ?? 'Procesando'}',
     };
     return Padding(
@@ -96,7 +98,7 @@ class _Progreso extends StatelessWidget {
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
-            Text(fase, style: TextStyle(fontSize: 12.5, color: c.text2)),
+            Text(fase, maxLines: 3, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12.5, color: c.text2)),
           ]),
         ),
         Text(restante > 0 ? '~${formatTiempo(restante)}' : '…', style: TextStyle(fontSize: 12, color: c.text3)),

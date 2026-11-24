@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/demo_modo.dart';
+import '../core/servidor_estado.dart';
 import '../core/sev.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
@@ -412,31 +414,130 @@ class EmptyState extends StatelessWidget {
   }
 }
 
-/// Aviso cuando no hay conexión con el backend.
+/// Aviso cuando no hay conexión con el backend. Si el servidor está despertando (plan gratuito de
+/// Render) se muestra un aviso suave con avance; solo si no responde tras varios intentos pasa a rojo.
 class BackendAviso extends StatelessWidget {
   const BackendAviso({super.key});
   @override
   Widget build(BuildContext context) {
-    final st = context.watch<AppState>();
-    if (st.backendOk) return const SizedBox.shrink();
+    if (!DemoModo.instance.activo) return const _AvisoServidor();
     final c = context.c;
-    return GgCard(
-      borderColor: c.crit,
-      color: c.crit.withValues(alpha: 0.08),
-      child: Row(children: [
-        Icon(Icons.cloud_off, color: c.crit),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('No se pudo conectar con el backend', style: TextStyle(fontWeight: FontWeight.w700)),
-            const SizedBox(height: 2),
-            Text('Dirección usada: ${st.apiUrl}. Revisa que el servidor esté encendido o cámbiala en Más → Servidor.',
-                style: TextStyle(fontSize: 12, color: c.text2)),
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      GgCard(
+        borderColor: c.info.withValues(alpha: 0.45),
+        color: c.info.withValues(alpha: 0.09),
+        child: Row(children: [
+          Icon(Icons.science_outlined, color: c.info),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('Acceso demo', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+              const SizedBox(height: 2),
+              Text('Entraste sin cuenta. Todo funciona con el servidor igual que en la app normal.',
+                  style: TextStyle(fontSize: 12, height: 1.35, color: c.text2)),
+            ]),
+          ),
+          const SizedBox(width: 8),
+          GgButton('Salir', ghost: true, small: true, onTap: DemoModo.instance.salir),
+        ]),
+      ),
+      const _AvisoServidor(),
+    ]);
+  }
+}
+
+/// Aviso cuando el servidor está despertando o no responde.
+class _AvisoServidor extends StatelessWidget {
+  const _AvisoServidor();
+  @override
+  Widget build(BuildContext context) {
+    final st = context.watch<AppState>();
+    return AnimatedBuilder(
+      animation: ServidorEstado.instance,
+      builder: (context, _) {
+        final c = context.c;
+        final sv = ServidorEstado.instance;
+        if (sv.desactualizado) {
+          return GgCard(
+            borderColor: c.med,
+            color: c.med.withValues(alpha: 0.09),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Icon(Icons.system_update_alt, color: c.med),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Text('El servidor está desactualizado', style: TextStyle(fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 2),
+                  Text('Los PDF nuevos, la lectura de documentos y la memoria por tipos necesitan la última versión del backend en Render. Pide que lo desplieguen.',
+                      style: TextStyle(fontSize: 12, height: 1.35, color: c.text2)),
+                ]),
+              ),
+            ]),
+          );
+        }
+        if (st.backendOk) return const SizedBox.shrink();
+        if (sv.estado == EstadoServidor.despertando) {
+          return GgCard(
+            borderColor: c.info.withValues(alpha: 0.45),
+            color: c.info.withValues(alpha: 0.09),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Container(
+                  width: 38, height: 38,
+                  decoration: BoxDecoration(color: c.info.withValues(alpha: 0.18), borderRadius: BorderRadius.circular(11)),
+                  child: Icon(Icons.dns_outlined, color: c.info, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Text('Despertando el servidor…', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                    const SizedBox(height: 2),
+                    Text('Puede tardar hasta un minuto la primera vez. Tus datos aparecerán solos.',
+                        style: TextStyle(fontSize: 12, height: 1.35, color: c.text2)),
+                  ]),
+                ),
+              ]),
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(3),
+                child: LinearProgressIndicator(
+                  value: sv.intento / ServidorEstado.maxIntentos,
+                  minHeight: 5,
+                  color: c.info,
+                  backgroundColor: c.track,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text('Intento ${sv.intento} de ${ServidorEstado.maxIntentos}', style: TextStyle(fontSize: 11, color: c.text3)),
+            ]),
+          );
+        }
+        return GgCard(
+          borderColor: c.crit,
+          color: c.crit.withValues(alpha: 0.08),
+          child: Row(children: [
+            Icon(Icons.cloud_off, color: c.crit),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('No se pudo conectar con el servidor', style: TextStyle(fontWeight: FontWeight.w700)),
+                const SizedBox(height: 2),
+                Text('Dirección usada: ${st.apiUrl}. Revisa que esté encendido o cámbiala en Más → Ajustes y estado.',
+                    style: TextStyle(fontSize: 12, color: c.text2)),
+              ]),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              tooltip: 'Reintentar',
+              onPressed: () {
+                ServidorEstado.instance.reintentarAhora();
+                st.recargarTodo();
+              },
+              icon: const Icon(Icons.refresh),
+            ),
           ]),
-        ),
-        const SizedBox(width: 8),
-        IconButton(tooltip: 'Reintentar', onPressed: st.recargarTodo, icon: const Icon(Icons.refresh)),
-      ]),
+        );
+      },
     );
   }
 }

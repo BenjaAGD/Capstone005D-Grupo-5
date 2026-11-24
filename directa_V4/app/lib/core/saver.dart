@@ -16,3 +16,5 @@ Future<List<ArchivoGuardado>> listarArchivosGuardados() => impl.listarArchivosGu
 Future<void> compartirArchivoGuardado(ArchivoGuardado archivo) => impl.compartirArchivoGuardado(archivo);
 
 Future<void> eliminarArchivoGuardado(ArchivoGuardado archivo) => impl.eliminarArchivoGuardado(archivo);
+
+Future<int> migrarArchivosAntiguos() => impl.migrarArchivosAntiguos();

@@ -23,3 +23,5 @@ Future<List<ArchivoGuardado>> listarArchivosGuardados() async => const [];
 Future<void> compartirArchivoGuardado(ArchivoGuardado archivo) async {}
 
 Future<void> eliminarArchivoGuardado(ArchivoGuardado archivo) async {}
+
+Future<int> migrarArchivosAntiguos() async => 0;
