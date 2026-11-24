@@ -25,3 +25,9 @@ Future<void> compartirArchivoGuardado(ArchivoGuardado archivo) async {}
 Future<void> eliminarArchivoGuardado(ArchivoGuardado archivo) async {}
 
 Future<int> migrarArchivosAntiguos() async => 0;
+
+Future<void> abrirArchivoGuardado(ArchivoGuardado archivo) async {}
+
+Future<bool> abrirUltimoArchivo() async => false;
+
+Future<void> eliminarArchivosGuardados(List<ArchivoGuardado> archivos) async {}

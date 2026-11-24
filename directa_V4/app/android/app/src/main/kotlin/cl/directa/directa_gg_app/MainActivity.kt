@@ -1,6 +1,14 @@
 package cl.directa.directa_gg_app
 
+import android.Manifest
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.RecoverableSecurityException
 import android.content.ContentUris
+import android.content.Context
+import android.content.pm.PackageManager
 import android.content.ContentValues
 import android.content.Intent
 import android.media.MediaScannerConnection
@@ -21,6 +29,49 @@ class MainActivity : FlutterActivity() {
     private val channelName = "directa/downloads"
     private val raiz = "Documents/Directa Gerente General"
     private val legado = "Download/DIRECTA"
+    private val canalNotif = "directa_progreso"
+
+    // ------------------------------------------------------------------ notificaciones
+    private fun gestorNotif(): NotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+    private fun asegurarCanal() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val canal = NotificationChannel(canalNotif, "Progreso de DIRECTA", NotificationManager.IMPORTANCE_LOW)
+            canal.description = "Indexación, análisis y generación de documentos"
+            gestorNotif().createNotificationChannel(canal)
+        }
+    }
+
+    private fun pedirPermisoNotif() {
+        if (Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 4071)
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun notificar(id: Int, titulo: String, texto: String, valor: Int, enCurso: Boolean) {
+        asegurarCanal()
+        val abrir = packageManager.getLaunchIntentForPackage(packageName)?.apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val pi = if (abrir != null) PendingIntent.getActivity(
+            this, id, abrir, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE) else null
+        val b = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) Notification.Builder(this, canalNotif) else Notification.Builder(this)
+        b.setSmallIcon(applicationInfo.icon)
+            .setContentTitle(titulo)
+            .setContentText(texto)
+            .setOnlyAlertOnce(true)
+            .setOngoing(enCurso)
+            .setAutoCancel(!enCurso)
+        if (pi != null) b.setContentIntent(pi)
+        if (enCurso) b.setProgress(100, valor.coerceIn(0, 100), valor < 0)
+        try {
+            gestorNotif().notify(id, b.build())
+        } catch (_: SecurityException) {
+            // Sin permiso de notificaciones: la app sigue mostrando el progreso dentro de la pantalla.
+        }
+    }
 
     private fun coleccion(): Uri = MediaStore.Files.getContentUri("external_primary")
 
@@ -102,8 +153,112 @@ class MainActivity : FlutterActivity() {
         return uri
     }
 
+    // ------------------------------------------------------------------ borrado con permiso del sistema
+    // Un archivo que la app no creó (por ejemplo, de antes de reinstalarla) solo se puede borrar si la
+    // persona lo autoriza: Android muestra su propio diálogo "¿Permitir que DIRECTA elimine…?".
+    private val reqBorrar = 4201
+    private var borradoPendiente: MethodChannel.Result? = null
+    private var urisPendientes: List<Uri> = emptyList()
+
+    private fun borrarDirecto(uri: Uri): Boolean {
+        val ruta = rutaDe(uri)
+        val n = contentResolver.delete(uri, null, null)
+        try { if (ruta != null) java.io.File(ruta).takeIf { it.exists() }?.delete() } catch (_: Exception) {}
+        refrescar(ruta)
+        return n > 0
+    }
+
+    private fun borrarConPermiso(uris: List<Uri>, result: MethodChannel.Result) {
+        Thread {
+            val sinPermiso = mutableListOf<Uri>()
+            var intentoQ: android.content.IntentSender? = null
+            for (u in uris) {
+                try {
+                    borrarDirecto(u)
+                } catch (e: SecurityException) {
+                    sinPermiso.add(u)
+                    if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q && e is RecoverableSecurityException && intentoQ == null) {
+                        intentoQ = e.userAction.actionIntent.intentSender
+                    }
+                } catch (_: Exception) {
+                }
+            }
+            runOnUiThread {
+                if (sinPermiso.isEmpty()) {
+                    result.success(null)
+                    return@runOnUiThread
+                }
+                try {
+                    val sender = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+                        MediaStore.createDeleteRequest(contentResolver, sinPermiso).intentSender
+                    else intentoQ
+                    if (sender == null) {
+                        result.error("DELETE_FAILED", "Android no permitió eliminar el archivo", null)
+                        return@runOnUiThread
+                    }
+                    borradoPendiente = result
+                    urisPendientes = sinPermiso
+                    startIntentSenderForResult(sender, reqBorrar, null, 0, 0, 0)
+                } catch (e: Exception) {
+                    result.error("DELETE_FAILED", e.message ?: "No se pudo pedir permiso para eliminar", null)
+                }
+            }
+        }.start()
+    }
+
+    @Deprecated("Usado por startIntentSenderForResult")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != reqBorrar) return
+        val r = borradoPendiente ?: return
+        borradoPendiente = null
+        if (resultCode != RESULT_OK) {
+            r.error("DELETE_CANCELLED", "No se autorizó eliminar el archivo", null)
+            return
+        }
+        val pendientes = urisPendientes
+        Thread {
+            // En Android 11+ el sistema ya los borró; en Android 10 hay que borrarlos tras el permiso.
+            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+                for (u in pendientes) try { borrarDirecto(u) } catch (_: Exception) {}
+            } else {
+                refrescar(null)
+            }
+            runOnUiThread { r.success(null) }
+        }.start()
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "directa/notif").setMethodCallHandler { call, result ->
+            try {
+                when (call.method) {
+                    "permiso" -> { pedirPermisoNotif(); result.success(null) }
+                    "progreso" -> {
+                        notificar(call.argument<Int>("id") ?: 1, call.argument<String>("titulo") ?: "DIRECTA",
+                            call.argument<String>("texto") ?: "", call.argument<Int>("valor") ?: -1, true)
+                        result.success(null)
+                    }
+                    "listo" -> {
+                        notificar(call.argument<Int>("id") ?: 1, call.argument<String>("titulo") ?: "DIRECTA",
+                            call.argument<String>("texto") ?: "", 100, false)
+                        result.success(null)
+                    }
+                    "cerrar" -> { gestorNotif().cancel(call.argument<Int>("id") ?: 1); result.success(null) }
+                    "permisoArchivos" -> {
+                        // Android 10 a 12: leer archivos guardados antes de reinstalar la app.
+                        if (Build.VERSION.SDK_INT in 29..32 &&
+                            checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                            requestPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 4072)
+                        }
+                        result.success(null)
+                    }
+                    else -> result.notImplemented()
+                }
+            } catch (e: Exception) {
+                result.error("NOTIF", e.message, null)
+            }
+        }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName).setMethodCallHandler { call, result ->
             when (call.method) {
                 "list" -> {
@@ -170,17 +325,10 @@ class MainActivity : FlutterActivity() {
                         result.error("OPEN_FAILED", e.message ?: "No se pudo abrir el archivo", null)
                     }
                 }
-                "delete" -> {
-                    val uri = Uri.parse(call.argument<String>("uri") ?: "")
-                    segundoPlano(result, "DELETE_FAILED") {
-                        val ruta = rutaDe(uri)
-                        val borrados = contentResolver.delete(uri, null, null)
-                        if (borrados == 0) throw IllegalStateException("El archivo ya no existe")
-                        // Si el archivo seguía en disco, se borra; luego se avisa al escáner para limpiar la caché.
-                        try { if (ruta != null) java.io.File(ruta).takeIf { it.exists() }?.delete() } catch (_: Exception) {}
-                        refrescar(ruta)
-                        null
-                    }
+                "delete", "deleteMany" -> {
+                    val uris = if (call.method == "delete") listOf(call.argument<String>("uri") ?: "")
+                               else (call.argument<List<String>>("uris") ?: emptyList())
+                    borrarConPermiso(uris.filter { it.isNotEmpty() }.map { Uri.parse(it) }, result)
                 }
                 "save" -> {
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {

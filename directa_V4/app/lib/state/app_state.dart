@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import '../core/api.dart';
 import '../core/config.dart';
 import '../core/models.dart';
+import '../core/notificaciones.dart';
 import '../core/sev.dart';
 import '../core/store.dart';
 
@@ -19,8 +20,12 @@ class AppState extends ChangeNotifier {
   AppState(this.store, {http.Client? client})
       : api = Api(_apiInicial(store), client: client) {
     themeMode = store.getString(Store.kTheme) == 'light' ? ThemeMode.light : ThemeMode.dark;
-    textScale = store.getDouble(Store.kFont) ?? 1.0;
+    textScale = store.getDouble(Store.kFont) ?? 0.9;
     docActivo = store.getString(Store.kDoc);
+    if (docActivo == _sinDocumento) {
+      docActivo = null;
+      _docDesactivado = true;
+    }
     agenteActual = store.getString(Store.kAgente) ?? 'general';
     _ruta = {
       for (final e in store.getJson<Map>(Store.kRuta, {}).entries)
@@ -196,6 +201,32 @@ class AppState extends ChangeNotifier {
   bool iniciado = false;
   List<Map<String, dynamic>> documentos = [];
   String? docActivo;
+
+  /// Marca guardada cuando la persona desactiva a propósito el documento activo
+  /// (para que al recargar no se active solo el primero de la lista).
+  static const _sinDocumento = '__ninguno__';
+  bool _docDesactivado = false;
+
+  /// Deja la app sin documento activo.
+  void desactivarDocumento() {
+    if (consultando) {
+      toast('Espera a que termine la respuesta en curso', err: true);
+      return;
+    }
+    if (docActivo != null) _guardarChat();
+    docActivo = null;
+    _docDesactivado = true;
+    store.setString(Store.kDoc, _sinDocumento);
+    mensajes = [];
+    sugerencias = [];
+    analisis = null;
+    diagnosticosAgentes = [];
+    borrador = '';
+    prepPreguntas = [];
+    prepSenales = [];
+    toast('Documento desactivado');
+    notifyListeners();
+  }
   Map<String, Map<String, dynamic>>? analisis; // {agente: resultado} del documento activo
   bool cargandoAnalisis = false;
   List<Map<String, dynamic>> diagnosticosAgentes = [];
@@ -240,7 +271,7 @@ class AppState extends ChangeNotifier {
       final antes = informeItems.length;
       informeItems.removeWhere((i) => !ids.contains(i['document_id']));
       if (informeItems.length != antes) _guardarInforme();
-      if (docActivo == null || !ids.contains(docActivo)) {
+      if ((docActivo == null && !_docDesactivado) || (docActivo != null && !ids.contains(docActivo))) {
         docActivo = documentos.isEmpty ? null : '${documentos.first['id']}';
         store.setString(Store.kDoc, docActivo);
         mensajes = [];
@@ -355,7 +386,8 @@ class AppState extends ChangeNotifier {
       return false;
     }
     if (id == docActivo) return true;
-    _guardarChat();
+    _docDesactivado = false;
+    if (docActivo != null) _guardarChat();
     docActivo = id;
     store.setString(Store.kDoc, id);
     sugerencias = [];
@@ -401,6 +433,8 @@ class AppState extends ChangeNotifier {
     subiendoNombre = nombre;
     progreso = {'estado': 'Iniciando', 'fase': 'iniciando', 'procesados': 0, 'total': 0, 'estimado_seg': 0};
     notifyListeners();
+    unawaited(Notificaciones.pedirPermiso());
+    unawaited(Notificaciones.progreso(Notificaciones.idDocumento, 'Subiendo $nombre', 'Preparando el documento…'));
 
     void terminar() {
       _polling?.cancel();
@@ -416,8 +450,22 @@ class AppState extends ChangeNotifier {
           progreso = Map<String, dynamic>.from(d);
           notifyListeners();
           final est = d['estado'];
+          final tot = (d['total'] as num?)?.toInt() ?? 0;
+          final proc = (d['procesados'] as num?)?.toInt() ?? 0;
+          final fase = switch (d['fase']) {
+            'embeddings' => 'Indexando',
+            'analisis' => 'Analizando con los agentes',
+            _ => '${d['estado'] ?? 'Procesando'}',
+          };
+          if (est != 'Listo' && est != 'Listo con errores' && est != 'Error') {
+            unawaited(Notificaciones.progreso(Notificaciones.idDocumento, nombre,
+                tot > 0 ? '$fase · $proc de $tot' : fase, valor: tot > 0 ? (100 * proc / tot).round() : -1));
+          }
           if (est == 'Listo' || est == 'Listo con errores' || est == 'Error') {
             terminar();
+            unawaited(Notificaciones.listo(Notificaciones.idDocumento,
+                est == 'Error' ? 'No se pudo procesar el documento' : 'Documento listo',
+                est == 'Error' ? '$nombre · ${d['motivo'] ?? 'revisa el detalle en la app'}' : '$nombre · ya puedes revisar el análisis'));
             if (est == 'Error') {
               toast('Error procesando el documento', err: true);
               await cargarDocumentos();
@@ -922,6 +970,7 @@ class AppState extends ChangeNotifier {
     _agregarChatAlInforme(copia, pregunta);
     _guardarChat();
     toast('Copiada al chat y agregada al informe');
+    go('chat');
     notifyListeners();
   }
 
@@ -1286,7 +1335,7 @@ class AppState extends ChangeNotifier {
       }
     }
     _guardarInforme();
-    toast(n > 0 ? '$n análisis agregados al informe' : 'Ya estaban todos en el informe');
+    toast(n > 0 ? '$n análisis agregados al informe · Gestión → Informe del directorio' : 'Ya estaban todos en el informe');
     notifyListeners();
   }
 

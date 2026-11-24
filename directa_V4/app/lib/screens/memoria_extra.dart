@@ -11,6 +11,7 @@ import '../core/saver.dart';
 import '../core/store.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
+import '../state/trabajo_memoria.dart';
 import '../widgets/common.dart';
 import '../widgets/demo_offline.dart';
 
@@ -171,12 +172,29 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
     if (_tiposLocal.any((t) => t['id'] == m['tipo'])) tipo = '${m['tipo']}';
     if (_disenos.any((d) => d['id'] == m['diseno'])) diseno = '${m['diseno']}';
     logo = m['logo'] as String?;
+    TrabajoMemoria.instance.addListener(_sincronizar);
+    if (TrabajoMemoria.instance.corriendo || TrabajoMemoria.instance.resultado != null) paso = 3;
+    _aplicarTrabajo(); // en initState no se puede usar setState
     WidgetsBinding.instance.addPostFrameCallback((_) => _cargar());
+  }
+
+  /// Copia el estado del trabajo de fondo (sigue corriendo aunque se salga de esta pantalla).
+  void _aplicarTrabajo() {
+    final t = TrabajoMemoria.instance;
+    generando = t.corriendo;
+    progreso = t.progreso;
+    resultado = t.resultado;
+    if (t.error != null) error = t.error;
+  }
+
+  void _sincronizar() {
+    if (mounted) setState(_aplicarTrabajo);
   }
 
   @override
   void dispose() {
     _poll?.cancel();
+    TrabajoMemoria.instance.removeListener(_sincronizar);
     _nombre.dispose();
     _titulo.dispose();
     _destinatario.dispose();
@@ -237,52 +255,18 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
   Future<void> _generar() async {
     if (anio == null || generando) return;
     _guardarMarca();
-    setState(() {
-      generando = true;
-      progreso = {'paso': 'Iniciando…', 'hechos': 0, 'total': 1};
-      resultado = null;
-      error = null;
+    setState(() => error = null);
+    final propios = st.store.getJson<List>(Store.kIndPropios, const []);
+    await TrabajoMemoria.instance.iniciar(st, {
+      'anio': anio,
+      'marca': {'nombre': _nombre.text.trim(), 'titulo': _titulo.text.trim(),
+        'destinatario': _destinatario.text.trim(), 'firmante': _firmante.text.trim(),
+        'color': color, if (logo != null) 'logo': logo},
+      'tipo': tipo,
+      'diseno': diseno,
+      'caps': widget.caps(),
+      'propios': propios,
     });
-    try {
-      final propios = st.store.getJson<List>(Store.kIndPropios, const []);
-      final r = await st.api.postJson('/api/memoria/borrador', {
-        'anio': anio,
-        'marca': {'nombre': _nombre.text.trim(), 'titulo': _titulo.text.trim(),
-          'destinatario': _destinatario.text.trim(), 'firmante': _firmante.text.trim(),
-          'color': color, if (logo != null) 'logo': logo},
-        'tipo': tipo,
-        'diseno': diseno,
-        'caps': widget.caps(),
-        'propios': propios,
-      });
-      if (r['ok'] != true) throw Exception(r['error'] ?? 'No se pudo iniciar');
-      final id = '${r['job_id']}';
-      final listo = Completer<Map<String, dynamic>>();
-      _poll = Timer.periodic(const Duration(milliseconds: 1500), (t) async {
-        try {
-          final e = Map<String, dynamic>.from(await st.api.getJson('/api/memoria/borrador/$id') as Map);
-          if (!mounted) return;
-          setState(() => progreso = e);
-          if (e['corriendo'] != true && !listo.isCompleted) {
-            t.cancel();
-            listo.complete(e);
-          }
-        } catch (err) {
-          if (!listo.isCompleted) {
-            t.cancel();
-            listo.completeError(err);
-          }
-        }
-      });
-      final e = await listo.future;
-      if (e['listo'] != true) throw Exception(e['error'] ?? 'El borrador no se pudo generar');
-      final bytes = await st.api.getBytes('/api/memoria/borrador/$id/pdf');
-      resultado = e;
-      st.toast(await guardarArchivo('${e['nombre'] ?? 'Memoria_borrador.pdf'}', bytes, 'application/pdf'));
-    } catch (e) {
-      error = e.toString().replaceFirst('Exception: ', '');
-    }
-    if (mounted) setState(() => generando = false);
   }
 
   Map<String, dynamic> get _tipoSel => tipos.firstWhere((t) => t['id'] == tipo, orElse: () => tipos.first);
@@ -470,7 +454,7 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
         const SizedBox(height: 14),
         GgButton(generando ? 'Generando memoria…' : 'Generar borrador PDF', icon: Icons.picture_as_pdf_outlined, expand: true, loading: generando, onTap: anio == null || docsAnio.isEmpty ? null : _generar),
         const SizedBox(height: 8),
-        Text('El PDF se guarda en Documentos/Directa Gerente General. Revisa y valida el contenido antes de distribuirlo.', style: TextStyle(fontSize: 11.5, color: c.text3, height: 1.35)),
+        Text('Puedes salir de esta pantalla: la memoria se sigue generando y te avisamos con una notificación. El PDF se guarda en Documentos/Directa Gerente General.', style: TextStyle(fontSize: 11.5, color: c.text3, height: 1.35)),
       ])),
       if (generando && progreso != null) GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${progreso!['paso'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w600)), const SizedBox(height: 8), GgBar(value: ((progreso!['hechos'] as num?)?.toDouble() ?? 0) / max(1, (progreso!['total'] as num?)?.toDouble() ?? 1)), const SizedBox(height: 4), Text('${progreso!['hechos'] ?? 0} de ${progreso!['total'] ?? 1} pasos', style: TextStyle(fontSize: 11.5, color: c.text3))])),
       if (error != null && !cargando) GgCard(borderColor: c.crit, child: Text(error!, style: TextStyle(color: c.crit))),
@@ -479,7 +463,12 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
         const SizedBox(height: 6),
         Text('${resultado!['nombre'] ?? 'Memoria_borrador.pdf'} · ${(resultado!['revision'] as List? ?? const []).length} alertas de cifras. Revisa el archivo antes de aprobarlo.', style: TextStyle(fontSize: 12.5, color: c.text2)),
         const SizedBox(height: 10),
-        GgButton('Ver mis archivos', icon: Icons.folder_open_outlined, ghost: true, small: true, onTap: () => st.go('archivos')),
+        Wrap(spacing: 8, runSpacing: 8, children: [
+          GgButton('Abrir PDF', icon: Icons.picture_as_pdf_outlined, small: true, onTap: () async {
+            if (!await abrirUltimoArchivo()) st.go('archivos');
+          }),
+          GgButton('Ver mis archivos', icon: Icons.folder_open_outlined, ghost: true, small: true, onTap: () => st.go('archivos')),
+        ]),
       ])),
     ]);
   }

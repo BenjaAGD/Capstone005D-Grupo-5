@@ -138,7 +138,8 @@ class _ShellState extends State<Shell> {
     final nInf = st.itemsInforme.length;
     Widget icono(int i, bool on) {
       final ic = Icon(on ? _dest[i].$3 : _dest[i].$2);
-      return i == 4 && nInf > 0 ? Badge(label: Text('$nInf'), backgroundColor: c.crit, textColor: Colors.white, child: ic) : ic;
+      // El contador del informe va en Gestión, que es donde está el Informe del directorio.
+      return i == 3 && nInf > 0 ? Badge(label: Text('$nInf'), backgroundColor: c.crit, textColor: Colors.white, child: ic) : ic;
     }
 
     final cuerpo = KeyedSubtree(key: ValueKey(st.tab), child: _tab(st.tab, st));

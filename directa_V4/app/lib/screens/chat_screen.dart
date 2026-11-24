@@ -92,9 +92,76 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
     _inputFocus.unfocus();
-    setState(() => _modoGuia = false);
+    setState(() {
+      _modoGuia = false;
+      _guiaAbierta = false; // la guía queda en una línea; se reabre con el botón de sugerencias
+    });
     _alFondo(animar: true, forzar: true);
     await st.enviarPregunta(pregunta);
+  }
+
+  /// Hoja con los temas de la guía y las preguntas sugeridas, a un toque desde el campo de texto.
+  Future<void> _abrirSugerencias(AppState st) async {
+    _inputFocus.unfocus();
+    final c = context.c;
+    final pregunta = await showModalBottomSheet<String>(
+      context: context,
+      useSafeArea: true,
+      isScrollControlled: true,
+      constraints: const BoxConstraints(maxWidth: 640),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+      builder: (ctx) {
+        Widget fila(IconData icono, String titulo, String detalle, String q, {bool hecho = false}) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Material(
+                color: c.surface2,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: c.border)),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () => Navigator.pop(ctx, q),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(children: [
+                      Container(
+                        width: 34, height: 34,
+                        decoration: BoxDecoration(color: c.accentSoft, borderRadius: BorderRadius.circular(10)),
+                        child: Icon(hecho ? Icons.check_rounded : icono, size: 18, color: hecho ? c.low : c.accentText),
+                      ),
+                      const SizedBox(width: 11),
+                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(titulo, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                        const SizedBox(height: 2),
+                        Text(detalle, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, color: c.text2)),
+                      ])),
+                      Icon(Icons.north_east_rounded, size: 17, color: c.accentText),
+                    ]),
+                  ),
+                ),
+              ),
+            );
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: .7,
+          maxChildSize: .92,
+          builder: (_, sc) => ListView(controller: sc, padding: const EdgeInsets.fromLTRB(16, 8, 16, 20), children: [
+            Center(child: Container(width: 38, height: 4, margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(color: c.border2, borderRadius: BorderRadius.circular(3)))),
+            const Text('Sugerencias', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 2),
+            Text('Toca una y se envía al tiro.', style: TextStyle(fontSize: 12, color: c.text2)),
+            const SizedBox(height: 14),
+            SecTitle('Guía de análisis · ${st.guiaTemasCompletados.length}/5', bottom: 8),
+            for (var i = 0; i < _temasGuia.length; i++)
+              fila(Icons.route_outlined, _temasGuia[i].tema, _temasGuia[i].pregunta, _temasGuia[i].pregunta,
+                  hecho: st.guiaTemasCompletados.contains(i)),
+            const SizedBox(height: 8),
+            const SecTitle('Preguntas rápidas', bottom: 8),
+            for (final q in _sugerencias) fila(q.icono, q.titulo, q.detalle, q.pregunta),
+          ]),
+        );
+      },
+    );
+    if (pregunta != null && mounted) await _enviarDirecto(st, pregunta);
   }
 
   /// La persona quiere escribir su propia respuesta al tema: aquí sí se abre el teclado.
@@ -304,9 +371,9 @@ class _ChatScreenState extends State<ChatScreen> {
         const SizedBox(height: 12),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: c.accentText.withValues(alpha: .35)),
             gradient: LinearGradient(
               begin: Alignment.topLeft, end: Alignment.bottomRight,
@@ -316,7 +383,7 @@ class _ChatScreenState extends State<ChatScreen> {
             Text('TEMA ${seleccion + 1} DE 5 · ${paso.tema.toUpperCase()}',
                 style: TextStyle(fontSize: 10.5, letterSpacing: .8, fontWeight: FontWeight.w800, color: c.accentText)),
             const SizedBox(height: 6),
-            Text(paso.pregunta, style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600, height: 1.4)),
+            Text(paso.pregunta, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.35)),
             if (respuestas[seleccion] != null) ...[
               const SizedBox(height: 6),
               Text('Tu respuesta: ${respuestas[seleccion]}',
@@ -329,7 +396,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 onPressed: st.docActivo == null || st.consultando ? null : () => _enviarDirecto(st, paso.pregunta),
                 style: FilledButton.styleFrom(
                   backgroundColor: Brand.accent, foregroundColor: Brand.onAccent,
-                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
                 icon: const Icon(Icons.auto_awesome, size: 18),
                 label: const Text('Analizar con el documento', style: TextStyle(fontWeight: FontWeight.w800)),
@@ -341,7 +408,7 @@ class _ChatScreenState extends State<ChatScreen> {
               child: OutlinedButton(
                 onPressed: _responderConMisPalabras,
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 9),
                   side: BorderSide(color: c.border2),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
                 child: Text('Responder con mis palabras', style: TextStyle(color: c.text2)),
@@ -520,6 +587,13 @@ class _ChatScreenState extends State<ChatScreen> {
         child: SafeArea(
           top: false,
           child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+            IconButton(
+              tooltip: 'Sugerencias',
+              onPressed: doc == null || st.consultando ? null : () => _abrirSugerencias(st),
+              style: IconButton.styleFrom(backgroundColor: c.accentSoft, foregroundColor: c.accentText, minimumSize: const Size(48, 48)),
+              icon: const Icon(Icons.lightbulb_outline_rounded),
+            ),
+            const SizedBox(width: 8),
             Expanded(
               child: Container(
                 decoration: BoxDecoration(

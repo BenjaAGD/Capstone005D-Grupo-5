@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../core/notificaciones.dart';
 import '../core/saver.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
@@ -24,6 +26,7 @@ class _ArchivosScreenState extends State<ArchivosScreen> {
 
   Future<List<ArchivoGuardado>> _cargar({bool migrar = false}) async {
     if (migrar) {
+      await Notificaciones.pedirPermisoArchivos();
       // Mueve lo que quedó en Descargas/DIRECTA de versiones anteriores.
       final movidos = await migrarArchivosAntiguos();
       if (movidos > 0 && mounted) {
@@ -47,6 +50,14 @@ class _ArchivosScreenState extends State<ArchivosScreen> {
     }
   }
 
+  Future<void> _abrir(ArchivoGuardado archivo) async {
+    try {
+      await abrirArchivoGuardado(archivo);
+    } catch (e) {
+      if (mounted) context.read<AppState>().toast('No hay una app para abrir este archivo. Prueba con Compartir.', err: true);
+    }
+  }
+
   Future<void> _eliminar(ArchivoGuardado archivo) async {
     final ok = await confirmar(context, 'Se eliminará "${archivo.nombre}" de tu teléfono.', ok: 'Eliminar');
     if (!ok || !mounted) return;
@@ -54,26 +65,27 @@ class _ArchivosScreenState extends State<ArchivosScreen> {
       await eliminarArchivoGuardado(archivo);
       await _recargar();
       if (mounted) context.read<AppState>().toast('Archivo eliminado');
-    } catch (e) {
-      if (mounted) context.read<AppState>().toast('No se pudo eliminar. Puede que ya no exista; actualiza la lista.', err: true);
+    } on PlatformException catch (e) {
+      if (mounted) {
+        context.read<AppState>().toast(e.code == 'DELETE_CANCELLED' ? 'No se eliminó: no diste el permiso' : 'No se pudo eliminar. Actualiza la lista e inténtalo de nuevo.', err: true);
+      }
+    } catch (_) {
+      if (mounted) context.read<AppState>().toast('No se pudo eliminar. Actualiza la lista e inténtalo de nuevo.', err: true);
     }
   }
 
   Future<void> _eliminarTodo(List<ArchivoGuardado> archivos) async {
     final ok = await confirmar(context, 'Se eliminarán ${archivos.length} archivos de tu teléfono. Esto no se puede deshacer.', ok: 'Eliminar todo');
     if (!ok || !mounted) return;
-    var fallos = 0;
-    for (final a in archivos) {
-      try {
-        await eliminarArchivoGuardado(a);
-      } catch (_) {
-        fallos++;
+    try {
+      await eliminarArchivosGuardados(archivos);
+      if (mounted) context.read<AppState>().toast('Archivos eliminados');
+    } on PlatformException catch (e) {
+      if (mounted) {
+        context.read<AppState>().toast(e.code == 'DELETE_CANCELLED' ? 'No se eliminaron: no diste el permiso' : 'No se pudieron eliminar algunos archivos', err: true);
       }
     }
     await _recargar();
-    if (mounted) {
-      context.read<AppState>().toast(fallos == 0 ? 'Archivos eliminados' : 'No se pudieron eliminar $fallos archivo(s)', err: fallos > 0);
-    }
   }
 
   @override
@@ -130,7 +142,7 @@ class _ArchivosScreenState extends State<ArchivosScreen> {
               GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 SecTitle('$n · ${grupos[n]!.length}'),
                 for (final a in grupos[n]!)
-                  _ArchivoRow(archivo: a, compartir: () => _compartir(a), eliminar: () => _eliminar(a)),
+                  _ArchivoRow(archivo: a, abrir: () => _abrir(a), compartir: () => _compartir(a), eliminar: () => _eliminar(a)),
               ])),
           ]);
         },
@@ -154,8 +166,9 @@ class _Esqueleto extends StatelessWidget {
 }
 
 class _ArchivoRow extends StatelessWidget {
-  const _ArchivoRow({required this.archivo, required this.compartir, required this.eliminar});
+  const _ArchivoRow({required this.archivo, required this.abrir, required this.compartir, required this.eliminar});
   final ArchivoGuardado archivo;
+  final VoidCallback abrir;
   final VoidCallback compartir;
   final VoidCallback eliminar;
 
@@ -169,8 +182,10 @@ class _ArchivoRow extends StatelessWidget {
         : '${(archivo.bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
     return Container(
       margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(color: c.surface2, borderRadius: BorderRadius.circular(13), border: Border.all(color: c.border)),
+      clipBehavior: Clip.antiAlias,
+      child: Material(type: MaterialType.transparency, child: InkWell(onTap: abrir, child: Padding(
+      padding: const EdgeInsets.all(12),
       child: Row(children: [
         Container(
           width: 42, height: 42, alignment: Alignment.center,
@@ -181,11 +196,11 @@ class _ArchivoRow extends StatelessWidget {
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(archivo.nombre, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
           const SizedBox(height: 3),
-          Text('$fecha · $tamano', style: TextStyle(color: c.text3, fontSize: 11.5)),
+          Text('$fecha · $tamano · toca para abrir', style: TextStyle(color: c.text3, fontSize: 11.5)),
         ])),
-        IconButton(onPressed: compartir, tooltip: 'Abrir o compartir', icon: Icon(Icons.ios_share_outlined, color: c.accentText)),
+        IconButton(onPressed: compartir, tooltip: 'Compartir', icon: Icon(Icons.ios_share_outlined, color: c.accentText)),
         IconButton(onPressed: eliminar, tooltip: 'Eliminar', icon: Icon(Icons.delete_outline, color: c.crit)),
       ]),
-    );
+    ))));
   }
 }

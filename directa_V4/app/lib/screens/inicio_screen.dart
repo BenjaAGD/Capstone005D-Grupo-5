@@ -181,7 +181,11 @@ class InicioScreen extends StatelessWidget {
           Switch(
             value: activo,
             onChanged: (v) async {
-              if (v && !activo && await st.cambiarDocumento(id)) st.toast('Documento activado');
+              if (v && !activo && await st.cambiarDocumento(id)) {
+                st.toast('Documento activado');
+              } else if (!v && activo) {
+                st.desactivarDocumento();
+              }
             },
           ),
         ]),

@@ -21,6 +21,8 @@ class MemoriaScreen extends StatefulWidget {
   State<MemoriaScreen> createState() => _MemoriaScreenState();
 }
 
+const _kFuente = 'directa_memoria_fuente_v1';
+
 class _MemoriaScreenState extends State<MemoriaScreen> {
   String pestana = 'borrador';
   String fuente = '__todos__';
@@ -42,6 +44,15 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
     super.initState();
     mem = Map<String, dynamic>.from(st.store.getJson<Map>(Store.kMemoria, {'caps': {}}));
     mem['caps'] = Map<String, dynamic>.from(mem['caps'] as Map? ?? {});
+    // Por defecto la memoria usa SOLO el documento activo (antes mezclaba todos los documentos
+    // y el borrador podía traer datos de otra empresa). La elección queda guardada.
+    final guardada = st.store.getString(_kFuente);
+    final ids = st.documentos.map((d) => '${d['id']}').toSet();
+    if (guardada != null && (guardada == '__todos__' || ids.contains(guardada))) {
+      fuente = guardada;
+    } else if (st.docActivo != null) {
+      fuente = st.docActivo!;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) => _cargar());
   }
 
@@ -50,6 +61,15 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
     _tNotas?.cancel();
     _notas.dispose();
     super.dispose();
+  }
+
+  void _cambiarFuente(String v) {
+    setState(() {
+      fuente = v;
+      sug.clear();
+    });
+    st.store.setString(_kFuente, v);
+    _cargar();
   }
 
   Map<String, dynamic> capMem(String id) {
@@ -214,13 +234,11 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
         title: Text('En el PDF, solo los temas que marqué como revisados', style: TextStyle(fontSize: 13, color: c.text2)),
       ),
       GgSelect<String>(
+            key: ValueKey('fuente-$fuente-Busca'),
         label: 'Buscar evidencia en',
         value: fuente,
         items: [('__todos__', 'Todos los documentos'), for (final d in app.documentos) ('${d['id']}', nombreDoc(d))],
-        onChanged: (v) {
-          setState(() => fuente = v);
-          _cargar();
-        },
+        onChanged: _cambiarFuente,
       ),
       Padding(
         padding: const EdgeInsets.only(top: 2, bottom: 10),
@@ -446,6 +464,14 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
             GgButton('Sugerir borrador con IA', icon: Icons.auto_awesome, ghost: true, small: true, loading: sugiriendo, onTap: _sugerir),
             Text(sugMsg, style: TextStyle(fontSize: 12, color: c.text3)),
           ]),
+          const SizedBox(height: 8),
+          GgSelect<String>(
+            key: ValueKey('fuente-$fuente-La IA'),
+            label: 'La IA escribe usando',
+            value: fuente,
+            items: [('__todos__', 'Todos los documentos'), for (final d in context.read<AppState>().documentos) ('${d['id']}', nombreDoc(d))],
+            onChanged: _cambiarFuente,
+          ),
           if (s != null)
             Container(
               margin: const EdgeInsets.only(top: 10),

@@ -400,7 +400,12 @@ class _AsistenteState extends State<_Asistente> {
                         Valoracion(msg: m, documentId: st.docActivo),
                         TextButton.icon(
                           style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact, foregroundColor: c.accentText),
-                          onPressed: () => st.asistenteAlChat(m),
+                          onPressed: () {
+                            // Cierra el asistente y cualquier pantalla abierta encima, y lleva al chat.
+                            final nav = Navigator.of(context);
+                            nav.popUntil((r) => r.isFirst);
+                            st.asistenteAlChat(m);
+                          },
                           icon: const Icon(Icons.forum_outlined, size: 15),
                           label: const Text('Llevar al chat', style: TextStyle(fontSize: 12)),
                         ),

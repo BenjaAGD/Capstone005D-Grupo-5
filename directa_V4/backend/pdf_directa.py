@@ -76,27 +76,27 @@ def _hex(c, default="#2B2F36"):
 # Estilos
 # ---------------------------------------------------------------------------------------------
 def _ps(name, **kw):
-    base = dict(fontName="Helvetica", fontSize=9.2, leading=13, textColor=TINTA, spaceBefore=0, spaceAfter=0)
+    base = dict(fontName="Helvetica", fontSize=9.6, leading=13.6, textColor=TINTA, spaceBefore=0, spaceAfter=0)
     base.update(kw)
     return ParagraphStyle(name, **base)
 
 
 S = {
-    "cuerpo": _ps("cuerpo", spaceAfter=6, leading=13.4),
+    "cuerpo": _ps("cuerpo", spaceAfter=6, leading=14),
     "titulo": _ps("titulo", fontName="Times-Bold", fontSize=26, leading=29, textColor=NAVY),
     "subtit": _ps("subtit", fontSize=10, leading=14, textColor=GRIS, spaceAfter=2),
     "eyebrow": _ps("eyebrow", fontName="Helvetica-Bold", fontSize=7.4, leading=10, textColor=TEAL, spaceAfter=6),
     "h2": _ps("h2", fontName="Helvetica-Bold", fontSize=12.5, leading=15, textColor=NAVY),
     "h3": _ps("h3", fontName="Times-Bold", fontSize=11, leading=14, textColor=NAVY, spaceBefore=8, spaceAfter=3),
-    "celda": _ps("celda", fontSize=8.3, leading=10.6),
-    "celda_h": _ps("celda_h", fontName="Helvetica-Bold", fontSize=7.4, leading=9.5, textColor=colors.white),
+    "celda": _ps("celda", fontSize=8.8, leading=11.4),
+    "celda_h": _ps("celda_h", fontName="Helvetica-Bold", fontSize=8, leading=10, textColor=colors.white),
     "tema": _ps("tema", fontName="Helvetica-Bold", fontSize=7.5, leading=10, textColor=TEAL),
     "preg": _ps("preg", fontName="Helvetica-Bold", fontSize=10.5, leading=13.5, textColor=NAVY, spaceBefore=3, spaceAfter=4),
-    "resp": _ps("resp", fontSize=9.2, leading=13.2),
-    "verif": _ps("verif", fontSize=8, leading=10.5, spaceBefore=5),
+    "resp": _ps("resp", fontSize=9.6, leading=13.8),
+    "verif": _ps("verif", fontSize=8.6, leading=11.4, spaceBefore=5),
     "pend": _ps("pend", fontSize=8.5, leading=11.5, textColor=colors.HexColor("#8A5A00"), spaceBefore=4),
     "li": _ps("li", leftIndent=12, bulletIndent=2, spaceAfter=2),
-    "nota": _ps("nota", fontSize=8.6, leading=12, textColor=colors.HexColor("#273650")),
+    "nota": _ps("nota", fontSize=9, leading=12.6, textColor=colors.HexColor("#273650")),
     "pie": _ps("pie", fontSize=7.2, leading=9, textColor=GRIS),
 }
 
@@ -230,7 +230,7 @@ def _inline(kids):
                 attrs.append('size="7.4"')
             m = re.match(r"^([\d.]+)pt$", est.get("font-size", ""))
             if m:
-                attrs.append(f'size="{m.group(1)}"')
+                attrs.append(f'size="{_tam(float(m.group(1)))}"')
             if "big" in cl:
                 attrs.append('size="19"')
             if attrs:
@@ -523,14 +523,26 @@ def _walk(n):
             yield from _walk(k)
 
 
+def _tam(pt):
+    """Escala tipográfica única: los HTML traen tamaños sueltos (7,5 · 8 · 8,5 · 9 · 9,5…) que en el PDF
+    se veían como letras de todos los tamaños. Se agrupan en pocos niveles y nada baja de 8,5 pt."""
+    if pt <= 9.2:
+        return 8.8 if pt < 8.8 else 9.2
+    if pt <= 10.5:
+        return 9.6
+    if pt <= 12.5:
+        return 11.5
+    return pt
+
+
 def _est(nodo, base):
     """Estilo de párrafo con las sobreescrituras en línea del nodo (tamaño, color, negrita, alineación)."""
     est = nodo.estilo
     kw = {}
     m = re.match(r"^([\d.]+)pt$", est.get("font-size", ""))
     if m:
-        kw["fontSize"] = float(m.group(1))
-        kw["leading"] = float(m.group(1)) * 1.3
+        kw["fontSize"] = _tam(float(m.group(1)))
+        kw["leading"] = kw["fontSize"] * 1.35
     col = est.get("color")
     if col and re.match(r"^#[0-9A-Fa-f]{6}$", col):
         kw["textColor"] = colors.HexColor(col)
@@ -1165,8 +1177,12 @@ def memoria_pdf(ctx, tipo="integrada", diseno="navy", html_tabla=None):
         PageTemplate(id="cap", frames=[marco_a1, marco_a2], onPage=cab_capitulo),
     ])
 
-    cuerpo = _ps("m_cuerpo", fontSize=10, leading=15, spaceAfter=8)
-    lead = _ps("m_lead", fontName="Times-Roman", fontSize=14, leading=20, textColor=NAVY, spaceAfter=10)
+    cuerpo = _ps("m_cuerpo", fontName="Times-Roman", fontSize=11, leading=16, spaceAfter=8)
+    lead = _ps("m_lead", fontName="Times-Roman", fontSize=12.5, leading=18, textColor=NAVY, spaceAfter=10)
+
+    def estilo_entrada(parrafo):
+        # La entrada destacada solo se usa si es breve; un párrafo largo en letra grande se veía desproporcionado.
+        return lead if len(parrafo or "") <= 380 else cuerpo
     meta = _ps("m_meta", fontSize=7.8, leading=10.5, textColor=GRIS, spaceAfter=8)
     tit_sec = _ps("m_tit", fontName="Times-Bold", fontSize=22, leading=26, textColor=color, spaceAfter=10)
 
@@ -1191,7 +1207,8 @@ def memoria_pdf(ctx, tipo="integrada", diseno="navy", html_tabla=None):
         texto = _recortar(ctx["carta"], t["resumir"] and 1100)
         parrafos = _parrafos_memoria(texto, cuerpo)
         if parrafos:
-            flow += _parrafos_memoria(re.split(r"\n\s*\n", texto.strip())[0], lead) + parrafos[1:]
+            primero = re.split(r"\n\s*\n", texto.strip())[0]
+            flow += _parrafos_memoria(primero, estilo_entrada(primero)) + parrafos[1:]
 
     # Capítulos
     elegidos = [c for c in ctx["capitulos"] if t["capitulos"] is None or c.get("id") in t["capitulos"]]
@@ -1210,7 +1227,7 @@ def memoria_pdf(ctx, tipo="integrada", diseno="navy", html_tabla=None):
         texto = _recortar(cap["texto"], t["resumir"])
         trozos = re.split(r"\n\s*\n", texto.strip()) if texto.strip() else []
         if trozos:
-            flow += _parrafos_memoria(trozos[0], lead)
+            flow += _parrafos_memoria(trozos[0], estilo_entrada(trozos[0]))
             for extra in trozos[1:]:
                 flow += _parrafos_memoria(extra, cuerpo)
         else:
