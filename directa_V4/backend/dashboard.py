@@ -347,6 +347,12 @@ def excel_plan(d, acciones=None):
     from datetime import datetime
     from openpyxl import Workbook
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+
+    _PF = PatternFill
+
+    def PatternFill(tipo, fgColor):  # noqa: N802 - colores con opacidad explícita (FF): algunos visores pintaban celeste los de 6 dígitos
+        c = str(fgColor)
+        return _PF(tipo, fgColor=("FF" + c) if len(c) == 6 else c, bgColor=("FF" + c) if len(c) == 6 else c)
     from openpyxl.utils import get_column_letter
 
     acciones = acciones or {}

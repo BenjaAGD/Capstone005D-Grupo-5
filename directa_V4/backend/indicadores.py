@@ -223,6 +223,12 @@ def _lista_indicadores_export(payload, sb):
 def _excel_indicadores(payload, sb):
     from openpyxl import Workbook
     from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
+
+    _PF = PatternFill
+
+    def PatternFill(tipo, fgColor):  # noqa: N802 - colores con opacidad explícita (FF): algunos visores pintaban celeste los de 6 dígitos
+        c = str(fgColor)
+        return _PF(tipo, fgColor=("FF" + c) if len(c) == 6 else c, bgColor=("FF" + c) if len(c) == 6 else c)
     from openpyxl.utils import get_column_letter
     lista, documento = _lista_indicadores_export(payload, sb)
     wb = Workbook(); ws = wb.active; ws.title = "Plan de acción"

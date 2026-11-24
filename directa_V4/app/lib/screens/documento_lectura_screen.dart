@@ -415,8 +415,8 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 14),
               child: SelectableText(
-                parrafo.trim().replaceAll(RegExp(r'\s*\n\s*'), ' '),
-                textAlign: TextAlign.justify,
+                _limpiarTexto(parrafo),
+                textAlign: TextAlign.start, // justificado dejaba huecos enormes en pantallas angostas
                 style: TextStyle(fontFamily: 'serif', fontSize: 16.5 * escala, height: 1.65, color: tinta, letterSpacing: .1),
               ),
             ),
@@ -470,6 +470,18 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
         ),
       ]),
     );
+  }
+
+  /// Une los saltos de línea del PDF y junta las palabras que vienen con letras separadas
+  /// ("R E S U M E N  E J E C U T I V O" → "RESUMEN EJECUTIVO").
+  static String _limpiarTexto(String t) {
+    var s = t.trim().replaceAll(RegExp(r'\s*\n\s*'), ' ');
+    s = s.replaceAllMapped(RegExp(r'(?:\b\p{L} ){3,}\p{L}\b', unicode: true), (m) {
+      final letras = m[0]!.split(' ');
+      // Dos o más espacios seguidos en el original separan palabras; aquí todo viene con uno solo, así que se juntan.
+      return letras.join();
+    });
+    return s;
   }
 
   Widget _vistaBusqueda(BuildContext context) {
