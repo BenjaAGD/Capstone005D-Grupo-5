@@ -842,6 +842,9 @@ DISENOS = {
     "navy": {"nombre": "Navy editorial", "descripcion": "Portada azul profundo, tipografía serif, trazo dorado."},
     "claro": {"nombre": "Papel claro", "descripcion": "Fondo crema, título grande y año destacado."},
     "foto": {"nombre": "Foto + bandas", "descripcion": "Foto a sangre arriba, banda cian y bloque de color de marca."},
+    "minimal": {"nombre": "Blanco minimal", "descripcion": "Blanco, líneas finas y año grande en el color de la marca."},
+    "bloque": {"nombre": "Bloque de color", "descripcion": "Franja vertical del color de la marca con el año, título a la derecha."},
+    "gradiente": {"nombre": "Degradado", "descripcion": "Degradado del color de la marca al cian, tipografía blanca."},
 }
 
 
@@ -893,13 +896,34 @@ class AperturaCapitulo(Flowable):
         c = self.canv
         c.saveState()
         c.translate(0, 0)
-        claro = self.diseno == "claro"
-        fondo = CREMA if claro else (self.color if self.diseno == "foto" else NAVY)
-        c.setFillColor(fondo)
-        c.rect(0, 0, PW, self.ALTO, stroke=0, fill=1)
-        c.setFillColor(GOLD if self.diseno != "foto" else CYAN)
-        c.rect(0, 0, PW, 4, stroke=0, fill=1)
-        num_col = TEAL if claro else colors.HexColor("#6DD7E8")
+        claro = self.diseno in ("claro", "minimal")
+        if self.diseno == "gradiente":
+            # El degradado pinta todo el área recortada: se limita a la cabecera.
+            c.saveState()
+            trazo = c.beginPath()
+            trazo.rect(0, 0, PW, self.ALTO)
+            c.clipPath(trazo, stroke=0, fill=0)
+            c.linearGradient(0, 0, PW, self.ALTO, (self.color, CYAN), extend=False)
+            c.restoreState()
+        elif self.diseno == "minimal":
+            c.setFillColor(colors.white)
+            c.rect(0, 0, PW, self.ALTO, stroke=0, fill=1)
+        else:
+            fondo = CREMA if claro else (self.color if self.diseno in ("foto", "bloque") else NAVY)
+            c.setFillColor(fondo)
+            c.rect(0, 0, PW, self.ALTO, stroke=0, fill=1)
+        if self.diseno == "bloque":
+            c.setFillColor(colors.white)
+            c.rect(0, 0, 14, self.ALTO, stroke=0, fill=1)
+        if self.diseno == "minimal":
+            c.setFillColor(self.color)
+            c.rect(LM, 0, PW - LM - RM, 1.2, stroke=0, fill=1)
+        else:
+            c.setFillColor(GOLD if self.diseno in ("navy", "claro") else CYAN)
+            c.rect(0, 0, PW, 4, stroke=0, fill=1)
+        num_col = (self.color if self.diseno == "minimal" else TEAL) if claro else colors.HexColor("#6DD7E8")
+        if self.diseno == "gradiente":
+            num_col = colors.white
         tit_col = NAVY if claro else colors.white
         c.setFillColor(num_col)
         c.setFont("Times-Bold", 74)
@@ -1058,6 +1082,100 @@ def _portada(c, ctx, tipo, diseno, foto_path):
         c.setFont("Helvetica", 8.4)
         c.drawString(2 * cm, 1.7 * cm, _t(f"Dirigida a {destinatario}"))
         _dibujar_logo(c, logo, PW - 2 * cm - 2.6 * cm, 1.5 * cm, 2.6 * cm, 1.5 * cm, borde=True)
+    elif diseno == "minimal":
+        c.setFillColor(colors.white)
+        c.rect(0, 0, PW, PH, stroke=0, fill=1)
+        c.setFillColor(color)
+        c.rect(2.4 * cm, PH - 2.4 * cm, PW - 4.8 * cm, 1.2, stroke=0, fill=1)
+        c.setFont("Helvetica-Bold", 8.5)
+        c.drawString(2.4 * cm, PH - 3.2 * cm, empresa)
+        _dibujar_logo(c, logo, PW - 2.4 * cm - 2.6 * cm, PH - 4.2 * cm, 2.6 * cm, 1.6 * cm)
+        c.setFont("Helvetica", 120)
+        c.drawRightString(PW - 2.2 * cm, PH - 9.6 * cm, anio)
+        c.setFillColor(GRIS)
+        c.setFont("Helvetica-Bold", 8)
+        c.drawString(2.4 * cm, PH * 0.42, t["kicker"])
+        c.setFillColor(TINTA)
+        y = PH * 0.42 - 1.4 * cm
+        for ln in _partir(_t(titulo), "Helvetica-Bold", 34, PW - 4.8 * cm)[:3]:
+            c.setFont("Helvetica-Bold", 34)
+            c.drawString(2.4 * cm, y, ln)
+            y -= 40
+        c.setFillColor(GRIS)
+        c.setFont("Helvetica", 11)
+        yy = y - 10
+        for ln in _partir(_t(t["subtitulo"]), "Helvetica", 11, 12 * cm)[:3]:
+            c.drawString(2.4 * cm, yy, ln)
+            yy -= 15
+        c.setFillColor(color)
+        c.rect(2.4 * cm, 2.9 * cm, PW - 4.8 * cm, 1.2, stroke=0, fill=1)
+        c.setFillColor(GRIS)
+        c.setFont("Helvetica", 8.6)
+        c.drawString(2.4 * cm, 2.2 * cm, _t(f"Dirigida a {destinatario}"))
+        c.drawRightString(PW - 2.4 * cm, 2.2 * cm, "Preparada con DIRECTA")
+    elif diseno == "bloque":
+        ancho_b = PW * 0.36
+        c.setFillColor(colors.white)
+        c.rect(0, 0, PW, PH, stroke=0, fill=1)
+        c.setFillColor(color)
+        c.rect(0, 0, ancho_b, PH, stroke=0, fill=1)
+        c.setFillColor(CYAN)
+        c.rect(ancho_b, 0, 6, PH, stroke=0, fill=1)
+        _dibujar_logo(c, logo, 1.4 * cm, PH - 3.4 * cm, ancho_b - 2.8 * cm, 1.6 * cm, borde=True)
+        c.saveState()
+        c.translate(ancho_b / 2 + 34, 2.6 * cm)
+        c.rotate(90)
+        c.setFillColor(colors.white)
+        c.setFont("Times-Bold", 96)
+        c.drawString(0, 0, anio)
+        c.restoreState()
+        x = ancho_b + 1.4 * cm
+        ancho_t = PW - x - 1.6 * cm
+        c.setFillColor(color)
+        c.setFont("Helvetica-Bold", 8.5)
+        c.drawString(x, PH - 3.2 * cm, empresa[:40])
+        c.setFillColor(TEAL)
+        c.setFont("Helvetica-Bold", 8)
+        c.drawString(x, PH * 0.6, t["kicker"])
+        c.setFillColor(NAVY)
+        y = PH * 0.6 - 1.4 * cm
+        for ln in _partir(_t(titulo), "Times-Bold", 34, ancho_t)[:4]:
+            c.setFont("Times-Bold", 34)
+            c.drawString(x, y, ln)
+            y -= 40
+        c.setFillColor(GOLD)
+        c.rect(x, y - 2, 46, 3, stroke=0, fill=1)
+        c.setFillColor(GRIS)
+        c.setFont("Helvetica", 10.5)
+        yy = y - 28
+        for ln in _partir(_t(t["subtitulo"]), "Helvetica", 10.5, ancho_t)[:4]:
+            c.drawString(x, yy, ln)
+            yy -= 14
+        c.setFont("Helvetica", 8.6)
+        c.drawString(x, 2.2 * cm, _t(f"Dirigida a {destinatario}  |  DIRECTA"))
+    elif diseno == "gradiente":
+        c.linearGradient(0, 0, PW, PH, (CYAN, color), extend=False)
+        c.setFillColor(colors.white)
+        c.setFont("Helvetica-Bold", 8.5)
+        c.drawString(2.4 * cm, PH - 3.2 * cm, empresa)
+        _dibujar_logo(c, logo, PW - 2.4 * cm - 2.6 * cm, PH - 4.3 * cm, 2.6 * cm, 1.6 * cm, borde=True)
+        c.setFont("Helvetica-Bold", 8.5)
+        c.drawString(2.4 * cm, PH * 0.56, t["kicker"])
+        y = PH * 0.56 - 1.6 * cm
+        for ln in _partir(_t(titulo), "Times-Bold", 48, PW - 4.8 * cm)[:3]:
+            c.setFont("Times-Bold", 48)
+            c.drawString(2.4 * cm, y, ln)
+            y -= 54
+        c.rect(2.4 * cm, y - 4, 56, 3, stroke=0, fill=1)
+        c.setFont("Helvetica", 11)
+        yy = y - 34
+        for ln in _partir(_t(t["subtitulo"]), "Helvetica", 11, 12 * cm)[:3]:
+            c.drawString(2.4 * cm, yy, ln)
+            yy -= 15
+        c.setFont("Times-Bold", 64)
+        c.drawRightString(PW - 2.4 * cm, 2.4 * cm, anio)
+        c.setFont("Helvetica", 8.6)
+        c.drawString(2.4 * cm, 2.6 * cm, _t(f"Dirigida a {destinatario}"))
     else:  # navy editorial
         c.setFillColor(color if _hex(m["color"], "#1B2F4B") != "#1B2F4B" else NAVY)
         c.rect(0, 0, PW, PH, stroke=0, fill=1)
@@ -1198,12 +1316,12 @@ def memoria_pdf(ctx, tipo="integrada", diseno="navy", html_tabla=None):
         _ps("toc1", fontSize=9.5, leading=18, textColor=GRIS, leftIndent=16, rightIndent=30),
     ]
     toc.dotsMinLevel = 0
-    flow += [Paragraph("Índice", tit_sec), Linea(GOLD if diseno != "foto" else CYAN, 2, 2), Spacer(1, 6), toc]
+    flow += [Paragraph("Índice", tit_sec), Linea(GOLD if diseno in ("navy", "claro", "bloque") else (color if diseno == "minimal" else CYAN), 2, 2), Spacer(1, 6), toc]
 
     # Carta
     if t["carta"]:
         flow += [PageBreak(), Marca("Carta del Gerente General"), Paragraph("Carta del Gerente General", tit_sec),
-                 Linea(GOLD if diseno != "foto" else CYAN, 2, 2), Spacer(1, 8)]
+                 Linea(GOLD if diseno in ("navy", "claro", "bloque") else (color if diseno == "minimal" else CYAN), 2, 2), Spacer(1, 8)]
         texto = _recortar(ctx["carta"], t["resumir"] and 1100)
         parrafos = _parrafos_memoria(texto, cuerpo)
         if parrafos:
@@ -1218,7 +1336,7 @@ def memoria_pdf(ctx, tipo="integrada", diseno="navy", html_tabla=None):
             flow += [CondPageBreak(7 * cm), Marca(f"{cap['numero']}. {cap['titulo']}"), Spacer(1, 10),
                      Paragraph(_esc(_t(f"{int(cap['numero']):02d}  {cap['titulo']}")),
                                _ps("m_cap", fontName="Times-Bold", fontSize=18, leading=22, textColor=color)),
-                     Linea(GOLD if diseno != "foto" else CYAN, 1.6, 2), Spacer(1, 4)]
+                     Linea(GOLD if diseno in ("navy", "claro", "bloque") else (color if diseno == "minimal" else CYAN), 1.6, 2), Spacer(1, 4)]
         else:
             flow += [NextPageTemplate("cap"), PageBreak(),
                      NextPageTemplate("n"),
@@ -1258,7 +1376,7 @@ def memoria_pdf(ctx, tipo="integrada", diseno="navy", html_tabla=None):
 
     def seccion_nueva(titulo):
         return [NextPageTemplate("n"), PageBreak(), Marca(titulo), Paragraph(_esc(_t(titulo)), tit_sec),
-                Linea(GOLD if diseno != "foto" else CYAN, 2, 2), Spacer(1, 8)]
+                Linea(GOLD if diseno in ("navy", "claro", "bloque") else (color if diseno == "minimal" else CYAN), 2, 2), Spacer(1, 8)]
 
     extras = t["extras"]
     if "indicadores" in extras:

@@ -119,7 +119,8 @@ class InicioScreen extends StatelessWidget {
       tarjetas.add(_tarjetaProceso(
         context,
         nombre: nombreSubida.isEmpty ? 'Documento' : nombreSubida,
-        detalle: enAnalisis ? 'Analizando · $proc de $tot agentes' : (tot > 0 ? 'Indexando · página $proc de $tot' : 'Preparando el documento…'),
+        detalle: '${enAnalisis ? 'Analizando · $proc de $tot agentes' : (tot > 0 ? 'Indexando · página $proc de $tot' : 'Preparando el documento…')}'
+            '${((p['estimado_seg'] as num?) ?? 0) > 0 ? ' · faltan ~${formatTiempo((p['estimado_seg'] as num?) ?? 0)}' : ''}',
         pct: (frac * 100).round(),
         indexado: enAnalisis ? 1 : frac,
         agentes: enAnalisis ? frac : 0,

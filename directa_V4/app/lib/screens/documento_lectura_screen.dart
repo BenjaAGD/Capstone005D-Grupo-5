@@ -35,7 +35,16 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
   bool _cargandoPagina = false;
   String? _error;
   int _escala = 1;
+  int _tema = 0; // 0 papel · 1 sepia · 2 noche
   final _scroll = ScrollController();
+
+  // Colores de lectura tipo libro electrónico: (fondo de la hoja, tinta, tinta suave, fondo alrededor).
+  static const _temas = <(String, Color, Color, Color, Color)>[
+    ('Papel', Color(0xFFFBF8F1), Color(0xFF26231E), Color(0xFF7A7266), Color(0xFFEDE8DC)),
+    ('Sepia', Color(0xFFF3E9D2), Color(0xFF3A2E1F), Color(0xFF85725A), Color(0xFFE4D8BD)),
+    ('Noche', Color(0xFF1C1C21), Color(0xFFDDD8CE), Color(0xFF8E897F), Color(0xFF111114)),
+  ];
+  static const _kLector = 'directa_lector_v1';
 
   // búsqueda
   bool _buscando = false;
@@ -51,6 +60,9 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
   @override
   void initState() {
     super.initState();
+    final pref = context.read<AppState>().store.getJson<Map>(_kLector, const {});
+    _escala = ((pref['escala'] as num?)?.toInt() ?? 1).clamp(0, _escalas.length - 1).toInt();
+    _tema = ((pref['tema'] as num?)?.toInt() ?? 0).clamp(0, _temas.length - 1).toInt();
     WidgetsBinding.instance.addPostFrameCallback((_) => _cargarInfo());
   }
 
@@ -116,6 +128,66 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
     setState(() => _indice = i);
     if (_scroll.hasClients) _scroll.jumpTo(0);
     await _cargarPagina(_paginas[i]);
+  }
+
+  void _guardarPref() => context.read<AppState>().store.setJson(_kLector, {'escala': _escala, 'tema': _tema});
+
+  /// Ajustes de lectura: tamaño de letra y color de la hoja.
+  Future<void> _ajustesLectura() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setSheet) {
+        void cambiar(VoidCallback f) {
+          setState(f);
+          setSheet(() {});
+          _guardarPref();
+        }
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('Ajustes de lectura', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 16),
+            const Text('Tamaño de letra', style: TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            Row(children: [
+              for (var i = 0; i < _escalas.length; i++)
+                Expanded(child: Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: ChoiceChip(
+                    label: Center(child: Text('Aa', style: TextStyle(fontSize: 12 + i * 3.0, fontFamily: 'serif'))),
+                    selected: _escala == i,
+                    onSelected: (_) => cambiar(() => _escala = i),
+                  ),
+                )),
+            ]),
+            const SizedBox(height: 16),
+            const Text('Color de la hoja', style: TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            Row(children: [
+              for (var i = 0; i < _temas.length; i++)
+                Expanded(child: Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => cambiar(() => _tema = i),
+                    child: Container(
+                      height: 56,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: _temas[i].$2,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: _tema == i ? Brand.accent : const Color(0x33000000), width: _tema == i ? 2.5 : 1),
+                      ),
+                      child: Text(_temas[i].$1, style: TextStyle(color: _temas[i].$3, fontFamily: 'serif', fontWeight: FontWeight.w600)),
+                    ),
+                  ),
+                )),
+            ]),
+          ]),
+        );
+      }),
+    );
   }
 
   Future<void> _irAPagina() async {
@@ -249,7 +321,7 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
                   icon: const Icon(Icons.search),
                 ),
                 TextButton(
-                  onPressed: () => setState(() => _escala = (_escala + 1) % _escalas.length),
+                  onPressed: _ajustesLectura,
                   child: Text('Aa', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: c.text)),
                 ),
               ],
@@ -320,50 +392,84 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
     }
 
     final numero = _paginas[_indice];
-    final totalReal = (_documento?['total_paginas'] as num?)?.toInt();
+    final totalReal = (_documento?['total_paginas'] as num?)?.toInt() ?? _paginas.last;
     final texto = _textos[numero];
     final escala = _escalas[_escala];
-    return ListView(controller: _scroll, padding: const EdgeInsets.fromLTRB(16, 14, 16, 24), children: [
-      GgCard(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            Text('$numero', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
-            Text(' de ${totalReal ?? _paginas.last}', style: TextStyle(fontSize: 13, color: c.text2)),
-            const Spacer(),
-            GgButton('Ir a página…', ghost: true, small: true, onTap: _irAPagina),
-          ]),
-          Slider(
-            value: _indice.toDouble(),
-            min: 0,
-            max: _paginas.length > 1 ? (_paginas.length - 1).toDouble() : 1.0,
-            divisions: _paginas.length > 1 ? _paginas.length - 1 : null,
-            activeColor: Brand.accent,
-            onChanged: _paginas.length > 1 ? (v) => setState(() => _indice = v.round()) : null,
-            onChangeEnd: _paginas.length > 1 ? (v) => _irA(v.round()) : null,
-          ),
-        ]),
-      ),
-      GgCard(
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 22),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('PÁGINA $numero', style: TextStyle(fontSize: 11, letterSpacing: 1.4, fontWeight: FontWeight.w600, color: c.accentText)),
-          const SizedBox(height: 14),
-          if (texto == null && _cargandoPagina)
-            const Padding(padding: EdgeInsets.symmetric(vertical: 40), child: Center(child: CircularProgressIndicator()))
-          else if (texto == null)
-            Text(_error ?? 'No se pudo cargar esta página.', style: TextStyle(color: c.crit))
-          else if (texto.trim().isEmpty)
-            Text('Esta página no tiene texto (puede ser una imagen).', style: TextStyle(color: c.text3))
-          else
-            for (final parrafo in texto.split(RegExp(r'\n{2,}')))
-              Padding(
-                padding: const EdgeInsets.only(bottom: 14),
-                child: SelectableText(parrafo.trim(), style: TextStyle(fontSize: 15.5 * escala, height: 1.7, color: c.text)),
+    final (_, hoja, tinta, suave, fondo) = _temas[_tema];
+    final avance = _paginas.length > 1 ? _indice / (_paginas.length - 1) : 1.0;
+    Widget cuerpo;
+    if (texto == null && _error != null && !_cargandoPagina) {
+      cuerpo = Column(children: [
+        Text('No se pudo cargar esta página.', style: TextStyle(color: c.crit)),
+        TextButton.icon(onPressed: () => _irA(_indice), icon: const Icon(Icons.refresh), label: const Text('Reintentar')),
+      ]);
+    } else if (texto == null) {
+      // Mientras llega la página se muestra la carga, no un error.
+      cuerpo = Padding(padding: const EdgeInsets.symmetric(vertical: 60), child: Center(child: CircularProgressIndicator(color: suave)));
+    } else if (texto.trim().isEmpty) {
+      cuerpo = Text('Esta página no tiene texto (puede ser una imagen).', style: TextStyle(color: suave, fontFamily: 'serif'));
+    } else {
+      cuerpo = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        for (final parrafo in texto.split(RegExp(r'\n{2,}')))
+          if (parrafo.trim().isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: SelectableText(
+                parrafo.trim().replaceAll(RegExp(r'\s*\n\s*'), ' '),
+                textAlign: TextAlign.justify,
+                style: TextStyle(fontFamily: 'serif', fontSize: 16.5 * escala, height: 1.65, color: tinta, letterSpacing: .1),
               ),
-        ]),
-      ),
-    ]);
+            ),
+      ]);
+    }
+    return Container(
+      color: fondo,
+      child: Column(children: [
+        // Barra fina de avance del documento + página actual.
+        Padding(
+          padding: const EdgeInsets.fromLTRB(18, 10, 10, 4),
+          child: Row(children: [
+            Text('Página $numero de $totalReal', style: TextStyle(fontSize: 12.5, color: suave, fontWeight: FontWeight.w600)),
+            const Spacer(),
+            TextButton(onPressed: _irAPagina, child: Text('Ir a página', style: TextStyle(color: suave))),
+          ]),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: LinearProgressIndicator(value: avance, minHeight: 3, color: Brand.accent, backgroundColor: suave.withValues(alpha: .2)),
+          ),
+        ),
+        Expanded(
+          // Deslizar a la izquierda o derecha cambia de página, como un libro.
+          child: GestureDetector(
+            onHorizontalDragEnd: (d) {
+              final v = d.primaryVelocity ?? 0;
+              if (v < -250 && _indice + 1 < _paginas.length) _irA(_indice + 1);
+              if (v > 250 && _indice > 0) _irA(_indice - 1);
+            },
+            child: ListView(controller: _scroll, padding: const EdgeInsets.fromLTRB(12, 12, 12, 24), children: [
+              Container(
+                padding: const EdgeInsets.fromLTRB(26, 28, 26, 30),
+                decoration: BoxDecoration(
+                  color: hoja,
+                  borderRadius: BorderRadius.circular(6),
+                  boxShadow: const [BoxShadow(color: Color(0x22000000), blurRadius: 14, offset: Offset(0, 4))],
+                ),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Center(child: Text('— $numero —', style: TextStyle(fontFamily: 'serif', fontSize: 12, color: suave, letterSpacing: 1))),
+                  const SizedBox(height: 18),
+                  cuerpo,
+                ]),
+              ),
+              const SizedBox(height: 10),
+              Center(child: Text('Desliza para cambiar de página', style: TextStyle(fontSize: 11, color: suave))),
+            ]),
+          ),
+        ),
+      ]),
+    );
   }
 
   Widget _vistaBusqueda(BuildContext context) {

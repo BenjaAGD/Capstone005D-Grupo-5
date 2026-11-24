@@ -8,6 +8,7 @@ import '../core/saver.dart';
 import '../core/store.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
+import '../state/trabajo_memoria.dart';
 import '../widgets/common.dart';
 import '../widgets/demo_offline.dart';
 import 'memoria_extra.dart';
@@ -24,7 +25,8 @@ class MemoriaScreen extends StatefulWidget {
 const _kFuente = 'directa_memoria_fuente_v1';
 
 class _MemoriaScreenState extends State<MemoriaScreen> {
-  String pestana = 'borrador';
+  // Orden natural: 1) revisar fuentes y avance, 2) estilo, 3) crear la memoria.
+  String pestana = TrabajoMemoria.instance.corriendo ? 'borrador' : 'capitulos';
   String fuente = '__todos__';
   Map<String, dynamic>? data;
   String? cap, error;
@@ -169,9 +171,9 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
               borderRadius: BorderRadius.circular(13),
             ),
             child: Row(children: [
-              _opcionMemoria('borrador', Icons.auto_awesome_outlined, 'Crear memoria'),
-              _opcionMemoria('capitulos', Icons.fact_check_outlined, 'Revisar avance'),
-              _opcionMemoria('tono', Icons.tune_outlined, 'Personalizar estilo'),
+              _opcionMemoria('capitulos', Icons.fact_check_outlined, '1 · Fuentes y avance'),
+              _opcionMemoria('tono', Icons.tune_outlined, '2 · Estilo'),
+              _opcionMemoria('borrador', Icons.auto_awesome_outlined, '3 · Crear memoria'),
             ]),
           ),
         ]),
@@ -180,6 +182,16 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
       if (pestana == 'borrador') BorradorMemoria(caps: () => mem['caps'] as Map<String, dynamic>),
       if (pestana == 'tono') const PerfilTono(),
       if (pestana == 'capitulos') _capitulos(context, app),
+      if (pestana != 'borrador')
+        Padding(
+          padding: const EdgeInsets.only(top: 6, bottom: 8),
+          child: GgButton(
+            pestana == 'capitulos' ? 'Siguiente: estilo' : 'Siguiente: crear memoria',
+            icon: Icons.arrow_forward_rounded,
+            expand: true,
+            onTap: () => setState(() => pestana = pestana == 'capitulos' ? 'tono' : 'borrador'),
+          ),
+        ),
     ]);
   }
 

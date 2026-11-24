@@ -241,6 +241,10 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
     }
   }
 
+  /// Versión de los campos del plan por indicador: sube cuando la IA rellena algo,
+  /// para que los campos muestren el texto nuevo (sin recrearlos en cada letra).
+  final Map<String, int> _verCampos = {};
+
   Future<void> _iaSolucion(Map<String, dynamic> it) async {
     final id = '${it['id']}';
     setState(() => iaCargando.add(id));
@@ -266,7 +270,8 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
       }
       ajustes[_claveAj(id)] = a;
       _saveAj();
-      st.toast('Solución sugerida agregada. Revísala.');
+      _verCampos[id] = (_verCampos[id] ?? 0) + 1;
+      st.toast('Acción sugerida escrita en el plan. Revísala y toca «Guardar cambios».');
     } catch (e) {
       st.toast(
         'No se pudo sugerir: ${e.toString().replaceFirst('Exception: ', '')}',
@@ -529,10 +534,10 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
           const SizedBox(height: 8),
           if (auto && soluciones.isNotEmpty && '${a['solucion'] ?? ''}'.trim().isEmpty)
             for (final sol in soluciones.take(2)) Padding(padding: const EdgeInsets.only(bottom: 5), child: Text('• $sol', style: TextStyle(fontSize: 12.2, color: c.text2))),
-          TextFormField(key: ValueKey('sol-$id'), initialValue: '${a['solucion'] ?? (!auto ? i['solucion'] : '') ?? ''}', minLines: 1, maxLines: 3, decoration: const InputDecoration(labelText: 'Acción / solución'), onChanged: (v) => setCampo('solucion', v)),
+          TextFormField(key: ValueKey('sol-$id-${_verCampos[id] ?? 0}'), initialValue: '${a['solucion'] ?? (!auto ? i['solucion'] : '') ?? ''}', minLines: 1, maxLines: 3, decoration: const InputDecoration(labelText: 'Acción / solución'), onChanged: (v) => setCampo('solucion', v)),
           const SizedBox(height: 8),
           Wrap(spacing: 8, runSpacing: 8, children: [
-            SizedBox(width: 190, child: TextFormField(key: ValueKey('resp-$id'), initialValue: resp, decoration: const InputDecoration(labelText: 'Responsable'), onChanged: (v) => setCampo('responsable', v))),
+            SizedBox(width: 190, child: TextFormField(key: ValueKey('resp-$id-${_verCampos[id] ?? 0}'), initialValue: resp, decoration: const InputDecoration(labelText: 'Responsable'), onChanged: (v) => setCampo('responsable', v))),
             SizedBox(width: 160, child: TextFormField(key: ValueKey('fecha-$id'), initialValue: fecha, decoration: const InputDecoration(labelText: 'Fecha objetivo', hintText: 'AAAA-MM-DD'), onChanged: (v) => setCampo('fecha', v))),
             SizedBox(width: 170, child: GgSelect<String>(label: 'Estado de acción', value: estadosSol.any((x) => x.$1 == estSol) ? estSol : 'pendiente', items: estadosSol, onChanged: (v) => setCampo('estado', v))),
           ]),

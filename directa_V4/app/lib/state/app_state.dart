@@ -19,7 +19,7 @@ const estadosProcesando = ['Procesando', 'Analizando', 'Iniciando'];
 class AppState extends ChangeNotifier {
   AppState(this.store, {http.Client? client})
       : api = Api(_apiInicial(store), client: client) {
-    themeMode = store.getString(Store.kTheme) == 'light' ? ThemeMode.light : ThemeMode.dark;
+    themeMode = store.getString(Store.kTheme) == 'dark' ? ThemeMode.dark : ThemeMode.light; // claro por defecto
     textScale = store.getDouble(Store.kFont) ?? 0.9;
     docActivo = store.getString(Store.kDoc);
     if (docActivo == _sinDocumento) {
@@ -418,6 +418,8 @@ class AppState extends ChangeNotifier {
     return '${h.substring(0, 8)}-${h.substring(8, 12)}-${h.substring(12, 16)}-${h.substring(16, 20)}-${h.substring(20)}';
   }
 
+  static String _mins(num seg) => seg < 60 ? '${seg.round()} s' : '${(seg / 60).ceil()} min';
+
   Future<void> subirArchivo(String nombre, Uint8List bytes) async {
     if (subiendo) {
       toast('Ya hay una subida en curso', err: true);
@@ -459,7 +461,8 @@ class AppState extends ChangeNotifier {
           };
           if (est != 'Listo' && est != 'Listo con errores' && est != 'Error') {
             unawaited(Notificaciones.progreso(Notificaciones.idDocumento, nombre,
-                tot > 0 ? '$fase · $proc de $tot' : fase, valor: tot > 0 ? (100 * proc / tot).round() : -1));
+                '${tot > 0 ? '$fase · $proc de $tot' : fase}${((d['estimado_seg'] as num?) ?? 0) > 0 ? ' · faltan ~${_mins((d['estimado_seg'] as num?) ?? 0)}' : ''}',
+                valor: tot > 0 ? (100 * proc / tot).round() : -1));
           }
           if (est == 'Listo' || est == 'Listo con errores' || est == 'Error') {
             terminar();

@@ -196,6 +196,8 @@ def html_pdf_dashboard(d, acciones=None):
     # 2. Semáforo por área
     orden = sorted(d["agentes"], key=lambda a: (a["score"] is None, a["score"] if a["score"] is not None else 999, a["nombre"]))
     filas = []
+    sin_info = [a for a in orden if not a.get("con_info")]
+    orden = [a for a in orden if a.get("con_info")]  # las áreas sin información van en una línea, no en filas de ceros
     for a in orden:
         s_ = a["senales"]
         puntaje = str(a["score"]) if a["score"] is not None and a.get("con_info") else "-"
@@ -206,6 +208,9 @@ def html_pdf_dashboard(d, acciones=None):
     cuerpo += parrafo("Cada área evalúa un aspecto distinto del documento. Se ordenan de menor a mayor puntaje para ver primero las más delicadas.")
     cuerpo += tabla_pdf(["Área", "Puntaje", "Estado", "Crít.", "Altas", "Medias", "Bajas", "Omis.", "Preg."], filas,
                         ["20%", "9%", "22%", "8%", "8%", "9%", "8%", "8%", "8%"], num_cols=(1, 3, 4, 5, 6, 7, 8))
+    if sin_info:
+        cuerpo += ("<p><b>Sin informaci&oacute;n relevante en el documento:</b> "
+                   + ", ".join(esc_pdf(a["nombre"]) for a in sin_info) + ".</p>")
 
     # 3. Señales
     orden_sev = {k: i for i, k in enumerate(SEVERIDADES)}
@@ -393,7 +398,7 @@ def excel_plan(d, acciones=None):
             cell.font = Font(name="Calibri", size=9, bold=True, color=white)
             cell.fill = PatternFill("solid", fgColor=navy)
             cell.alignment = Alignment(vertical="center", horizontal="left", wrap_text=True)
-            cell.border = Border(bottom=Side(style="medium", color=cyan))
+            cell.border = Border(bottom=Side(style="medium", color=navy))
         ws.row_dimensions[header_row].height = 29
 
         data_rows = filas or [["Sin registros para este informe"] + [""] * (last_col - 1)]
@@ -404,8 +409,6 @@ def excel_plan(d, acciones=None):
                 cell.font = Font(name="Calibri", size=10, color=ink)
                 cell.alignment = Alignment(vertical="top", wrap_text=True)
                 cell.border = Border(bottom=Side(style="thin", color=line))
-                if i % 2 == 0:
-                    cell.fill = PatternFill("solid", fgColor=zebra)
                 width = anchos[j - 1] if j - 1 < len(anchos) else 14
                 max_lines = max(max_lines, -(-len(str(value if value is not None else "")) // max(1, int(width * 1.15))))
                 if str(encabezados[j - 1]).lower() == "estado":
@@ -627,7 +630,7 @@ def crear_router(get_supabase):
             data = dashboard_cacheado(get_supabase(), document_id)
             if data is None:
                 return JSONResponse({"ok": False, "error": "Documento no encontrado"}, status_code=404)
-            pdf = html_a_pdf(html_pdf_dashboard(data, (payload or {}).get("acciones")))
+            pdf = pdf_dashboard(data, (payload or {}).get("acciones"))
         except Exception as e:
             print(f"[DASHBOARD] Error PDF: {e}", flush=True)
             return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
@@ -641,7 +644,7 @@ def crear_router(get_supabase):
             data = comparar_documentos(get_supabase(), id_a, id_b)
             if data is None:
                 return JSONResponse({"ok": False, "error": "Documento no encontrado"}, status_code=404)
-            pdf = html_a_pdf(html_pdf_comparacion(data))
+            pdf = pdf_comparacion(data)
         except Exception as e:
             print(f"[DASHBOARD] Error PDF comparación: {e}", flush=True)
             return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
@@ -673,3 +676,94 @@ def crear_router(get_supabase):
         return JSONResponse({"ok": False, "error": "dashboard.html no está en la carpeta web/"}, status_code=404)
 
     return router
+
+
+def pdf_dashboard(d, acciones=None):
+    """Dashboard con el estilo de la Memoria (portada, secciones con número grande, tarjetas)."""
+    import reporte_editorial as R
+    acciones = acciones or {}
+    r, sv, doc = d["resumen"], d["resumen"]["senales"], d["documento"]
+    con_info = sorted((a for a in d["agentes"] if a["con_info"] and a["score"] is not None), key=lambda a: a["score"])
+    sin_info = [a["nombre"] for a in d["agentes"] if not a["con_info"]]
+    if r["score_global"] is None:
+        lectura = "Aún no hay análisis suficientes para calcular un puntaje global."
+    else:
+        lectura = (f"El documento obtiene {r['score_global']} de 100 puntos de preparación: {r['etiqueta'].lower()}. "
+                   + (f"Las áreas que más atención necesitan son {', '.join(a['nombre'] for a in con_info[:3])}." if con_info else ""))
+    detalle = (f"Los agentes levantaron {r['senales_total']} señales, {r['omisiones']} omisiones de información y "
+               f"{r['preguntas']} preguntas que probablemente hará el directorio.")
+    col_g, _ = R.color_puntaje(r["score_global"])
+    resumen = (R.parrafo(lectura + "\n\n" + detalle, lead=True)
+               + R.cifras([(f"{r['score_global'] if r['score_global'] is not None else '-'}", "Puntaje global", col_g),
+                           (sv["crítica"], "Críticas", "#8E1B2E"), (sv["alta"], "Altas", "#C2571A"),
+                           (sv["media"], "Medias", "#A67C00"), (sv["baja"], "Bajas", "#2F6B4F")])
+               + R.subtitulo("Preparación por área")
+               + (R.nota("Sin información relevante en el documento: " + ", ".join(sin_info) + ".") if sin_info else [])
+               + R.barras([(a["nombre"], a["score"], f"{sum(a['senales'].values())} señales · {a['n_omisiones']} omisiones") for a in con_info]))
+
+    orden_sev = {k: i for i, k in enumerate(SEVERIDADES)}
+    sens = sorted(d["senales"], key=lambda x: (orden_sev.get(x["severidad"], 9), x.get("transversal", False)))
+    senales = R.tarjetas([{"sev": x["severidad"], "area": x["agente_nombre"], "titulo": x["titulo"], "texto": x.get("descripcion", "")}
+                          for x in sens]) if sens else R.parrafo("No se detectaron señales.")
+
+    hechas, tarjetas = 0, []
+    for rec in d["recomendaciones"]:
+        a = acciones.get(rec["id"]) or {}
+        est = a.get("estado") if a.get("estado") in _ESTADOS_PLAN else "pendiente"
+        hechas += est == "hecho"
+        tarjetas.append({"color": {"hecho": "#2F6B4F", "en_curso": "#A67C00"}.get(est, "#1B2F4B"),
+                         "etiqueta": {"hecho": "Hecha", "en_curso": "En curso"}.get(est, "Pendiente"), "area": rec["agente_nombre"],
+                         "titulo": rec["texto"], "pie": f"Responsable: {a.get('responsable') or 'por asignar'}   ·   Fecha límite: {a.get('fecha') or 'sin fecha'}"})
+    plan = R.tarjetas(tarjetas) if tarjetas else R.parrafo("No hay recomendaciones.")
+    plan += R.subtitulo("Cómo leer el puntaje") + R.tabla(["Puntaje", "Estado", "Qué significa"],
+                                                          [[b[0], f"<b>{esc_pdf(b[1])}</b>", esc_pdf(b[2])] for b in _BANDAS_TXT], [.16, .28, .56])
+    return R.reporte_pdf(
+        {"kicker": "Dashboard ejecutivo", "titulo": "Preparación para el directorio", "subtitulo": f"Lectura rápida de {doc['nombre']}: puntaje, señales y plan de acción.",
+         "documento": doc["nombre"], "fecha": _fecha_hoy(),
+         "cifra": (f"{r['score_global']}/100" if r["score_global"] is not None else "—", "Puntaje global de preparación")},
+        [("Resumen ejecutivo", f"{r['agentes_analizados']} de {r['agentes_total']} áreas analizadas", resumen),
+         ("Señales para el directorio", f"{len(sens)} señales ordenadas por severidad", senales),
+         ("Plan de acción", f"{hechas} de {len(d['recomendaciones'])} acciones hechas", plan)],
+        "Dashboard ejecutivo")
+
+
+def pdf_comparacion(c):
+    """Comparación entre documentos con el estilo de la Memoria."""
+    import reporte_editorial as R
+    g = c["global"]
+    nom_a, nom_b = c["a"]["nombre"], c["b"]["nombre"]
+    if g["delta"] is None:
+        lectura = "No hay puntaje global comparable entre ambos documentos."
+    elif g["delta"] > 0:
+        lectura = f"El puntaje global mejoró {g['delta']} puntos, de {g['a']} a {g['b']}."
+    elif g["delta"] < 0:
+        lectura = f"El puntaje global bajó {abs(g['delta'])} puntos, de {g['a']} a {g['b']}."
+    else:
+        lectura = f"El puntaje global se mantiene en {g['b']}."
+    lectura += (f" Hay {len(c['nuevas'])} señales nuevas, {len(c['resueltas'])} resueltas y {len(c['persisten'])} que persisten.")
+    dcol = "#1B2F4B" if g["delta"] in (None, 0) else ("#2F6B4F" if g["delta"] > 0 else "#8E1B2E")
+    resumen = (R.parrafo(lectura, lead=True)
+               + R.cifras([(g["a"] if g["a"] is not None else "-", "Anterior", "#5F6877"), (g["b"] if g["b"] is not None else "-", "Actual", "#1B2F4B"),
+                           (_delta_txt(g["delta"]), "Variación", dcol), (len(c["nuevas"]), "Nuevas", "#C2571A"),
+                           (len(c["resueltas"]), "Resueltas", "#2F6B4F")])
+               + R.subtitulo("Variación por área"))
+    filas = []
+    for a in sorted(c["agentes"], key=lambda x: (x["delta"] is None, x["delta"] if x["delta"] is not None else 0)):
+        col = "#8E1B2E" if (a["delta"] or 0) < 0 else ("#2F6B4F" if (a["delta"] or 0) > 0 else "#5F6877")
+        filas.append([f"<b>{esc_pdf(a['nombre'])}</b>", "-" if a["score_a"] is None else a["score_a"], "-" if a["score_b"] is None else a["score_b"],
+                      f"<font color='{col}'><b>{_delta_txt(a['delta'])}</b></font>", f"{a['senales_a']} → {a['senales_b']}"])
+    resumen += R.tabla(["Área", "Anterior", "Actual", "Variación", "Señales"], filas, [.36, .15, .15, .16, .18])
+
+    def tarj(lista):
+        return R.tarjetas([{"sev": x["severidad"], "area": x["agente_nombre"], "titulo": x["titulo"], "texto": x.get("descripcion", ""),
+                            "pie": (f"Antes: {x['severidad_anterior']}" if x.get("severidad_anterior") and x["severidad_anterior"] != x["severidad"] else "")}
+                           for x in lista])
+    cambios = (R.subtitulo(f"Señales nuevas ({len(c['nuevas'])})") + (tarj(c["nuevas"]) if c["nuevas"] else R.parrafo("No aparecieron señales nuevas."))
+               + R.subtitulo(f"Señales resueltas ({len(c['resueltas'])})") + (tarj(c["resueltas"]) if c["resueltas"] else R.parrafo("No hay señales resueltas.")))
+    persisten = (tarj(c["persisten"]) if c["persisten"] else R.parrafo("Ninguna señal persiste.")) + R.nota(
+        c.get("nota") or "El emparejamiento de señales entre documentos es aproximado (similitud de títulos).")
+    return R.reporte_pdf(
+        {"kicker": "Comparación de documentos", "titulo": "Qué cambió entre versiones", "subtitulo": f"{nom_a}  →  {nom_b}",
+         "documento": nom_b, "fecha": _fecha_hoy(), "cifra": (_delta_txt(g["delta"]) if g["delta"] is not None else "—", "Variación del puntaje global")},
+        [("Resumen de cambios", "Puntaje global y por área", resumen), ("Señales nuevas y resueltas", "Lo que apareció y lo que se cerró", cambios),
+         ("Señales que persisten", f"{len(c['persisten'])} señales siguen abiertas", persisten)], "Comparación de documentos")

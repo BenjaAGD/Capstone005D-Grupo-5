@@ -33,6 +33,9 @@ const _disenos = <Map<String, String>>[
   {'id': 'navy', 'nombre': 'Navy editorial', 'descripcion': 'Portada azul profundo, tipografía serif y trazo dorado.'},
   {'id': 'claro', 'nombre': 'Papel claro', 'descripcion': 'Fondo crema, título grande y año destacado.'},
   {'id': 'foto', 'nombre': 'Foto + bandas', 'descripcion': 'Foto arriba, banda cian y bloque de color de marca.'},
+  {'id': 'minimal', 'nombre': 'Blanco minimal', 'descripcion': 'Blanco, líneas finas y año grande en el color de la marca.'},
+  {'id': 'bloque', 'nombre': 'Bloque de color', 'descripcion': 'Franja vertical del color de la marca con el año; título a la derecha.'},
+  {'id': 'gradiente', 'nombre': 'Degradado', 'descripcion': 'Degradado del color de la marca al cian, letras blancas.'},
 ];
 
 IconData _iconoTipo(String id) => switch (id) {
@@ -83,6 +86,73 @@ class _PortadaMini extends StatelessWidget {
                 Container(width: 30 * s, height: 2 * s, color: const Color(0xFFC9A24A)),
                 const Spacer(flex: 4),
                 Text('$anio', style: serif(40, const Color(0xFF0E7490))),
+              ]),
+            );
+          }
+          if (diseno == 'minimal') {
+            return Container(
+              color: Colors.white,
+              padding: EdgeInsets.all(16 * s),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Container(height: 1 * s, color: color),
+                SizedBox(height: 5 * s),
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  Flexible(child: Text(nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: sans(6.5, color, b: true))),
+                  logoW,
+                ]),
+                Align(alignment: Alignment.centerRight, child: Text('$anio', style: TextStyle(fontSize: 44 * s, color: color, height: 1.1))),
+                const Spacer(flex: 2),
+                Text(kicker, maxLines: 1, overflow: TextOverflow.ellipsis, style: sans(5.5, const Color(0xFF5F6877), b: true)),
+                SizedBox(height: 5 * s),
+                Text(titulo, maxLines: 3, overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 17 * s, fontWeight: FontWeight.w800, height: 1.1, color: const Color(0xFF1F2733))),
+                const Spacer(flex: 3),
+                Container(height: 1 * s, color: color),
+              ]),
+            );
+          }
+          if (diseno == 'bloque') {
+            return Row(children: [
+              Container(
+                width: box.maxWidth * .36,
+                color: color,
+                alignment: Alignment.bottomCenter,
+                padding: EdgeInsets.only(bottom: 12 * s),
+                child: RotatedBox(quarterTurns: 3, child: Text('$anio', style: serif(30, Colors.white))),
+              ),
+              Container(width: 3 * s, color: const Color(0xFF18B9D2)),
+              Expanded(child: Container(
+                color: Colors.white,
+                padding: EdgeInsets.all(10 * s),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: sans(5.5, color, b: true)),
+                  const Spacer(flex: 3),
+                  Text(kicker, maxLines: 1, overflow: TextOverflow.ellipsis, style: sans(4.8, const Color(0xFF0E7490), b: true)),
+                  SizedBox(height: 4 * s),
+                  Text(titulo, maxLines: 4, overflow: TextOverflow.ellipsis, style: serif(14, const Color(0xFF1B2F4B))),
+                  SizedBox(height: 5 * s),
+                  Container(width: 22 * s, height: 2 * s, color: const Color(0xFFC9A24A)),
+                  const Spacer(flex: 4),
+                ]),
+              )),
+            ]);
+          }
+          if (diseno == 'gradiente') {
+            return Container(
+              decoration: BoxDecoration(gradient: LinearGradient(
+                begin: Alignment.bottomLeft, end: Alignment.topRight, colors: [const Color(0xFF18B9D2), color])),
+              padding: EdgeInsets.all(16 * s),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  Flexible(child: Text(nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: sans(6.5, Colors.white, b: true))),
+                  logoW,
+                ]),
+                const Spacer(flex: 3),
+                Text(kicker, maxLines: 1, overflow: TextOverflow.ellipsis, style: sans(5.5, Colors.white, b: true)),
+                SizedBox(height: 6 * s),
+                Text(titulo, maxLines: 3, overflow: TextOverflow.ellipsis, style: serif(21, Colors.white)),
+                const Spacer(flex: 3),
+                Align(alignment: Alignment.bottomRight, child: Text('$anio', style: serif(26, Colors.white))),
               ]),
             );
           }
@@ -337,23 +407,24 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
         const SecTitle('Elige el diseño de tu memoria'),
         Text('Se aplica a la portada y a todos los capítulos.', style: TextStyle(color: c.text2, fontSize: 12.5)),
         const SizedBox(height: 12),
-        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          for (final d in _disenos) ...[
-            Expanded(child: InkWell(
-              onTap: () { setState(() => diseno = d['id']!); _guardarMarca(); },
-              child: Column(children: [
-                Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(9), border: Border.all(color: diseno == d['id'] ? Brand.accent : c.border, width: diseno == d['id'] ? 2.5 : 1)),
-                  child: _PortadaMini(diseno: d['id']!, color: _hex(color), titulo: titulo, empresa: _nombre.text, anio: anioPortada, kicker: '${t['kicker'] ?? 'MEMORIA ANUAL'}', logo: logo),
-                ),
-                const SizedBox(height: 6),
-                Text(d['nombre']!, textAlign: TextAlign.center, style: TextStyle(fontSize: 11.5, fontWeight: diseno == d['id'] ? FontWeight.w700 : FontWeight.w500, color: diseno == d['id'] ? c.text : c.text2)),
-              ]),
-            )),
-            if (d != _disenos.last) const SizedBox(width: 8),
-          ],
-        ]),
+        LayoutBuilder(builder: (context, box) {
+          final ancho = (box.maxWidth - 16) / 3;
+          return Wrap(spacing: 8, runSpacing: 12, children: [
+            for (final d in _disenos)
+              SizedBox(width: ancho, child: InkWell(
+                onTap: () { setState(() => diseno = d['id']!); _guardarMarca(); },
+                child: Column(children: [
+                  Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(9), border: Border.all(color: diseno == d['id'] ? Brand.accent : c.border, width: diseno == d['id'] ? 2.5 : 1)),
+                    child: _PortadaMini(diseno: d['id']!, color: _hex(color), titulo: titulo, empresa: _nombre.text, anio: anioPortada, kicker: '${t['kicker'] ?? 'MEMORIA ANUAL'}', logo: logo),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(d['nombre']!, textAlign: TextAlign.center, maxLines: 2, style: TextStyle(fontSize: 11.5, fontWeight: diseno == d['id'] ? FontWeight.w700 : FontWeight.w500, color: diseno == d['id'] ? c.text : c.text2)),
+                ]),
+              )),
+          ]);
+        }),
         const SizedBox(height: 6),
         Text(_disenos.firstWhere((d) => d['id'] == diseno)['descripcion']!, style: TextStyle(color: c.text3, fontSize: 11.5)),
       ])),
@@ -447,8 +518,8 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
         const SizedBox(height: 8),
         Text('Diseño: ${dis['nombre']} · Empresa: ${_nombre.text.trim().isEmpty ? 'sin nombre' : _nombre.text.trim()}', style: TextStyle(color: c.text2, fontSize: 12.5)),
         const SizedBox(height: 10),
-        if (totalCaps > 0) Text('$terminados de $totalCaps capítulos marcados como listos en tus notas.', style: TextStyle(color: c.text2, fontSize: 12.5)),
-        if (totalCaps > 0) ...[const SizedBox(height: 7), GgBar(value: terminados / totalCaps)],
+        // Solo un dato informativo (sin barra, para no confundirlo con el progreso de generación).
+        if (totalCaps > 0) Text('Capítulos revisados en «Fuentes y avance»: $terminados de $totalCaps. Los no revisados salen con [COMPLETAR].', style: TextStyle(color: c.text3, fontSize: 12, height: 1.35)),
         const SizedBox(height: 8),
         Text(docsAnio.isEmpty ? 'No hay documentos procesados de $anio. Agrega documentos de este período para generar el borrador.' : 'Documentos incluidos: ${docsAnio.map((d) => d['nombre']).join(', ')}', style: TextStyle(color: c.text3, fontSize: 12, height: 1.35)),
         const SizedBox(height: 14),
