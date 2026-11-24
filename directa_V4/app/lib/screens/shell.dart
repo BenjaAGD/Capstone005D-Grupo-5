@@ -81,7 +81,12 @@ class _ShellState extends State<Shell> {
       final sm = ScaffoldMessenger.of(context);
       sm.hideCurrentSnackBar();
       sm.showSnackBar(SnackBar(
-        content: Text(t.msg, style: TextStyle(color: t.err ? context.c.crit : context.c.text)),
+        content: Row(children: [
+          Icon(t.err ? Icons.error_outline_rounded : Icons.check_circle_rounded,
+              size: 20, color: t.err ? context.c.crit : context.c.low),
+          const SizedBox(width: 10),
+          Expanded(child: Text(t.msg, style: TextStyle(color: t.err ? context.c.crit : context.c.text))),
+        ]),
         duration: Duration(milliseconds: t.err ? 4500 : 2800),
       ));
     }));

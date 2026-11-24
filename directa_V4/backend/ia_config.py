@@ -92,7 +92,7 @@ def normalizar_texto(texto: str) -> str:
     return texto
 
 
-def generar_embeddings_batch(textos: list, max_intentos: int = MAX_REINTENTOS_EMBEDDING) -> list:
+def generar_embeddings_batch(textos: list, max_intentos: int = MAX_REINTENTOS_EMBEDDING, input_type: str = "passage") -> list:
     if not textos:
         return []
 
@@ -101,7 +101,8 @@ def generar_embeddings_batch(textos: list, max_intentos: int = MAX_REINTENTOS_EM
         "Authorization": f"Bearer {NVIDIA_API_KEY}",
         "Content-Type": "application/json",
     }
-    body = {"model": EMBEDDING_MODEL, "input": textos}
+    # Los modelos asimétricos de NVIDIA exigen input_type: "passage" al indexar documentos, "query" al preguntar.
+    body = {"model": EMBEDDING_MODEL, "input": textos, "input_type": input_type, "truncate": "END"}
 
     ultimo_error = None
     for intento in range(1, max_intentos + 1):
@@ -117,6 +118,12 @@ def generar_embeddings_batch(textos: list, max_intentos: int = MAX_REINTENTOS_EM
                 print(f"[EMBEDDING] HTTP {r.status_code}, esperando {espera}s ({intento}/{max_intentos})", flush=True)
                 time.sleep(espera)
                 ultimo_error = f"HTTP {r.status_code}"
+                continue
+
+            if r.status_code == 400 and "input_type" in r.text and "input_type" in body and "required" not in r.text:
+                # Un modelo simétrico no acepta input_type: se reintenta sin él.
+                body.pop("input_type", None)
+                body.pop("truncate", None)
                 continue
 
             if r.status_code in (404, 410):
@@ -146,7 +153,7 @@ def generar_embedding_documento(texto: str) -> list:
 
 def generar_embedding_pregunta(pregunta: str) -> list:
     pregunta_limpia = normalizar_texto(pregunta)
-    return generar_embeddings_batch([pregunta_limpia])[0]
+    return generar_embeddings_batch([pregunta_limpia], input_type="query")[0]
 
 
 def _log_tokens(provider: str, key_index, r_json):
