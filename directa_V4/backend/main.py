@@ -97,7 +97,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for _mod in ("dashboard", "memoria", "indicadores", "guia", "tono", "memoria_pdf"):
+for _mod in ("dashboard", "memoria", "indicadores", "guia", "tono", "memoria_pdf", "lectura"):
     try:
         _m = __import__(_mod)
         app.include_router(_m.crear_router(lambda: supabase))
@@ -238,19 +238,32 @@ def _contar_chunks_doc(document_id):
         return None
 
 
+_CHUNKS_CON_ORDEN = True  # se apaga solo si la columna `orden` no existe (ver migracion_v5_orden_chunks.sql)
+
+
 def guardar_chunks_batch(document_id, items):
+    global _CHUNKS_CON_ORDEN
     if not items:
         return
-    payload = [
-        {"document_id": document_id, "content": it["content"], "page_number": it["page_number"], "entity": None, "embedding": it["embedding"]}
-        for it in items
-    ]
+    payload = []
+    for it in items:
+        fila = {"document_id": document_id, "content": it["content"], "page_number": it["page_number"],
+                "entity": None, "embedding": it["embedding"]}
+        if _CHUNKS_CON_ORDEN and it.get("orden") is not None:
+            fila["orden"] = it["orden"]
+        payload.append(fila)
     n0 = _contar_chunks_doc(document_id)
     for intento in (1, 2, 3):
         try:
             supabase.table("document_chunks").insert(payload).execute()
             return
         except Exception as e:
+            if _CHUNKS_CON_ORDEN and "orden" in str(e).lower() and any("orden" in f for f in payload):
+                # La columna no existe todavía: se guarda sin ella y no se vuelve a intentar con ella.
+                _CHUNKS_CON_ORDEN = False
+                print("[DB] Columna 'orden' ausente en document_chunks; se guarda sin orden.", flush=True)
+                payload = [{k: v for k, v in f.items() if k != "orden"} for f in payload]
+                continue
             if intento == 3 or not _es_error_conexion(e):
                 raise
             print(f"[DB] Conexión perdida guardando lote ({e}); reintentando {intento}/2", flush=True)
@@ -1317,8 +1330,8 @@ def _procesar_documento_bg(document_id, ruta_temporal, nombre_archivo):
             try:
                 embeddings = generar_embeddings_batch(textos)
                 items_con_emb = [
-                    {"content": it["content"], "page_number": it["page_number"], "embedding": emb}
-                    for it, emb in zip(lote, embeddings)
+                    {"content": it["content"], "page_number": it["page_number"], "embedding": emb, "orden": i + k}
+                    for k, (it, emb) in enumerate(zip(lote, embeddings))
                 ]
                 guardar_chunks_batch(document_id, items_con_emb)
                 cantidad_ok += len(items_con_emb)
@@ -1328,6 +1341,7 @@ def _procesar_documento_bg(document_id, ruta_temporal, nombre_archivo):
             except Exception as e:
                 cantidad_err += len(lote)
                 progreso_documentos[document_id]["errores"] = cantidad_err
+                progreso_documentos[document_id].setdefault("motivo", str(e)[:220])
                 print(f"[EMBEDDING] Lote falló: {e}", flush=True)
             restante = max(0, estimado_embed - int(time.time() - inicio))
             progreso_documentos[document_id]["estimado_seg"] = restante + estimado_analisis
@@ -1335,6 +1349,7 @@ def _procesar_documento_bg(document_id, ruta_temporal, nombre_archivo):
         if cantidad_ok == 0:
             actualizar_estado(document_id, "Error")
             progreso_documentos[document_id]["estado"] = "Error"
+            progreso_documentos[document_id].setdefault("motivo", "No se pudo indexar el documento.")
             return
         print(f"[BG] Embeddings listos ({cantidad_ok}). Iniciando análisis...", flush=True)
         actualizar_estado(document_id, "Analizando")
@@ -1367,7 +1382,7 @@ def _procesar_documento_bg(document_id, ruta_temporal, nombre_archivo):
 
 @app.get("/")
 def inicio():
-    return {"mensaje": "Backend Directa funcionando correctamente"}
+    return {"mensaje": "Backend Directa funcionando correctamente", "version": "v2-pdf"}
 
 
 @app.get("/api/agentes")
@@ -1388,7 +1403,12 @@ def api_estado():
         ia = _ia_mod.estado_keys()
     except Exception:
         ia = {}
-    return {"ok": True, "version": app.version,
+    proveedores = {
+        "gemini": bool(os.getenv("GEMINI_API_KEY")),
+        "groq": bool(os.getenv("GROQ_API_KEY") or os.getenv("GROQ_API_KEY_1")),
+        "nvidia": bool(os.getenv("NVIDIA_API_KEY")),
+    }
+    return {"ok": True, "version": app.version, "proveedores": proveedores,
             "verificador": {"chat": verificador.VERIFICAR_CHAT, "analisis": verificador.VERIFICAR_ANALISIS,
                             "subagentes": verificador.MODO_SUBAGENTES, "modelo_escritor": ia.get("llm_primary"),
                             "modelo_verificador": ia.get("verificador")},
@@ -2247,34 +2267,22 @@ def api_preparar_reunion_pdf(document_id: str, payload: str = Form(...)):
                 f"</td></tr></table>"
             )
 
-        html = f'''<!DOCTYPE html><html lang="es"><head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-<title>Preguntas y respuestas para reunión</title><style>{CSS_PDF}
-.subtitulo {{ color:#5F6877; font-size:10pt; }}
-.pregunta {{ margin:0 0 12pt 0; border:0.75pt solid #D9DEE7; }}
-.pregunta td {{ padding:10pt; }}
-.tema {{ color:#128B9A; font-size:8pt; font-weight:bold; text-transform:uppercase; }}
-.preg {{ color:#1B2F4B; font-size:11pt; font-weight:bold; margin:5pt 0; }}
-.respuesta {{ color:#2B2F36; font-size:9.5pt; line-height:1.45; }}
-.verif {{ font-size:8pt; margin-top:6pt; }}
-.pendiente {{ color:#8A5A00; font-size:8.5pt; margin-top:5pt; }}
-</style></head><body>
-<table class="brand" width="100%"><tr><td><b>DIRECTA</b> &nbsp;/&nbsp; INTELIGENCIA PARA DIRECTORIOS</td><td align="right">GERENCIA GENERAL</td></tr></table>
-<table class="portada" width="100%"><tr><td>
-<span class="eyebrow">GERENCIA GENERAL &nbsp;|&nbsp; DIRECTA</span><br/>
-<span class="tit">Preparación de reunión</span><br/>
-<span class="subtit">Preguntas y respuestas sugeridas</span>
-</td></tr></table>
-<table class="meta" width="100%"><tr><td class="k">Documento</td><td>{nombre_doc}</td><td class="k">Fecha</td><td>{fecha}</td></tr>
-<tr><td class="k">Respuestas</td><td>{len(items[:50])}</td><td class="k">Clasificación</td><td>{_esc_html(CLASIFICACION)}</td></tr></table>
-<p class="subtitulo">Las respuestas son sugerencias basadas en el documento. Revisa las fuentes y los pendientes antes de compartirlas.</p>
-{''.join(tarjetas)}
-</body></html>'''
-        html = _entidades_para_pdf(html)
-        pdf_buffer = io.BytesIO()
-        pisa_status = pisa.CreatePDF(src=html, dest=pdf_buffer, encoding="utf-8")
-        if pisa_status.err:
-            raise Exception("Error generando PDF de respuestas")
+        import reporte_editorial as R
+        tarj = []
+        for it in items[:50]:
+            verif = it.get("verificacion") if isinstance(it.get("verificacion"), dict) else {}
+            ok = str(verif.get("estado") or "") in ("cifras_ok", "verificada", "respaldada")
+            pie = f"{verif.get('etiqueta') or 'Verificación pendiente'} · {verif.get('resumen') or 'Confírmala en el documento antes de usarla.'}"
+            if it.get("falta"):
+                pie += f"   ·   Pendiente: {it.get('falta')}"
+            tarj.append({"color": "#2F6B4F" if ok else "#A67C00", "etiqueta": str(it.get("agente") or "Asistente"),
+                         "titulo": str(it.get("pregunta") or ""), "texto": str(it.get("respuesta") or ""), "pie": pie})
+        pdf = R.reporte_pdf(
+            {"kicker": "Preparar mi reunión", "titulo": "Preguntas y respuestas para el directorio",
+             "subtitulo": "Sugerencias basadas en el documento. Revisa las fuentes y los pendientes antes de compartirlas.",
+             "documento": _nombre_documento(document_id) or "Documento", "fecha": fecha, "cifra": (str(len(tarj)), "Preguntas preparadas")},
+            [("Preguntas y respuestas", f"{len(tarj)} respuestas sugeridas", R.tarjetas(tarj))], "Preparar mi reunión")
+        pdf_buffer = io.BytesIO(pdf)
         pdf_buffer.seek(0)
         nombre = f"DIRECTA_Respuestas_Reunion_{datetime.now().strftime('%Y-%m-%d')}.pdf"
         return StreamingResponse(pdf_buffer, media_type="application/pdf",
@@ -2604,15 +2612,7 @@ async def generar_informe(document_id: str = Form(...), payload: str = Form(...)
             elif it.get("tipo") == "analisis":
                 por_agente[key]["analisis"].append(it)
         resumen_general = _construir_resumen_general(items)
-        html = _construir_html_informe(doc_info, resumen_general, por_agente)
-
-        # Barrido FINAL: convierte tildes a entidades, limpia caracteres raros
-        html = _entidades_para_pdf(html)
-
-        pdf_buffer = io.BytesIO()
-        pisa_status = pisa.CreatePDF(src=html, dest=pdf_buffer, encoding="utf-8")
-        if pisa_status.err:
-            raise Exception("Error generando PDF")
+        pdf_buffer = io.BytesIO(_pdf_informe(doc_info, resumen_general, por_agente))
         pdf_buffer.seek(0)
         nombre_pdf = f"Directa_Informe_{datetime.now().strftime('%Y-%m-%d')}.pdf"
         return StreamingResponse(pdf_buffer, media_type="application/pdf",
@@ -2621,6 +2621,56 @@ async def generar_informe(document_id: str = Form(...), payload: str = Form(...)
         print("[INFORME] Error:", e, flush=True)
         traceback.print_exc()
         return HTMLResponse(content=f"<h1>Error</h1><pre>{traceback.format_exc()}</pre>", status_code=500)
+
+
+def _pdf_informe(doc_info, resumen_general, por_agente):
+    """Informe para el directorio con el estilo de la Memoria (portada, secciones, tarjetas)."""
+    import reporte_editorial as R
+    nombre_doc = str(doc_info.get("nombre", "Documento"))
+    analisis = [(k, d["nombre"], a.get("resultado") or {}) for k, d in por_agente.items() for a in d["analisis"] if isinstance(a.get("resultado"), dict)]
+    chats = [(d["nombre"], c) for d in por_agente.values() for c in d["chats"]]
+    con_info = [(k, n, r) for k, n, r in analisis if r.get("hallazgos") or r.get("senales")]
+    score = round(sum(int(r.get("score", 0) or 0) for _, _, r in con_info) / len(con_info)) if con_info else None
+    orden = {"crítica": 0, "critica": 0, "alta": 1, "media": 2, "baja": 3}
+    senales = sorted([(n, s) for _, n, r in analisis for s in (r.get("senales") or []) if isinstance(s, dict)],
+                     key=lambda x: orden.get(str(x[1].get("severidad", "")).lower(), 9))
+    caps = []
+    if analisis:
+        col, _ = R.color_puntaje(score)
+        sv = {k: sum(1 for _, s in senales if str(s.get("severidad", "")).lower().replace("í", "i") == k) for k in ("critica", "alta", "media", "baja")}
+        lectura = R.parrafo(resumen_general.replace("**", ""), lead=True) + R.cifras(
+            [(score if score is not None else "-", "Preparación", col), (sv["critica"], "Críticas", "#8E1B2E"), (sv["alta"], "Altas", "#C2571A"),
+             (sv["media"], "Medias", "#A67C00"), (f"{len(con_info)}/{len(analisis)}", "Áreas con hallazgos", "#1B2F4B")])
+        lectura += R.subtitulo("Preparación por área") + R.barras(sorted([(n, int(r.get("score", 0) or 0) if (r.get("hallazgos") or r.get("senales")) else None, "")
+                                                                         for _, n, r in analisis], key=lambda x: (x[1] is None, x[1] or 0)))
+        caps.append(("Lectura ejecutiva", f"{len(analisis)} áreas evaluadas", lectura))
+        top = [s for s in senales if str(s[1].get("severidad", "")).lower() in ("crítica", "critica", "alta")][:12]
+        if top:
+            caps.append(("Alertas para revisar", f"{len(top)} señales críticas y altas", R.tarjetas(
+                [{"sev": s.get("severidad"), "area": n, "titulo": s.get("titulo", ""), "texto": s.get("descripcion", ""),
+                  "pie": ("Verificador: " + str((s.get("verificacion") or {}).get("estado", ""))) if isinstance(s.get("verificacion"), dict) else ""} for n, s in top])))
+        preg = [(n, (p.get("pregunta") if isinstance(p, dict) else str(p))) for _, n, r in analisis for p in (r.get("preguntas") or [])][:12]
+        if preg:
+            caps.append(("Preguntas probables del directorio", "Para preparar la sesión", R.tarjetas(
+                [{"color": "#0E7490", "etiqueta": f"Pregunta {i}", "area": n, "titulo": q} for i, (n, q) in enumerate(preg, 1) if q])))
+    else:
+        caps.append(("Lectura ejecutiva", "Informe con consultas al asistente", R.parrafo(resumen_general.replace("**", ""), lead=True)))
+    if chats:
+        caps.append(("Consultas al asistente", f"{len(chats)} conversaciones incluidas", R.tarjetas(
+            [{"color": "#1B2F4B", "etiqueta": n, "titulo": c.get("pregunta", ""), "texto": c.get("respuesta", ""),
+              "pie": ("Fuentes: pág. " + ", ".join(str(f.get("pagina", "?")) for f in (c.get("fuentes") or [])[:6])) if c.get("fuentes") else ""} for n, c in chats])))
+    detalle = []
+    for _, n, r in sorted(con_info, key=lambda x: int(x[2].get("score", 0) or 0)):
+        detalle += R.subtitulo(f"{n} · {r.get('score', '-')}/100") + R.parrafo(str(r.get("resumen_ejecutivo") or ""))
+        detalle += R.tarjetas([{"color": "#5F6877", "etiqueta": "Hallazgo", "titulo": h.get("titulo", ""), "texto": h.get("descripcion", ""),
+                                "pie": f"pág. {h.get('pagina')}" if h.get("pagina") else ""} for h in (r.get("hallazgos") or []) if isinstance(h, dict)][:4])
+    if detalle:
+        caps.append(("Análisis detallado por área", "De menor a mayor puntaje", detalle))
+    return R.reporte_pdf(
+        {"kicker": "Informe para el directorio", "titulo": "Preparación de la sesión de directorio",
+         "subtitulo": f"Hallazgos, alertas y preguntas sobre {nombre_doc}.", "documento": nombre_doc, "fecha": datetime.now().strftime("%d/%m/%Y"),
+         "cifra": (f"{score}/100" if score is not None else f"{len(chats)}", "Preparación global" if score is not None else "Consultas incluidas")},
+        caps, "Informe para el directorio")
 
 
 def _construir_html_informe(doc_info, resumen_general, por_agente):
@@ -2822,6 +2872,17 @@ def _construir_html_informe(doc_info, resumen_general, por_agente):
     grafico_areas = ("<h2>04 &nbsp; PREPARACI&Oacute;N POR &Aacute;REA</h2>"
                      + "<table width='100%' cellpadding='5' cellspacing='0'>" + "".join(filas_area) + "</table>") if filas_area else ""
 
+    # Informe solo con conversaciones (sin análisis de agentes): no se muestra un "0/100" engañoso.
+    n_chats = sum(len(d["chats"]) for d in por_agente.values())
+    tiles_html = f'''<table class="tile" width="100%"><tr>
+  <td><span class="big" style="color:{score_global_color};">{score_global}/100</span><br/>Preparaci&oacute;n global<br/><span class="small">{score_global_label}</span></td>
+  <td><span class="big">{n_evaluados}/{n_total}</span><br/>Agentes con hallazgos<br/><span class="small">&Aacute;reas evaluadas</span></td>
+  <td><span class="big">{len(senales_criticas)}</span><br/>Se&ntilde;ales cr&iacute;ticas y altas<br/><span class="small">Para revisar</span></td>
+  <td><span class="big">{paginas}</span><br/>P&aacute;ginas fuente<br/><span class="small">Documento analizado</span></td>
+</tr></table>''' if todos_analisis else ""
+    if not todos_analisis:
+        resumen_general = (f"Este informe re\u00fane {n_chats} consulta(s) hechas al asistente sobre el documento, con sus fuentes. "
+                           "No incluye la evaluaci\u00f3n por \u00e1reas: para agregarla, usa \u00abAgregar al informe\u00bb en Hallazgos.")
     html_completo = f'''<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -2848,12 +2909,7 @@ def _construir_html_informe(doc_info, resumen_general, por_agente):
   <tr><td class="k">Fecha de emisi&oacute;n</td><td>{fecha}</td><td class="k">Clasificaci&oacute;n</td><td>Confidencial</td></tr>
 </table>
 
-<table class="tile" width="100%"><tr>
-  <td><span class="big" style="color:{score_global_color};">{score_global}/100</span><br/>Preparaci&oacute;n global<br/><span class="small">{score_global_label}</span></td>
-  <td><span class="big">{n_evaluados}/{n_total}</span><br/>Agentes con hallazgos<br/><span class="small">&Aacute;reas evaluadas</span></td>
-  <td><span class="big">{len(senales_criticas)}</span><br/>Se&ntilde;ales cr&iacute;ticas y altas<br/><span class="small">Para revisar</span></td>
-  <td><span class="big">{paginas}</span><br/>P&aacute;ginas fuente<br/><span class="small">Documento analizado</span></td>
-</tr></table>
+{tiles_html}
 <h2>01 &nbsp; LECTURA EJECUTIVA</h2>
 <table class="nota" width="100%"><tr><td>{_render_markdown_a_html(resumen_general)}</td></tr></table>
 {sec_criticos}

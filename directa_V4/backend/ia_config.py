@@ -29,7 +29,10 @@ if not NVIDIA_API_KEY:
 if not GROQ_API_KEYS:
     print("[IA] Advertencia: no hay GROQ_API_KEYS. Se usará solo NVIDIA NIM.", flush=True)
 
-EMBEDDING_MODEL = "nvidia/nemotron-3-embed-1b"
+# NVIDIA retiró nemotron-3-embed-1b el 2026-11-23 (HTTP 410). El sucesor comparte el mismo espacio de
+# embeddings (2048 dimensiones), así que los vectores ya guardados siguen siendo válidos. Se puede cambiar
+# desde Render con la variable EMBEDDING_MODEL, sin tocar el código.
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nvidia/nemotron-3.5-embed-1b").strip()
 NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1"
 
 NVIDIA_CHAT_MODEL = os.getenv(
@@ -41,9 +44,13 @@ GROQ_BASE_URL = "https://api.groq.com/openai/v1"
 
 GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
+GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY") or "").strip()
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").strip()
+GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
+
 LLM_PRIMARY = os.getenv("LLM_PRIMARY", "groq").lower().strip()
-if LLM_PRIMARY not in ("groq", "nvidia"):
-    print(f"[IA] LLM_PRIMARY='{LLM_PRIMARY}' no es válido (groq|nvidia). Se usará 'groq'.", flush=True)
+if LLM_PRIMARY not in ("groq", "nvidia", "gemini"):
+    print(f"[IA] LLM_PRIMARY='{LLM_PRIMARY}' no es válido (groq|nvidia|gemini). Se usará 'groq'.", flush=True)
     LLM_PRIMARY = "groq"
 
 
@@ -85,7 +92,7 @@ def normalizar_texto(texto: str) -> str:
     return texto
 
 
-def generar_embeddings_batch(textos: list, max_intentos: int = MAX_REINTENTOS_EMBEDDING) -> list:
+def generar_embeddings_batch(textos: list, max_intentos: int = MAX_REINTENTOS_EMBEDDING, input_type: str = "passage") -> list:
     if not textos:
         return []
 
@@ -94,7 +101,8 @@ def generar_embeddings_batch(textos: list, max_intentos: int = MAX_REINTENTOS_EM
         "Authorization": f"Bearer {NVIDIA_API_KEY}",
         "Content-Type": "application/json",
     }
-    body = {"model": EMBEDDING_MODEL, "input": textos}
+    # Los modelos asimétricos de NVIDIA exigen input_type: "passage" al indexar documentos, "query" al preguntar.
+    body = {"model": EMBEDDING_MODEL, "input": textos, "input_type": input_type, "truncate": "END"}
 
     ultimo_error = None
     for intento in range(1, max_intentos + 1):
@@ -112,6 +120,16 @@ def generar_embeddings_batch(textos: list, max_intentos: int = MAX_REINTENTOS_EM
                 ultimo_error = f"HTTP {r.status_code}"
                 continue
 
+            if r.status_code == 400 and "input_type" in r.text and "input_type" in body and "required" not in r.text:
+                # Un modelo simétrico no acepta input_type: se reintenta sin él.
+                body.pop("input_type", None)
+                body.pop("truncate", None)
+                continue
+
+            if r.status_code in (404, 410):
+                raise Exception(
+                    f"El modelo de embeddings '{EMBEDDING_MODEL}' ya no está disponible (HTTP {r.status_code}). "
+                    "Define EMBEDDING_MODEL en Render con un modelo vigente de NVIDIA.")
             raise Exception(f"Embedding error {r.status_code}: {r.text[:200]}")
 
         except requests.exceptions.Timeout:
@@ -135,7 +153,7 @@ def generar_embedding_documento(texto: str) -> list:
 
 def generar_embedding_pregunta(pregunta: str) -> list:
     pregunta_limpia = normalizar_texto(pregunta)
-    return generar_embeddings_batch([pregunta_limpia])[0]
+    return generar_embeddings_batch([pregunta_limpia], input_type="query")[0]
 
 
 def _log_tokens(provider: str, key_index, r_json):
@@ -394,6 +412,45 @@ def _llamar_nvidia(prompt_sistema, prompt_usuario, temperatura, max_tokens, json
     raise Exception(f"NVIDIA falló tras {MAX_REINTENTOS_NVIDIA} intentos. Último: {ultimo_error}")
 
 
+def _llamar_gemini(prompt_sistema, prompt_usuario, temperatura, max_tokens, json_mode):
+    """Respaldo: Gemini por REST. Solo se usa si falla Groq y NVIDIA (o si LLM_PRIMARY=gemini)."""
+    if not GEMINI_API_KEY:
+        raise Exception("GEMINI_API_KEY no está configurada")
+    inicio = time.time()
+    url = f"{GEMINI_BASE_URL}/models/{GEMINI_MODEL}:generateContent"
+    cfg = {"temperature": temperatura, "maxOutputTokens": max_tokens}
+    if json_mode:
+        cfg["responseMimeType"] = "application/json"
+    body = {
+        "systemInstruction": {"parts": [{"text": prompt_sistema}]},
+        "contents": [{"role": "user", "parts": [{"text": prompt_usuario}]}],
+        "generationConfig": cfg,
+    }
+    headers = {"x-goog-api-key": GEMINI_API_KEY, "Content-Type": "application/json"}
+    ultimo_error = None
+    for intento in range(1, 4):
+        _revisar_plazo(inicio, "Gemini")
+        try:
+            r = _session.post(url, headers=headers, json=body, timeout=CHAT_TIMEOUT)
+            if r.status_code == 200:
+                data = r.json()
+                partes = (((data.get("candidates") or [{}])[0].get("content") or {}).get("parts")) or []
+                texto = "".join(p.get("text", "") for p in partes).strip()
+                if texto:
+                    return texto
+                ultimo_error = "Gemini devolvió una respuesta vacía"
+            elif r.status_code in (429, 500, 502, 503, 504):
+                ultimo_error = f"HTTP {r.status_code}"
+                time.sleep(_espera_retry_after(r, 2.0 * intento))
+                continue
+            else:
+                raise Exception(f"Gemini HTTP {r.status_code}: {r.text[:200]}")
+        except requests.RequestException as e:
+            ultimo_error = str(e)
+            time.sleep(2.0 * intento)
+    raise Exception(f"Gemini falló tras 3 intentos. Último: {ultimo_error}")
+
+
 def _llamar_llm_unificado(prompt_sistema, prompt_usuario, temperatura, max_tokens, json_mode):
     """
     Intenta con el proveedor primario, y si falla, cae al secundario.
@@ -403,8 +460,14 @@ def _llamar_llm_unificado(prompt_sistema, prompt_usuario, temperatura, max_token
     """
     if LLM_PRIMARY == "nvidia":
         orden = [("nvidia", _llamar_nvidia), ("groq", _llamar_groq)]
+    elif LLM_PRIMARY == "gemini":
+        orden = [("gemini", _llamar_gemini), ("groq", _llamar_groq), ("nvidia", _llamar_nvidia)]
     else:
         orden = [("groq", _llamar_groq), ("nvidia", _llamar_nvidia)]
+    if GEMINI_API_KEY and LLM_PRIMARY != "gemini":
+        orden.append(("gemini", _llamar_gemini))  # último respaldo
+    if not GROQ_API_KEYS:
+        orden = [o for o in orden if o[0] != "groq"]
 
     errores = []
     for nombre, fn in orden:
@@ -595,6 +658,8 @@ def estado_keys() -> dict:
         "nvidia_configurada": bool(NVIDIA_API_KEY),
         "modelo_groq": GROQ_MODEL,
         "modelo_nvidia_chat": NVIDIA_CHAT_MODEL,
+        "gemini_configurada": bool(GEMINI_API_KEY),
+        "modelo_gemini": GEMINI_MODEL,
         "modelo_embedding": EMBEDDING_MODEL,
         "llm_primary": LLM_PRIMARY,
         "groq_reasoning_effort": GROQ_REASONING_EFFORT or None,
@@ -605,7 +670,7 @@ def estado_keys() -> dict:
 
 def probar_proveedores() -> dict:
     """Prueba ambos proveedores LLM con un prompt mínimo."""
-    resultado = {"groq": None, "nvidia": None}
+    resultado = {"groq": None, "nvidia": None, "gemini": None}
 
     try:
         r = _llamar_groq("Eres un asistente.", "Responde solo: ok", 0.0, 300, False)

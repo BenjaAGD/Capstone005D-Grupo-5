@@ -200,7 +200,44 @@ def _html(ctx):
             "</body></html>")
 
 
-def generar(get_sb, job, anio, marca=None, caps=None, propios=None, carta=None):
+def _fragmentos(ctx, tipo):
+    """Tablas y cifras de la memoria como fragmentos HTML simples (los dibuja pdf_directa)."""
+    import pdf_directa
+    r = (ctx["dash"].get("resumen") or {})
+    sev = r.get("senales") or {}
+    res = ctx["cobertura_resumen"]
+    out = {"tiles_html": tiles_pdf([
+        (r.get("score_global") if r.get("score_global") is not None else "-", "Puntaje global", None),
+        (sev.get("crítica", 0), "Señales críticas", COLOR_SEV["crítica"]),
+        (sev.get("alta", 0), "Señales altas", COLOR_SEV["alta"]),
+        (f"{res.get('fuertes', 0) + res.get('debiles', 0)}/{res.get('temas_total', 0)}", "Temas NCG con evidencia", None)])}
+    filas = []
+    for i in ctx["indicadores"]:
+        origen = "Ingresado por el usuario" if i.get("origen") != "auto" else "Calculado por DIRECTA"
+        filas.append([f"<b>{esc_pdf(i.get('nombre', ''))}</b><br/><span class='small muted'>{esc_pdf(i.get('tipo', ''))}</span>",
+                      esc_pdf(f"{i.get('valor', '-')}{i.get('unidad') or ''}"), esc_pdf(str(i.get("meta", "-"))),
+                      color_texto(graficos.ETQ_SEM.get(i.get("estado"), "Sin dato").upper(),
+                                  graficos.COLOR_SEM.get(i.get("estado"), "#5F6877")), esc_pdf(origen)])
+    out["tabla_indicadores_html"] = (tabla_pdf(["Indicador", "Valor", "Meta", "Estado", "Origen del dato"], filas,
+                                              ["34%", "12%", "10%", "16%", "28%"]) if filas else "")
+    ids_cap = pdf_directa.TIPOS[tipo]["capitulos"]
+    filas = []
+    for c in ctx["cobertura_capitulos"]:
+        if ids_cap is not None and c["id"] not in ids_cap:
+            continue
+        for t in c["temas"]:
+            ev = {"fuerte": color_texto("Con evidencia", "#2F6B4F"), "debil": color_texto("Evidencia débil", "#A67C00"),
+                  "ninguna": color_texto("Sin evidencia", "#8E1B2E")}.get(t["nivel"], "")
+            pg = ", ".join(f"pág. {p['pagina']}" for p in t.get("paginas", [])[:4] if p.get("pagina") is not None)
+            filas.append([f"{c['numero']}", esc_pdf(t["nombre"]), ev, esc_pdf(pg) or "-"])
+    out["tabla_cobertura_html"] = tabla_pdf(["Cap.", "Tema que pide la norma", "Evidencia", "Dónde mirar"], filas,
+                                           ["7%", "53%", "18%", "22%"]) if filas else ""
+    out["tabla_revision_html"] = (tabla_pdf(["Sección", "Alerta"], [[esc_pdf(s), esc_pdf(a)] for s, a in ctx["revision"]],
+                                           ["28%", "72%"]) if ctx["revision"] else "")
+    return out
+
+
+def generar(get_sb, job, anio, marca=None, caps=None, propios=None, carta=None, tipo="integrada", diseno="navy"):
     import memoria
     import tono
     from dashboard import dashboard_cacheado
@@ -212,7 +249,12 @@ def generar(get_sb, job, anio, marca=None, caps=None, propios=None, carta=None):
     if not docs:
         raise ValueError(f"No hay documentos listos del año {anio}.")
     ids = [d["id"] for d in docs]
-    job.update({"paso": "Leyendo los documentos del año", "total": len(memoria.CAPITULOS) + 4, "hechos": 0})
+    import pdf_directa
+    tipo = tipo if tipo in pdf_directa.TIPOS else "integrada"
+    diseno = diseno if diseno in pdf_directa.DISENOS else "navy"
+    ids_cap = pdf_directa.TIPOS[tipo]["capitulos"]
+    caps_usados = [c for c in memoria.CAPITULOS if ids_cap is None or c["id"] in ids_cap]
+    job.update({"paso": "Leyendo los documentos del año", "total": len(caps_usados) + 4, "hechos": 0})
     data = memoria.construir_cobertura_cacheada(sb, ids)
     if not data.get("ok"):
         raise ValueError(data.get("error") or "No se pudo leer la cobertura")
@@ -230,7 +272,7 @@ def generar(get_sb, job, anio, marca=None, caps=None, propios=None, carta=None):
 
     capitulos, revision = [], []
     clave = ",".join(sorted(ids))
-    for cap in memoria.CAPITULOS:
+    for cap in caps_usados:
         job["paso"] = f"Capítulo {cap['numero']}: {cap['titulo']}"
         estado = caps.get(cap["id"]) or {}
         notas = str(estado.get("notas") or "").strip()
@@ -240,7 +282,7 @@ def generar(get_sb, job, anio, marca=None, caps=None, propios=None, carta=None):
             r = memoria.sugerir_borrador(data, cap["id"], clave, perfil)
             texto, pendientes = r.get("texto") or "[COMPLETAR: texto del capítulo]", r.get("pendientes") or []
             origen = "borrador del Redactor de memoria" + (" (con perfil de tono)" if perfil else "")
-        capitulos.append({"numero": cap["numero"], "titulo": cap["titulo"], "descripcion": cap["descripcion"],
+        capitulos.append({"id": cap["id"], "numero": cap["numero"], "titulo": cap["titulo"], "descripcion": cap["descripcion"],
                           "texto": texto, "pendientes": pendientes, "origen": origen})
         job["hechos"] += 1
 
@@ -281,15 +323,29 @@ def generar(get_sb, job, anio, marca=None, caps=None, propios=None, carta=None):
     }
     job["hechos"] += 1
     job["paso"] = "Armando el PDF"
-    pdf = html_a_pdf(_html(ctx))
+    ctx.update(_fragmentos(ctx, tipo))
+    try:
+        pdf = pdf_directa.memoria_pdf(ctx, tipo, diseno)
+    except Exception as e:  # noqa: BLE001
+        import traceback
+        traceback.print_exc()
+        print(f"[MEMORIA] Motor nuevo falló ({e}); se usa el diseño anterior.", flush=True)
+        pdf = html_a_pdf(_html(ctx))
+    etiqueta = {"integrada": "Anual", "ejecutiva": "Ejecutiva", "sostenibilidad": "Sostenibilidad", "financiera": "Financiera",
+                "gobierno": "Gobierno", "directorio": "Directorio"}.get(tipo, "Anual")
     job.update({"pdf": pdf, "revision": [{"seccion": s, "alerta": a} for s, a in revision], "carta": texto_carta,
-                "tono": {"version": perfil.get("version")} if perfil else None,
+                "tono": {"version": perfil.get("version")} if perfil else None, "tipo": tipo, "diseno": diseno,
                 "graficos": sum(1 for k in ("graf_indicadores", "graf_senales", "graf_areas", "graf_evolucion") if ctx[k]),
-                "nombre": f"Memoria_Anual_{anio}_borrador.pdf"})
+                "nombre": f"Memoria_{etiqueta}_{anio}_borrador.pdf"})
 
 
 def crear_router(get_supabase):
     router = APIRouter()
+
+    @router.get("/api/memoria/tipos")
+    def api_tipos():
+        import pdf_directa
+        return {"ok": True, **pdf_directa.catalogo()}
 
     @router.get("/api/memoria/anios")
     def api_anios():
@@ -315,7 +371,7 @@ def crear_router(get_supabase):
         def worker():
             try:
                 generar(get_supabase, job, anio, payload.get("marca"), payload.get("caps"), payload.get("propios"),
-                        payload.get("carta"))
+                        payload.get("carta"), str(payload.get("tipo") or "integrada"), str(payload.get("diseno") or "navy"))
             except Exception as e:  # noqa: BLE001
                 import traceback
                 traceback.print_exc()

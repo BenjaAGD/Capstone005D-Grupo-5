@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';     
 import 'package:provider/provider.dart';
 
 import '../core/saver.dart';
@@ -241,6 +241,10 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
     }
   }
 
+  /// Versión de los campos del plan por indicador: sube cuando la IA rellena algo,
+  /// para que los campos muestren el texto nuevo (sin recrearlos en cada letra).
+  final Map<String, int> _verCampos = {};
+
   Future<void> _iaSolucion(Map<String, dynamic> it) async {
     final id = '${it['id']}';
     setState(() => iaCargando.add(id));
@@ -266,7 +270,8 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
       }
       ajustes[_claveAj(id)] = a;
       _saveAj();
-      st.toast('Solución sugerida agregada. Revísala.');
+      _verCampos[id] = (_verCampos[id] ?? 0) + 1;
+      st.toast('Acción sugerida escrita en el plan. Revísala y toca «Guardar cambios».');
     } catch (e) {
       st.toast(
         'No se pudo sugerir: ${e.toString().replaceFirst('Exception: ', '')}',
@@ -494,20 +499,25 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
     final soluciones = [for (final x in (i['soluciones'] as List? ?? const [])) '$x'];
     final vencida = fecha.isNotEmpty && estSol != 'hecho' && fecha.compareTo(DateTime.now().toIso8601String().substring(0, 10)) < 0 && estado != 'verde';
 
+    // Se guarda al escribir; solo se redibuja al cambiar el estado (redibujar en cada letra
+    // recreaba el campo y cerraba el teclado).
     void setCampo(String f, String v) {
-      if (auto) _setAj(id, f, v);
-      else {
+      if (auto) {
+        _setAj(id, f, v);
+      } else {
         final idx = propios.indexWhere((x) => x['id'] == id);
         if (idx >= 0) { propios[idx][f == 'estado' ? 'estado_solucion' : f] = v; _saveProp(); }
       }
-      setState(() {});
+      if (f == 'estado') setState(() {});
     }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(color: c.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: c.border)),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: c.border)),
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
+        backgroundColor: c.surface,
+        collapsedBackgroundColor: c.surface,
         tilePadding: const EdgeInsets.fromLTRB(14, 8, 12, 8),
         childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
         leading: Container(width: 38, height: 38, decoration: BoxDecoration(color: semColor(context, estado).withValues(alpha: .12), borderRadius: BorderRadius.circular(11)), child: Icon(i['tipo'] == 'KRI' ? Icons.shield_outlined : Icons.trending_up, size: 19, color: semColor(context, estado))),
@@ -524,16 +534,21 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
           const SizedBox(height: 8),
           if (auto && soluciones.isNotEmpty && '${a['solucion'] ?? ''}'.trim().isEmpty)
             for (final sol in soluciones.take(2)) Padding(padding: const EdgeInsets.only(bottom: 5), child: Text('• $sol', style: TextStyle(fontSize: 12.2, color: c.text2))),
-          TextFormField(key: ValueKey('sol-$id-${a['solucion']?.toString().length ?? 0}'), initialValue: '${a['solucion'] ?? (!auto ? i['solucion'] : '') ?? ''}', minLines: 1, maxLines: 3, decoration: const InputDecoration(labelText: 'Acción / solución'), onChanged: (v) => setCampo('solucion', v)),
+          TextFormField(key: ValueKey('sol-$id-${_verCampos[id] ?? 0}'), initialValue: '${a['solucion'] ?? (!auto ? i['solucion'] : '') ?? ''}', minLines: 1, maxLines: 3, decoration: const InputDecoration(labelText: 'Acción / solución'), onChanged: (v) => setCampo('solucion', v)),
           const SizedBox(height: 8),
           Wrap(spacing: 8, runSpacing: 8, children: [
-            SizedBox(width: 190, child: TextFormField(key: ValueKey('resp-$id-$resp'), initialValue: resp, decoration: const InputDecoration(labelText: 'Responsable'), onChanged: (v) => setCampo('responsable', v))),
-            SizedBox(width: 160, child: TextFormField(key: ValueKey('fecha-$id-$fecha'), initialValue: fecha, decoration: const InputDecoration(labelText: 'Fecha objetivo', hintText: 'AAAA-MM-DD'), onChanged: (v) => setCampo('fecha', v))),
+            SizedBox(width: 190, child: TextFormField(key: ValueKey('resp-$id-${_verCampos[id] ?? 0}'), initialValue: resp, decoration: const InputDecoration(labelText: 'Responsable'), onChanged: (v) => setCampo('responsable', v))),
+            SizedBox(width: 160, child: TextFormField(key: ValueKey('fecha-$id'), initialValue: fecha, decoration: const InputDecoration(labelText: 'Fecha objetivo', hintText: 'AAAA-MM-DD'), onChanged: (v) => setCampo('fecha', v))),
             SizedBox(width: 170, child: GgSelect<String>(label: 'Estado de acción', value: estadosSol.any((x) => x.$1 == estSol) ? estSol : 'pendiente', items: estadosSol, onChanged: (v) => setCampo('estado', v))),
           ]),
           if (vencida) Padding(padding: const EdgeInsets.only(top: 8), child: Text('La fecha objetivo ya pasó y la acción sigue pendiente.', style: TextStyle(color: c.crit, fontWeight: FontWeight.w600, fontSize: 12))),
           const SizedBox(height: 10),
           Wrap(spacing: 8, runSpacing: 8, children: [
+            GgButton('Guardar cambios', icon: Icons.check_rounded, small: true, onTap: () {
+              FocusScope.of(context).unfocus();
+              setState(() {});
+              st.toast('Plan de acción guardado');
+            }),
             GgButton('Editar indicador', icon: Icons.edit_outlined, ghost: true, small: true, onTap: () => auto ? _editarAuto(i) : _form(i)),
             if (auto) GgButton('Sugerir acción con IA', icon: Icons.auto_awesome, ghost: true, small: true, loading: iaCargando.contains(id), onTap: () => _iaSolucion(i)),
             if (!auto) GgButton('Eliminar', icon: Icons.delete_outline, danger: true, small: true, onTap: () async { if (await confirmar(context, '¿Eliminar el indicador "${i['nombre']}"?', ok: 'Eliminar')) { propios.removeWhere((x) => x['id'] == id); _saveProp(); setState(() {}); st.toast('Indicador eliminado'); } }),

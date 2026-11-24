@@ -323,7 +323,7 @@ class _CuentaScreenState extends State<_CuentaScreen> {
 
         final redirect = kIsWeb
             ? '${Uri.base.origin}/${_signup ? '' : '?flow=recovery'}'
-            : null;
+            : 'cl.directa.directa://login-callback';
 
         if (!_signup) {
           await auth.resetPasswordForEmail(

@@ -12,3 +12,5 @@ python-docx>=1.1
 openpyxl>=3.1
 xhtml2pdf>=0.2.16
 matplotlib>=3.8          # gráficos de los PDF (memoria e informe)
+
+reportlab>=4.0

@@ -259,7 +259,12 @@ def _parche_imagenes_xhtml2pdf():
 
 
 def html_a_pdf(html):
-    """Devuelve los bytes del PDF. Lanza RuntimeError si falta xhtml2pdf o falla la conversión."""
+    """Devuelve los bytes del PDF. Usa el motor nuevo (ReportLab, pdf_directa.py); si fallara, vuelve a xhtml2pdf."""
+    try:
+        import pdf_directa
+        return pdf_directa.html_a_pdf_directa(html)
+    except Exception as e:  # noqa: BLE001
+        print(f"[PDF] Motor nuevo falló, se usa xhtml2pdf: {e}", flush=True)
     try:
         from xhtml2pdf import pisa
     except Exception as e:  # pragma: no cover

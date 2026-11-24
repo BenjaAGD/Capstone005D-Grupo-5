@@ -8,6 +8,7 @@ import '../core/saver.dart';
 import '../core/store.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
+import '../state/trabajo_memoria.dart';
 import '../widgets/common.dart';
 import '../widgets/demo_offline.dart';
 import 'memoria_extra.dart';
@@ -21,8 +22,11 @@ class MemoriaScreen extends StatefulWidget {
   State<MemoriaScreen> createState() => _MemoriaScreenState();
 }
 
+const _kFuente = 'directa_memoria_fuente_v1';
+
 class _MemoriaScreenState extends State<MemoriaScreen> {
-  String pestana = 'borrador';
+  // Orden natural: 1) revisar fuentes y avance, 2) estilo, 3) crear la memoria.
+  String pestana = TrabajoMemoria.instance.corriendo ? 'borrador' : 'capitulos';
   String fuente = '__todos__';
   Map<String, dynamic>? data;
   String? cap, error;
@@ -32,6 +36,7 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
   String sugMsg = 'Usa solo la evidencia ya encontrada: una consulta corta por capítulo.';
   final _notas = TextEditingController();
   Timer? _tNotas;
+  final _kDetalle = GlobalKey();
   String? _notasCap;
 
   AppState get st => context.read<AppState>();
@@ -41,6 +46,15 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
     super.initState();
     mem = Map<String, dynamic>.from(st.store.getJson<Map>(Store.kMemoria, {'caps': {}}));
     mem['caps'] = Map<String, dynamic>.from(mem['caps'] as Map? ?? {});
+    // Por defecto la memoria usa SOLO el documento activo (antes mezclaba todos los documentos
+    // y el borrador podía traer datos de otra empresa). La elección queda guardada.
+    final guardada = st.store.getString(_kFuente);
+    final ids = st.documentos.map((d) => '${d['id']}').toSet();
+    if (guardada != null && (guardada == '__todos__' || ids.contains(guardada))) {
+      fuente = guardada;
+    } else if (st.docActivo != null) {
+      fuente = st.docActivo!;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) => _cargar());
   }
 
@@ -49,6 +63,15 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
     _tNotas?.cancel();
     _notas.dispose();
     super.dispose();
+  }
+
+  void _cambiarFuente(String v) {
+    setState(() {
+      fuente = v;
+      sug.clear();
+    });
+    st.store.setString(_kFuente, v);
+    _cargar();
   }
 
   Map<String, dynamic> capMem(String id) {
@@ -148,9 +171,9 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
               borderRadius: BorderRadius.circular(13),
             ),
             child: Row(children: [
-              _opcionMemoria('borrador', Icons.auto_awesome_outlined, 'Crear memoria'),
-              _opcionMemoria('capitulos', Icons.fact_check_outlined, 'Revisar avance'),
-              _opcionMemoria('tono', Icons.tune_outlined, 'Personalizar estilo'),
+              _opcionMemoria('capitulos', Icons.fact_check_outlined, '1 · Fuentes y avance'),
+              _opcionMemoria('tono', Icons.tune_outlined, '2 · Estilo'),
+              _opcionMemoria('borrador', Icons.auto_awesome_outlined, '3 · Crear memoria'),
             ]),
           ),
         ]),
@@ -159,6 +182,16 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
       if (pestana == 'borrador') BorradorMemoria(caps: () => mem['caps'] as Map<String, dynamic>),
       if (pestana == 'tono') const PerfilTono(),
       if (pestana == 'capitulos') _capitulos(context, app),
+      if (pestana != 'borrador')
+        Padding(
+          padding: const EdgeInsets.only(top: 6, bottom: 8),
+          child: GgButton(
+            pestana == 'capitulos' ? 'Siguiente: estilo' : 'Siguiente: crear memoria',
+            icon: Icons.arrow_forward_rounded,
+            expand: true,
+            onTap: () => setState(() => pestana = pestana == 'capitulos' ? 'tono' : 'borrador'),
+          ),
+        ),
     ]);
   }
 
@@ -213,13 +246,11 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
         title: Text('En el PDF, solo los temas que marqué como revisados', style: TextStyle(fontSize: 13, color: c.text2)),
       ),
       GgSelect<String>(
+            key: ValueKey('fuente-$fuente-Busca'),
         label: 'Buscar evidencia en',
         value: fuente,
         items: [('__todos__', 'Todos los documentos'), for (final d in app.documentos) ('${d['id']}', nombreDoc(d))],
-        onChanged: (v) {
-          setState(() => fuente = v);
-          _cargar();
-        },
+        onChanged: _cambiarFuente,
       ),
       Padding(
         padding: const EdgeInsets.only(top: 2, bottom: 10),
@@ -263,70 +294,96 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
     final caps = [for (final x in d['capitulos'] as List) Map<String, dynamic>.from(x as Map)];
     final listos = caps.where((x) => capMem('${x['id']}')['estado'] == 'listo').length;
     final actual = caps.firstWhere((x) => x['id'] == cap, orElse: () => caps.first);
+    final f = (r['fuertes'] as num?)?.toInt() ?? 0;
+    final w = (r['debiles'] as num?)?.toInt() ?? 0;
+    final sn = (r['sin_evidencia'] as num?)?.toInt() ?? 0;
+    final t = (r['temas_total'] as num?)?.toInt() ?? 0;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      GgCard(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            const Expanded(child: SecTitle('Cobertura NCG 461', bottom: 0)),
+            Text('$f de $t temas', style: TextStyle(fontSize: 12, color: c.text2)),
+          ]),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(5),
+            child: SizedBox(
+              height: 10,
+              child: Row(children: [
+                if (f > 0) Expanded(flex: f, child: Container(margin: const EdgeInsets.only(right: 2), color: c.low)),
+                if (w > 0) Expanded(flex: w, child: Container(margin: const EdgeInsets.only(right: 2), color: c.med)),
+                if (sn > 0) Expanded(flex: sn, child: Container(color: c.crit)),
+                if (f + w + sn == 0) Expanded(child: Container(color: c.track)),
+              ]),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text('Con evidencia $f · Débil $w · Sin evidencia $sn', style: TextStyle(fontSize: 11.5, color: c.text3)),
+          const SizedBox(height: 4),
+          Text('$listos de ${caps.length} capítulos marcados como listos', style: TextStyle(fontSize: 11.5, color: c.text3)),
+        ]),
+      ),
+      const SecTitle('Capítulos'),
+      GgCard(
+        padding: EdgeInsets.zero,
+        child: Column(children: [
+          for (var i = 0; i < caps.length; i++) _filaCapitulo(context, caps[i], i == caps.length - 1),
+        ]),
+      ),
       GgCard(
         color: c.surface2,
         child: MarkdownLite('**Cómo leer esto.** ${d['aviso']} ${d['referencia']}', size: 12.3, color: c.text2),
       ),
-      GridCols(cols: 4, minItemWidth: 150, children: [
-        KpiTile(value: '$listos/${caps.length}', label: 'Capítulos listos'),
-        KpiTile(value: '${r['fuertes']}/${r['temas_total']}', label: 'Temas con evidencia'),
-        KpiTile(value: '${r['debiles']}', label: 'Con evidencia débil'),
-        KpiTile(value: '${r['sin_evidencia']}', label: 'Sin evidencia'),
-      ]),
-      const SizedBox(height: 14),
-      const SecTitle('Capítulos'),
-      SizedBox(
-        height: 118,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: caps.length,
-          separatorBuilder: (_, _) => const SizedBox(width: 8),
-          itemBuilder: (context, i) {
-            final x = caps[i];
-            final e = '${capMem('${x['id']}')['estado']}';
-            final pct = (x['total_temas'] as num) == 0 ? 0.0 : (x['con_evidencia'] as num) / (x['total_temas'] as num);
-            final sel = x['id'] == cap;
-            return SizedBox(
-              width: 220,
-              child: Material(
-                color: sel ? c.accentSoft : c.surface,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: sel ? Brand.accent : c.border)),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: () => setState(() => cap = '${x['id']}'),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Row(children: [
-                        Container(
-                          width: 24, height: 24, alignment: Alignment.center,
-                          decoration: BoxDecoration(color: sel ? Brand.accent : c.surface3, borderRadius: BorderRadius.circular(7)),
-                          child: Text('${x['numero']}', style: AppTheme.mono(context, size: 12, weight: FontWeight.w700, color: sel ? Brand.onAccent : c.text2)),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text('${x['titulo']}', maxLines: 2, overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12.5))),
-                      ]),
-                      const Spacer(),
-                      Text('${x['con_evidencia']} de ${x['total_temas']} temas con evidencia', style: TextStyle(fontSize: 11, color: c.text2)),
-                      const SizedBox(height: 5),
-                      Row(children: [
-                        Expanded(child: GgBar(value: pct.toDouble(), color: c.lime, height: 6)),
-                        const SizedBox(width: 8),
-                        _estadoPill(context, e),
-                      ]),
-                    ]),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-      const SizedBox(height: 14),
-      _detalle(context, actual, caps.length, (d['fuentes'] as List).length == 1),
+      KeyedSubtree(key: _kDetalle, child: _detalle(context, actual, caps.length, (d['fuentes'] as List).length == 1)),
     ]);
+  }
+
+  Widget _filaCapitulo(BuildContext context, Map<String, dynamic> x, bool ultima) {
+    final c = context.c;
+    final e = '${capMem('${x['id']}')['estado']}';
+    final total = (x['total_temas'] as num?)?.toInt() ?? 0;
+    final con = (x['con_evidencia'] as num?)?.toInt() ?? 0;
+    final pct = total == 0 ? 0.0 : con / total;
+    final sel = x['id'] == cap;
+    return InkWell(
+      onTap: () {
+        setState(() => cap = '${x['id']}');
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final ctx = _kDetalle.currentContext;
+          if (ctx != null) Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 350));
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: sel ? c.accentSoft : null,
+          border: ultima ? null : Border(bottom: BorderSide(color: c.border)),
+        ),
+        child: Row(children: [
+          Container(
+            width: 26, height: 26, alignment: Alignment.center,
+            decoration: BoxDecoration(color: sel ? Brand.accent : c.surface3, borderRadius: BorderRadius.circular(8)),
+            child: Text('${x['numero']}',
+                style: AppTheme.mono(context, size: 12, weight: FontWeight.w700, color: sel ? Brand.onAccent : c.text2)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('${x['titulo']}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
+              const SizedBox(height: 6),
+              Row(children: [
+                Expanded(child: GgBar(value: pct, color: pct >= 0.8 ? c.low : (pct >= 0.4 ? c.med : c.crit), height: 6)),
+                const SizedBox(width: 8),
+                Text('$con/$total', style: TextStyle(fontSize: 11, color: c.text3)),
+              ]),
+            ]),
+          ),
+          const SizedBox(width: 10),
+          _estadoPill(context, e),
+        ]),
+      ),
+    );
   }
 
   Widget _estadoPill(BuildContext context, String e) {
@@ -419,6 +476,14 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
             GgButton('Sugerir borrador con IA', icon: Icons.auto_awesome, ghost: true, small: true, loading: sugiriendo, onTap: _sugerir),
             Text(sugMsg, style: TextStyle(fontSize: 12, color: c.text3)),
           ]),
+          const SizedBox(height: 8),
+          GgSelect<String>(
+            key: ValueKey('fuente-$fuente-La IA'),
+            label: 'La IA escribe usando',
+            value: fuente,
+            items: [('__todos__', 'Todos los documentos'), for (final d in context.read<AppState>().documentos) ('${d['id']}', nombreDoc(d))],
+            onChanged: _cambiarFuente,
+          ),
           if (s != null)
             Container(
               margin: const EdgeInsets.only(top: 10),

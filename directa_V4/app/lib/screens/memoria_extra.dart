@@ -11,6 +11,7 @@ import '../core/saver.dart';
 import '../core/store.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
+import '../state/trabajo_memoria.dart';
 import '../widgets/common.dart';
 import '../widgets/demo_offline.dart';
 
@@ -19,7 +20,189 @@ const _coloresMarca = ['#1B2F4B', '#0E5A8A', '#0E7490', '#12AFC6', '#237AA8', '#
 
 Color _hex(String h) => Color(int.parse('FF${h.substring(1)}', radix: 16));
 
-/// "Borrador de memoria" en un paso (Frente D): se elige el año y se obtiene el PDF para revisar.
+const _tiposLocal = <Map<String, dynamic>>[
+  {'id': 'integrada', 'nombre': 'Memoria integrada (NCG 461)', 'descripcion': 'Completa, con todos los capítulos que pide la norma de la CMF.', 'kicker': 'MEMORIA ANUAL INTEGRADA', 'titular': 'Un año de gestión responsable', 'capitulos': null},
+  {'id': 'ejecutiva', 'nombre': 'Memoria ejecutiva', 'descripcion': 'Corta: carta, perfil, estrategia, negocio y cifras clave del año.', 'kicker': 'MEMORIA EJECUTIVA', 'titular': 'Lo esencial del año', 'capitulos': ['perfil', 'estrategia', 'negocios', 'financieros']},
+  {'id': 'sostenibilidad', 'nombre': 'Sostenibilidad y ESG', 'descripcion': 'Personas, proveedores, estrategia climática e indicadores.', 'kicker': 'INFORME DE SOSTENIBILIDAD', 'titular': 'Impacto y sostenibilidad', 'capitulos': ['estrategia', 'personas', 'proveedores', 'indicadores', 'gobierno']},
+  {'id': 'financiera', 'nombre': 'Memoria financiera', 'descripcion': 'Resultados, hechos relevantes, negocio e informes financieros.', 'kicker': 'MEMORIA FINANCIERA', 'titular': 'Resultados del ejercicio', 'capitulos': ['financieros', 'hechos', 'negocios', 'estrategia', 'comentarios']},
+  {'id': 'gobierno', 'nombre': 'Gobierno corporativo y riesgos', 'descripcion': 'Directorio, comités, gestión de riesgos y cumplimiento.', 'kicker': 'GOBIERNO CORPORATIVO', 'titular': 'Gobierno y gestión de riesgos', 'capitulos': ['perfil', 'gobierno', 'comentarios', 'hechos']},
+  {'id': 'directorio', 'nombre': 'Informe para el directorio', 'descripcion': 'Breve, con decisiones pendientes: gobierno, finanzas y hechos relevantes.', 'kicker': 'INFORME PARA EL DIRECTORIO', 'titular': 'Lo que el directorio debe saber', 'capitulos': ['gobierno', 'financieros', 'hechos']},
+];
+
+const _disenos = <Map<String, String>>[
+  {'id': 'navy', 'nombre': 'Navy editorial', 'descripcion': 'Portada azul profundo, tipografía serif y trazo dorado.'},
+  {'id': 'claro', 'nombre': 'Papel claro', 'descripcion': 'Fondo crema, título grande y año destacado.'},
+  {'id': 'foto', 'nombre': 'Foto + bandas', 'descripcion': 'Foto arriba, banda cian y bloque de color de marca.'},
+  {'id': 'minimal', 'nombre': 'Blanco minimal', 'descripcion': 'Blanco, líneas finas y año grande en el color de la marca.'},
+  {'id': 'bloque', 'nombre': 'Bloque de color', 'descripcion': 'Franja vertical del color de la marca con el año; título a la derecha.'},
+  {'id': 'gradiente', 'nombre': 'Degradado', 'descripcion': 'Degradado del color de la marca al cian, letras blancas.'},
+];
+
+IconData _iconoTipo(String id) => switch (id) {
+      'ejecutiva' => Icons.bolt_outlined,
+      'sostenibilidad' => Icons.eco_outlined,
+      'financiera' => Icons.show_chart,
+      'gobierno' => Icons.account_balance_outlined,
+      'directorio' => Icons.groups_outlined,
+      _ => Icons.menu_book_outlined,
+    };
+
+/// Vista previa de portada (A4) para los tres diseños.
+class _PortadaMini extends StatelessWidget {
+  const _PortadaMini({required this.diseno, required this.color, required this.titulo, required this.empresa, required this.anio, required this.kicker, this.logo});
+  final String diseno, titulo, empresa, kicker;
+  final Color color;
+  final int anio;
+  final String? logo;
+
+  @override
+  Widget build(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 0.707,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: LayoutBuilder(builder: (context, box) {
+          final s = box.maxWidth / 220;
+          TextStyle serif(double size, Color col) => TextStyle(fontFamily: 'serif', fontWeight: FontWeight.bold, fontSize: size * s, height: 1.08, color: col);
+          TextStyle sans(double size, Color col, {bool b = false}) => TextStyle(fontSize: size * s, color: col, fontWeight: b ? FontWeight.w700 : FontWeight.w400, letterSpacing: .4 * s);
+          final nombre = empresa.trim().isEmpty ? 'NOMBRE DE LA EMPRESA' : empresa.trim().toUpperCase();
+          final logoW = logo == null
+              ? const SizedBox.shrink()
+              : Image.memory(base64Decode(logo!.split(',').last), width: 38 * s, height: 20 * s, fit: BoxFit.contain);
+          if (diseno == 'claro') {
+            return Container(
+              color: const Color(0xFFFAF8F3),
+              padding: EdgeInsets.all(16 * s),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  Flexible(child: Text(nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: sans(6.5, color, b: true))),
+                  logoW,
+                ]),
+                const Spacer(flex: 3),
+                Text(kicker, maxLines: 1, overflow: TextOverflow.ellipsis, style: sans(5.5, const Color(0xFF0E7490), b: true)),
+                SizedBox(height: 6 * s),
+                Text(titulo, maxLines: 3, overflow: TextOverflow.ellipsis, style: serif(21, color)),
+                SizedBox(height: 8 * s),
+                Container(width: 30 * s, height: 2 * s, color: const Color(0xFFC9A24A)),
+                const Spacer(flex: 4),
+                Text('$anio', style: serif(40, const Color(0xFF0E7490))),
+              ]),
+            );
+          }
+          if (diseno == 'minimal') {
+            return Container(
+              color: Colors.white,
+              padding: EdgeInsets.all(16 * s),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Container(height: 1 * s, color: color),
+                SizedBox(height: 5 * s),
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  Flexible(child: Text(nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: sans(6.5, color, b: true))),
+                  logoW,
+                ]),
+                Align(alignment: Alignment.centerRight, child: Text('$anio', style: TextStyle(fontSize: 44 * s, color: color, height: 1.1))),
+                const Spacer(flex: 2),
+                Text(kicker, maxLines: 1, overflow: TextOverflow.ellipsis, style: sans(5.5, const Color(0xFF5F6877), b: true)),
+                SizedBox(height: 5 * s),
+                Text(titulo, maxLines: 3, overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 17 * s, fontWeight: FontWeight.w800, height: 1.1, color: const Color(0xFF1F2733))),
+                const Spacer(flex: 3),
+                Container(height: 1 * s, color: color),
+              ]),
+            );
+          }
+          if (diseno == 'bloque') {
+            return Row(children: [
+              Container(
+                width: box.maxWidth * .36,
+                color: color,
+                alignment: Alignment.bottomCenter,
+                padding: EdgeInsets.only(bottom: 12 * s),
+                child: RotatedBox(quarterTurns: 3, child: Text('$anio', style: serif(30, Colors.white))),
+              ),
+              Container(width: 3 * s, color: const Color(0xFF18B9D2)),
+              Expanded(child: Container(
+                color: Colors.white,
+                padding: EdgeInsets.all(10 * s),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: sans(5.5, color, b: true)),
+                  const Spacer(flex: 3),
+                  Text(kicker, maxLines: 1, overflow: TextOverflow.ellipsis, style: sans(4.8, const Color(0xFF0E7490), b: true)),
+                  SizedBox(height: 4 * s),
+                  Text(titulo, maxLines: 4, overflow: TextOverflow.ellipsis, style: serif(14, const Color(0xFF1B2F4B))),
+                  SizedBox(height: 5 * s),
+                  Container(width: 22 * s, height: 2 * s, color: const Color(0xFFC9A24A)),
+                  const Spacer(flex: 4),
+                ]),
+              )),
+            ]);
+          }
+          if (diseno == 'gradiente') {
+            return Container(
+              decoration: BoxDecoration(gradient: LinearGradient(
+                begin: Alignment.bottomLeft, end: Alignment.topRight, colors: [const Color(0xFF18B9D2), color])),
+              padding: EdgeInsets.all(16 * s),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  Flexible(child: Text(nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: sans(6.5, Colors.white, b: true))),
+                  logoW,
+                ]),
+                const Spacer(flex: 3),
+                Text(kicker, maxLines: 1, overflow: TextOverflow.ellipsis, style: sans(5.5, Colors.white, b: true)),
+                SizedBox(height: 6 * s),
+                Text(titulo, maxLines: 3, overflow: TextOverflow.ellipsis, style: serif(21, Colors.white)),
+                const Spacer(flex: 3),
+                Align(alignment: Alignment.bottomRight, child: Text('$anio', style: serif(26, Colors.white))),
+              ]),
+            );
+          }
+          if (diseno == 'foto') {
+            return Column(children: [
+              Expanded(flex: 5, child: SizedBox(width: double.infinity, child: Image.asset('assets/memoria_portada.jpg', fit: BoxFit.cover))),
+              Container(height: 4 * s, color: const Color(0xFF18B9D2)),
+              Expanded(flex: 5, child: Container(
+                width: double.infinity,
+                color: color,
+                padding: EdgeInsets.all(14 * s),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(kicker, maxLines: 1, overflow: TextOverflow.ellipsis, style: sans(5.5, const Color(0xFF8DE4F0), b: true)),
+                  SizedBox(height: 5 * s),
+                  Text(titulo, maxLines: 3, overflow: TextOverflow.ellipsis, style: serif(17, Colors.white)),
+                  SizedBox(height: 4 * s),
+                  Text('$anio', style: serif(15, const Color(0xFF6DD7E8))),
+                ]),
+              )),
+            ]);
+          }
+          return Container(
+            color: color,
+            padding: EdgeInsets.fromLTRB(16 * s, 16 * s, 14 * s, 14 * s),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Container(width: 3 * s, height: 70 * s, margin: EdgeInsets.only(top: 60 * s, right: 10 * s), color: const Color(0xFF18B9D2)),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  Flexible(child: Text(nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: sans(6.5, Colors.white, b: true))),
+                  logoW,
+                ]),
+                const Spacer(flex: 3),
+                Text(kicker, maxLines: 1, overflow: TextOverflow.ellipsis, style: sans(5.5, const Color(0xFF8DE4F0), b: true)),
+                SizedBox(height: 6 * s),
+                Text(titulo, maxLines: 3, overflow: TextOverflow.ellipsis, style: serif(23, Colors.white)),
+                SizedBox(height: 8 * s),
+                Container(width: 30 * s, height: 2 * s, color: const Color(0xFFC9A24A)),
+                SizedBox(height: 8 * s),
+                Text('$anio', style: serif(16, const Color(0xFF6DD7E8))),
+                const Spacer(flex: 4),
+              ])),
+            ]),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+/// "Borrador de memoria" en pasos: tipo, diseño, datos y generación del PDF.
 class BorradorMemoria extends StatefulWidget {
   const BorradorMemoria({super.key, required this.caps});
   final Map<String, dynamic> Function() caps;
@@ -33,6 +216,10 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
   bool cargando = true, generando = false;
   String? error, logo;
   String color = _coloresMarca.first;
+  String tipo = 'integrada', diseno = 'navy';
+  int paso = 0;
+  List<Map<String, dynamic>> tipos = List<Map<String, dynamic>>.from(_tiposLocal);
+  final _hexCtrl = TextEditingController();
   final _nombre = TextEditingController();
   final _titulo = TextEditingController(text: 'Memoria anual');
   final _destinatario = TextEditingController(text: 'Gerencia General');
@@ -50,28 +237,63 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
     _titulo.text = '${m['titulo'] ?? 'Memoria anual'}';
     _destinatario.text = '${m['destinatario'] ?? 'Gerencia General'}';
     _firmante.text = '${m['firmante'] ?? 'Gerente General'}';
-    if (_coloresMarca.contains(m['color'])) color = '${m['color']}';
+    if (RegExp(r'^#[0-9A-Fa-f]{6}$').hasMatch('${m['color']}')) color = '${m['color']}'.toUpperCase();
+    _hexCtrl.text = color;
+    if (_tiposLocal.any((t) => t['id'] == m['tipo'])) tipo = '${m['tipo']}';
+    if (_disenos.any((d) => d['id'] == m['diseno'])) diseno = '${m['diseno']}';
     logo = m['logo'] as String?;
+    TrabajoMemoria.instance.addListener(_sincronizar);
+    if (TrabajoMemoria.instance.corriendo || TrabajoMemoria.instance.resultado != null) paso = 3;
+    _aplicarTrabajo(); // en initState no se puede usar setState
     WidgetsBinding.instance.addPostFrameCallback((_) => _cargar());
+  }
+
+  /// Copia el estado del trabajo de fondo (sigue corriendo aunque se salga de esta pantalla).
+  void _aplicarTrabajo() {
+    final t = TrabajoMemoria.instance;
+    generando = t.corriendo;
+    progreso = t.progreso;
+    resultado = t.resultado;
+    if (t.error != null) error = t.error;
+  }
+
+  void _sincronizar() {
+    if (mounted) setState(_aplicarTrabajo);
   }
 
   @override
   void dispose() {
     _poll?.cancel();
+    TrabajoMemoria.instance.removeListener(_sincronizar);
     _nombre.dispose();
     _titulo.dispose();
     _destinatario.dispose();
     _firmante.dispose();
+    _hexCtrl.dispose();
     super.dispose();
   }
 
   void _guardarMarca() => st.store.setJson(_kMarca, {
     'nombre': _nombre.text.trim(), 'titulo': _titulo.text.trim(),
     'destinatario': _destinatario.text.trim(), 'firmante': _firmante.text.trim(),
-    'color': color, if (logo != null) 'logo': logo,
+    'color': color, 'tipo': tipo, 'diseno': diseno, if (logo != null) 'logo': logo,
   });
 
   Future<void> _cargar() async {
+    try {
+      final t = await st.api.getJson('/api/memoria/tipos', timeout: const Duration(seconds: 6));
+      final lista = [for (final x in (t['tipos'] as List? ?? const [])) if (x is Map) Map<String, dynamic>.from(x)];
+      if (lista.isNotEmpty) {
+        // El servidor define los capítulos; los textos de portada se completan con los locales.
+        tipos = [
+          for (final x in lista)
+            {
+              ...(_tiposLocal.firstWhere((l) => l['id'] == x['id'], orElse: () => const <String, dynamic>{})),
+              ...x,
+            }
+        ];
+      }
+    } catch (_) {}
     try {
       final r = await st.api.getJson('/api/memoria/anios', timeout: const Duration(seconds: 6));
       anios = [for (final a in (r['anios'] as List? ?? const [])) if (a is Map) Map<String, dynamic>.from(a)];
@@ -103,55 +325,227 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
   Future<void> _generar() async {
     if (anio == null || generando) return;
     _guardarMarca();
-    setState(() {
-      generando = true;
-      progreso = {'paso': 'Iniciando…', 'hechos': 0, 'total': 1};
-      resultado = null;
-      error = null;
+    setState(() => error = null);
+    final propios = st.store.getJson<List>(Store.kIndPropios, const []);
+    await TrabajoMemoria.instance.iniciar(st, {
+      'anio': anio,
+      'marca': {'nombre': _nombre.text.trim(), 'titulo': _titulo.text.trim(),
+        'destinatario': _destinatario.text.trim(), 'firmante': _firmante.text.trim(),
+        'color': color, if (logo != null) 'logo': logo},
+      'tipo': tipo,
+      'diseno': diseno,
+      'caps': widget.caps(),
+      'propios': propios,
     });
-    try {
-      final propios = st.store.getJson<List>(Store.kIndPropios, const []);
-      final r = await st.api.postJson('/api/memoria/borrador', {
-        'anio': anio,
-        'marca': {'nombre': _nombre.text.trim(), 'titulo': _titulo.text.trim(),
-          'destinatario': _destinatario.text.trim(), 'firmante': _firmante.text.trim(),
-          'color': color, if (logo != null) 'logo': logo},
-        'caps': widget.caps(),
-        'propios': propios,
-      });
-      if (r['ok'] != true) throw Exception(r['error'] ?? 'No se pudo iniciar');
-      final id = '${r['job_id']}';
-      final listo = Completer<Map<String, dynamic>>();
-      _poll = Timer.periodic(const Duration(milliseconds: 1500), (t) async {
-        try {
-          final e = Map<String, dynamic>.from(await st.api.getJson('/api/memoria/borrador/$id') as Map);
-          if (!mounted) return;
-          setState(() => progreso = e);
-          if (e['corriendo'] != true && !listo.isCompleted) {
-            t.cancel();
-            listo.complete(e);
-          }
-        } catch (err) {
-          if (!listo.isCompleted) {
-            t.cancel();
-            listo.completeError(err);
-          }
-        }
-      });
-      final e = await listo.future;
-      if (e['listo'] != true) throw Exception(e['error'] ?? 'El borrador no se pudo generar');
-      final bytes = await st.api.getBytes('/api/memoria/borrador/$id/pdf');
-      resultado = e;
-      st.toast(await guardarArchivo('${e['nombre'] ?? 'Memoria_borrador.pdf'}', bytes, 'application/pdf'));
-    } catch (e) {
-      error = e.toString().replaceFirst('Exception: ', '');
-    }
-    if (mounted) setState(() => generando = false);
+  }
+
+  Map<String, dynamic> get _tipoSel => tipos.firstWhere((t) => t['id'] == tipo, orElse: () => tipos.first);
+
+  Widget _stepper() {
+    final c = context.c;
+    const nombres = ['Tipo', 'Diseño', 'Datos', 'Generar'];
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        for (var i = 0; i < nombres.length; i++) ...[
+          if (i > 0) Expanded(child: Padding(padding: const EdgeInsets.only(top: 12), child: Container(height: 2, color: i <= paso ? Brand.accent : c.border))),
+          InkWell(
+            onTap: () => setState(() => paso = i),
+            child: Column(children: [
+              Container(
+                width: 26, height: 26, alignment: Alignment.center,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: i <= paso ? Brand.accent : c.surface2, border: Border.all(color: i <= paso ? Brand.accent : c.border2)),
+                child: i < paso
+                    ? const Icon(Icons.check, size: 15, color: Brand.onAccent)
+                    : Text('${i + 1}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: i <= paso ? Brand.onAccent : c.text3)),
+              ),
+              const SizedBox(height: 4),
+              Text(nombres[i], style: TextStyle(fontSize: 11, color: i == paso ? c.text : c.text3, fontWeight: i == paso ? FontWeight.w700 : FontWeight.w500)),
+            ]),
+          ),
+        ],
+      ]),
+    );
+  }
+
+  Widget _pasoTipo() {
+    final c = context.c;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const SecTitle('¿Qué memoria quieres preparar?'),
+      Text('Cada tipo usa capítulos, largo y tono distintos. Puedes cambiarlo cuando quieras.', style: TextStyle(color: c.text2, fontSize: 12.5, height: 1.4)),
+      const SizedBox(height: 10),
+      for (final t in tipos)
+        GgCard(
+          borderColor: tipo == t['id'] ? Brand.accent : null,
+          onTap: () { setState(() { tipo = '${t['id']}'; resultado = null; }); _guardarMarca(); },
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Container(
+              width: 40, height: 40, alignment: Alignment.center,
+              decoration: BoxDecoration(color: tipo == t['id'] ? Brand.accent : c.accentSoft, borderRadius: BorderRadius.circular(11)),
+              child: Icon(_iconoTipo('${t['id']}'), color: tipo == t['id'] ? Brand.onAccent : c.accentText, size: 21),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('${t['nombre']}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+              const SizedBox(height: 3),
+              Text('${t['descripcion'] ?? ''}', style: TextStyle(color: c.text2, fontSize: 12, height: 1.35)),
+              const SizedBox(height: 6),
+              Text(t['capitulos'] == null ? 'Todos los capítulos de la norma' : '${(t['capitulos'] as List).length} capítulos', style: TextStyle(color: c.text3, fontSize: 11)),
+            ])),
+            if (tipo == t['id']) Icon(Icons.check_circle, color: c.accentText),
+          ]),
+        ),
+    ]);
+  }
+
+  Widget _pasoDiseno(int anioPortada) {
+    final c = context.c;
+    final t = _tipoSel;
+    final titulo = _titulo.text.trim().isEmpty || _titulo.text.trim() == 'Memoria anual' ? '${t['titular'] ?? 'Memoria anual'}' : _titulo.text.trim();
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const SecTitle('Elige el diseño de tu memoria'),
+        Text('Se aplica a la portada y a todos los capítulos.', style: TextStyle(color: c.text2, fontSize: 12.5)),
+        const SizedBox(height: 12),
+        LayoutBuilder(builder: (context, box) {
+          final ancho = (box.maxWidth - 16) / 3;
+          return Wrap(spacing: 8, runSpacing: 12, children: [
+            for (final d in _disenos)
+              SizedBox(width: ancho, child: InkWell(
+                onTap: () { setState(() => diseno = d['id']!); _guardarMarca(); },
+                child: Column(children: [
+                  Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(9), border: Border.all(color: diseno == d['id'] ? Brand.accent : c.border, width: diseno == d['id'] ? 2.5 : 1)),
+                    child: _PortadaMini(diseno: d['id']!, color: _hex(color), titulo: titulo, empresa: _nombre.text, anio: anioPortada, kicker: '${t['kicker'] ?? 'MEMORIA ANUAL'}', logo: logo),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(d['nombre']!, textAlign: TextAlign.center, maxLines: 2, style: TextStyle(fontSize: 11.5, fontWeight: diseno == d['id'] ? FontWeight.w700 : FontWeight.w500, color: diseno == d['id'] ? c.text : c.text2)),
+                ]),
+              )),
+          ]);
+        }),
+        const SizedBox(height: 6),
+        Text(_disenos.firstWhere((d) => d['id'] == diseno)['descripcion']!, style: TextStyle(color: c.text3, fontSize: 11.5)),
+      ])),
+      GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const SecTitle('Color de marca y logo'),
+        Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
+          for (final h in _coloresMarca)
+            InkWell(
+              onTap: () { setState(() { color = h; _hexCtrl.text = h; }); _guardarMarca(); },
+              child: Container(width: 30, height: 30, decoration: BoxDecoration(color: _hex(h), shape: BoxShape.circle, border: Border.all(color: color == h ? c.text : c.border2, width: color == h ? 2.5 : 1))),
+            ),
+        ]),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _hexCtrl,
+          decoration: const InputDecoration(labelText: 'O pega el código del color de tu empresa', hintText: '#1B2F4B', prefixIcon: Icon(Icons.palette_outlined)),
+          onChanged: (v) {
+            final limpio = v.trim().toUpperCase();
+            if (RegExp(r'^#[0-9A-F]{6}$').hasMatch(limpio)) {
+              setState(() => color = limpio);
+              _guardarMarca();
+            }
+          },
+        ),
+        const SizedBox(height: 10),
+        Wrap(spacing: 8, children: [
+          GgButton(logo == null ? 'Agregar logo' : 'Cambiar logo', icon: Icons.image_outlined, ghost: true, small: true, onTap: _elegirLogo),
+          if (logo != null) TextButton(onPressed: () { setState(() => logo = null); _guardarMarca(); }, child: const Text('Quitar logo')),
+        ]),
+        const SizedBox(height: 4),
+        Text('PNG o JPG, hasta 1,5 MB. Con fondo transparente se ve mejor.', style: TextStyle(color: c.text3, fontSize: 11.5)),
+      ])),
+    ]);
+  }
+
+  Widget _pasoDatos(int anioPortada, List docsAnio, List<int> opcionesAnio, Set<int> aniosDisponibles) {
+    final c = context.c;
+    return GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        const Expanded(child: SecTitle('Datos de la memoria')),
+        if (cargando) const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
+        if (!cargando && error != null) IconButton(tooltip: 'Reintentar conexión', onPressed: _cargar, icon: Icon(Icons.refresh, color: c.accentText)),
+      ]),
+      Text('Completa los datos editoriales. La empresa, el título y el destinatario se muestran en lugares distintos del libro.', style: TextStyle(color: c.text2, fontSize: 12.5, height: 1.4)),
+      const SizedBox(height: 14),
+      TextField(controller: _nombre, decoration: const InputDecoration(labelText: 'Empresa u organización', prefixIcon: Icon(Icons.business_outlined)), onChanged: (_) { _guardarMarca(); setState(() {}); }),
+      const SizedBox(height: 10),
+      TextField(controller: _titulo, decoration: InputDecoration(labelText: 'Título de portada', helperText: 'Si lo dejas como "Memoria anual", se usa el título del tipo elegido.', prefixIcon: const Icon(Icons.title)), onChanged: (_) { _guardarMarca(); setState(() {}); }),
+      const SizedBox(height: 10),
+      LayoutBuilder(builder: (context, box) => Wrap(spacing: 10, runSpacing: 10, children: [
+        SizedBox(width: box.maxWidth > 520 ? (box.maxWidth - 10) / 2 : box.maxWidth, child: DropdownButtonFormField<int>(
+          value: opcionesAnio.contains(anioPortada) ? anioPortada : opcionesAnio.first,
+          isExpanded: true,
+          decoration: const InputDecoration(labelText: 'Año del informe', prefixIcon: Icon(Icons.calendar_today_outlined)),
+          items: opcionesAnio.map((a) => DropdownMenuItem(value: a, child: Text('$a${aniosDisponibles.contains(a) ? '' : ' · sin documentos'}', maxLines: 1, overflow: TextOverflow.ellipsis))).toList(),
+          onChanged: (v) => setState(() { anio = v; resultado = null; error = null; }),
+        )),
+        SizedBox(width: box.maxWidth > 520 ? (box.maxWidth - 10) / 2 : box.maxWidth, child: TextField(controller: _destinatario, decoration: const InputDecoration(labelText: 'Preparada para', prefixIcon: Icon(Icons.person_outline)), onChanged: (_) { _guardarMarca(); setState(() {}); })),
+      ])),
+      const SizedBox(height: 6),
+      Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Icon(Icons.info_outline, size: 16, color: c.text3),
+        const SizedBox(width: 7),
+        Expanded(child: Text(
+          docsAnio.isEmpty
+              ? 'Puedes elegir el año de portada. Para generar el borrador, debe haber al menos un documento procesado de ese período.'
+              : 'Se incluirán solo documentos procesados de $anio. El documento activo de la barra superior no cambia.',
+          style: TextStyle(color: c.text3, fontSize: 11.5, height: 1.35),
+        )),
+      ]),
+      const SizedBox(height: 10),
+      TextField(controller: _firmante, decoration: const InputDecoration(labelText: 'Nombre o cargo de quien firma', prefixIcon: Icon(Icons.draw_outlined)), onChanged: (_) => _guardarMarca()),
+      if (error != null || anios.isEmpty) ...[
+        const SizedBox(height: 12),
+        Container(width: double.infinity, padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: c.surface, borderRadius: BorderRadius.circular(12)), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Icon(error == null ? Icons.info_outline : Icons.cloud_off_outlined, color: c.accentText, size: 19), const SizedBox(width: 8),
+          Expanded(child: Text(error == null ? 'Aún no hay documentos procesados con un año identificable. Puedes preparar los datos y revisar la portada; la generación se activa cuando haya documentos.' : 'No hay conexión con el servidor. Tus datos de portada se guardan en este dispositivo y puedes seguir editándolos.', style: TextStyle(color: c.text2, fontSize: 12.5, height: 1.35))),
+        ])),
+      ],
+    ]));
+  }
+
+  Widget _pasoGenerar(int anioPortada, List docsAnio, int terminados, int totalCaps) {
+    final c = context.c;
+    final t = _tipoSel;
+    final dis = _disenos.firstWhere((d) => d['id'] == diseno);
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const SecTitle('Revisión antes de generar'),
+        Row(children: [Icon(_iconoTipo(tipo), color: c.accentText), const SizedBox(width: 8), Expanded(child: Text('${t['nombre']} $anioPortada', style: const TextStyle(fontWeight: FontWeight.w700))), Pill(anios.isEmpty ? 'SIN DOCUMENTOS' : '${docsAnio.length} DOCUMENTOS', fg: anios.isEmpty ? c.med : c.low)]),
+        const SizedBox(height: 8),
+        Text('Diseño: ${dis['nombre']} · Empresa: ${_nombre.text.trim().isEmpty ? 'sin nombre' : _nombre.text.trim()}', style: TextStyle(color: c.text2, fontSize: 12.5)),
+        const SizedBox(height: 10),
+        // Solo un dato informativo (sin barra, para no confundirlo con el progreso de generación).
+        if (totalCaps > 0) Text('Capítulos revisados en «Fuentes y avance»: $terminados de $totalCaps. Los no revisados salen con [COMPLETAR].', style: TextStyle(color: c.text3, fontSize: 12, height: 1.35)),
+        const SizedBox(height: 8),
+        Text(docsAnio.isEmpty ? 'No hay documentos procesados de $anio. Agrega documentos de este período para generar el borrador.' : 'Documentos incluidos: ${docsAnio.map((d) => d['nombre']).join(', ')}', style: TextStyle(color: c.text3, fontSize: 12, height: 1.35)),
+        const SizedBox(height: 14),
+        GgButton(generando ? 'Generando memoria…' : 'Generar borrador PDF', icon: Icons.picture_as_pdf_outlined, expand: true, loading: generando, onTap: anio == null || docsAnio.isEmpty ? null : _generar),
+        const SizedBox(height: 8),
+        Text('Puedes salir de esta pantalla: la memoria se sigue generando y te avisamos con una notificación. El PDF se guarda en Documentos/Directa Gerente General.', style: TextStyle(fontSize: 11.5, color: c.text3, height: 1.35)),
+      ])),
+      if (generando && progreso != null) GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${progreso!['paso'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w600)), const SizedBox(height: 8), GgBar(value: ((progreso!['hechos'] as num?)?.toDouble() ?? 0) / max(1, (progreso!['total'] as num?)?.toDouble() ?? 1)), const SizedBox(height: 4), Text('${progreso!['hechos'] ?? 0} de ${progreso!['total'] ?? 1} pasos', style: TextStyle(fontSize: 11.5, color: c.text3))])),
+      if (error != null && !cargando) GgCard(borderColor: c.crit, child: Text(error!, style: TextStyle(color: c.crit))),
+      if (resultado != null) GgCard(borderColor: c.low, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [Icon(Icons.check_circle_outline, color: c.low), const SizedBox(width: 8), const Expanded(child: Text('Borrador PDF listo', style: TextStyle(fontWeight: FontWeight.w700)))]),
+        const SizedBox(height: 6),
+        Text('${resultado!['nombre'] ?? 'Memoria_borrador.pdf'} · ${(resultado!['revision'] as List? ?? const []).length} alertas de cifras. Revisa el archivo antes de aprobarlo.', style: TextStyle(fontSize: 12.5, color: c.text2)),
+        const SizedBox(height: 10),
+        Wrap(spacing: 8, runSpacing: 8, children: [
+          GgButton('Abrir PDF', icon: Icons.picture_as_pdf_outlined, small: true, onTap: () async {
+            if (!await abrirUltimoArchivo()) st.go('archivos');
+          }),
+          GgButton('Ver mis archivos', icon: Icons.folder_open_outlined, ghost: true, small: true, onTap: () => st.go('archivos')),
+        ]),
+      ])),
+    ]);
   }
 
   @override
   Widget build(BuildContext context) {
-    final c = context.c;
     final anioPortada = anio ?? DateTime.now().year;
     final docsAnio = [for (final g in anios) if ((g['anio'] as num?)?.toInt() == anio) ...(g['documentos'] as List? ?? const [])];
     final aniosDisponibles = anios.map((x) => (x['anio'] as num).toInt()).toSet();
@@ -160,87 +554,17 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
     final terminados = caps.values.where((v) => v is Map && ['listo', 'completo', 'hecho'].contains('${v['estado']}'.toLowerCase())).length;
     final totalCaps = caps.length;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const Expanded(child: SecTitle('Datos de la memoria')),
-          if (cargando) const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
-          if (!cargando && error != null) IconButton(tooltip: 'Reintentar conexión', onPressed: _cargar, icon: Icon(Icons.refresh, color: c.accentText)),
-        ]),
-        Text('Completa los datos editoriales. La empresa, el título y el destinatario se muestran en lugares distintos del libro.', style: TextStyle(color: c.text2, fontSize: 12.5, height: 1.4)),
-        const SizedBox(height: 14),
-        TextField(controller: _nombre, decoration: const InputDecoration(labelText: 'Empresa u organización', prefixIcon: Icon(Icons.business_outlined)), onChanged: (_) { _guardarMarca(); setState(() {}); }),
-        const SizedBox(height: 10),
-        TextField(controller: _titulo, decoration: const InputDecoration(labelText: 'Título de portada', prefixIcon: Icon(Icons.title)), onChanged: (_) { _guardarMarca(); setState(() {}); }),
-        const SizedBox(height: 10),
-        LayoutBuilder(builder: (context, box) => Wrap(spacing: 10, runSpacing: 10, children: [
-          SizedBox(width: box.maxWidth > 520 ? (box.maxWidth - 10) / 2 : box.maxWidth, child: DropdownButtonFormField<int>(
-            value: opcionesAnio.contains(anioPortada) ? anioPortada : opcionesAnio.first,
-            decoration: const InputDecoration(labelText: 'Año del informe', prefixIcon: Icon(Icons.calendar_today_outlined)),
-            items: opcionesAnio.map((a) => DropdownMenuItem(value: a, child: Text('$a${aniosDisponibles.contains(a) ? '' : ' · sin documentos'}'))).toList(),
-            onChanged: (v) => setState(() { anio = v; resultado = null; error = null; }),
-          )),
-          SizedBox(width: box.maxWidth > 520 ? (box.maxWidth - 10) / 2 : box.maxWidth, child: TextField(controller: _destinatario, decoration: const InputDecoration(labelText: 'Preparada para', prefixIcon: Icon(Icons.person_outline)), onChanged: (_) { _guardarMarca(); setState(() {}); })),
-        ])),
-        const SizedBox(height: 6),
-        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Icon(Icons.info_outline, size: 16, color: c.text3),
-          const SizedBox(width: 7),
-          Expanded(child: Text(
-            docsAnio.isEmpty
-                ? 'Puedes elegir el año de portada. Para generar el borrador, debe haber al menos un documento procesado de ese período.'
-                : 'Se incluirán solo documentos procesados de $anio. El documento activo de la barra superior no cambia.',
-            style: TextStyle(color: c.text3, fontSize: 11.5, height: 1.35),
-          )),
-        ]),
-        const SizedBox(height: 10),
-        TextField(controller: _firmante, decoration: const InputDecoration(labelText: 'Nombre o cargo de quien firma', prefixIcon: Icon(Icons.draw_outlined)), onChanged: (_) => _guardarMarca()),
-        if (error != null || anios.isEmpty) ...[
-          const SizedBox(height: 12),
-          Container(width: double.infinity, padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: c.surface, borderRadius: BorderRadius.circular(12)), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Icon(error == null ? Icons.info_outline : Icons.cloud_off_outlined, color: c.accentText, size: 19), const SizedBox(width: 8),
-            Expanded(child: Text(error == null ? 'Aún no hay documentos procesados con un año identificable. Puedes preparar los datos y revisar la portada; la generación se activa cuando haya documentos.' : 'No hay conexión con el servidor. Tus datos de portada se guardan en este dispositivo y puedes seguir editándolos.', style: TextStyle(color: c.text2, fontSize: 12.5, height: 1.35))),
-          ])),
-        ],
-      ])),
-      GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const SecTitle('Portada y estilo editorial'),
-        Container(height: 225, width: double.infinity, clipBehavior: Clip.antiAlias, decoration: BoxDecoration(color: _hex(color), borderRadius: BorderRadius.circular(10)), child: Row(children: [
-          Expanded(flex: 5, child: Padding(padding: const EdgeInsets.fromLTRB(18, 18, 12, 18), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            if (logo != null) Image.memory(base64Decode(logo!.split(',').last), width: 48, height: 28, fit: BoxFit.contain) else const SizedBox(height: 8),
-            Text(_nombre.text.trim().isEmpty ? 'NOMBRE DE LA ORGANIZACIÓN' : _nombre.text.trim().toUpperCase(), maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: .6)),
-            const SizedBox(height: 20), Container(width: 36, height: 3, color: Brand.accent), const SizedBox(height: 14),
-            Text(_titulo.text.trim().isEmpty ? 'Memoria anual' : _titulo.text.trim(), maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontFamily: 'serif', fontSize: 22, height: 1.12, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8), Text('$anioPortada', style: TextStyle(color: c.accentText, fontSize: 16, fontWeight: FontWeight.w600)), const Spacer(),
-            Text('Preparada para ${_destinatario.text.trim().isEmpty ? '—' : _destinatario.text.trim()}', maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 10)),
-          ]))),
-          Expanded(flex: 4, child: Image.asset('assets/memoria_portada.jpg', fit: BoxFit.cover, height: double.infinity, width: double.infinity)),
-        ])),
-        const SizedBox(height: 12),
-        Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
-          for (final h in _coloresMarca) InkWell(onTap: () { setState(() => color = h); _guardarMarca(); }, child: Container(width: 30, height: 30, decoration: BoxDecoration(color: _hex(h), shape: BoxShape.circle, border: Border.all(color: color == h ? c.text : c.border2, width: color == h ? 2.5 : 1)))),
-          GgButton(logo == null ? 'Agregar logo' : 'Cambiar logo', icon: Icons.image_outlined, ghost: true, small: true, onTap: _elegirLogo),
-          if (logo != null) TextButton(onPressed: () { setState(() => logo = null); _guardarMarca(); }, child: const Text('Quitar logo')),
-        ]),
-      ])),
-      GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const SecTitle('Revisión antes de generar'),
-        Row(children: [Icon(Icons.menu_book_outlined, color: c.accentText), const SizedBox(width: 8), Expanded(child: Text('Memoria anual $anioPortada', style: const TextStyle(fontWeight: FontWeight.w700))), Pill(anios.isEmpty ? 'SIN DOCUMENTOS' : '${docsAnio.length} DOCUMENTOS', fg: anios.isEmpty ? c.med : c.low)]),
-        const SizedBox(height: 10),
-        if (totalCaps > 0) Text('$terminados de $totalCaps capítulos marcados como listos en tus notas.', style: TextStyle(color: c.text2, fontSize: 12.5)),
-        if (totalCaps > 0) ...[const SizedBox(height: 7), GgBar(value: terminados / totalCaps)],
-        const SizedBox(height: 8),
-        Text(docsAnio.isEmpty ? 'No hay documentos procesados de $anio. Agrega documentos de este período para generar el borrador.' : 'Documentos incluidos: ${docsAnio.map((d) => d['nombre']).join(', ')}', style: TextStyle(color: c.text3, fontSize: 12, height: 1.35)),
-        const SizedBox(height: 14),
-        GgButton(generando ? 'Generando memoria…' : 'Generar borrador PDF', icon: Icons.picture_as_pdf_outlined, expand: true, loading: generando, onTap: anio == null || docsAnio.isEmpty ? null : _generar),
-        const SizedBox(height: 8),
-        Text('El PDF incluye portada, índice, carta, capítulos, indicadores, gráficos, cobertura normativa y revisión de cifras. Revisa y valida el contenido antes de distribuirlo.', style: TextStyle(fontSize: 11.5, color: c.text3, height: 1.35)),
-      ])),
-      if (generando && progreso != null) GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${progreso!['paso'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w600)), const SizedBox(height: 8), GgBar(value: ((progreso!['hechos'] as num?)?.toDouble() ?? 0) / max(1, (progreso!['total'] as num?)?.toDouble() ?? 1)), const SizedBox(height: 4), Text('${progreso!['hechos'] ?? 0} de ${progreso!['total'] ?? 1} pasos', style: TextStyle(fontSize: 11.5, color: c.text3))])),
-      if (error != null && !cargando) GgCard(borderColor: c.crit, child: Text(error!, style: TextStyle(color: c.crit))),
-      if (resultado != null) GgCard(borderColor: c.low, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [Icon(Icons.check_circle_outline, color: c.low), const SizedBox(width: 8), const Expanded(child: Text('Borrador PDF listo', style: TextStyle(fontWeight: FontWeight.w700)))]),
-        const SizedBox(height: 6), Text('Memoria_Anual_${anioPortada}_borrador.pdf · ${(resultado!['revision'] as List? ?? const []).length} alertas de cifras. Revisa el archivo antes de aprobarlo.', style: TextStyle(fontSize: 12.5, color: c.text2)),
-      ])),
+      _stepper(),
+      if (paso == 0) _pasoTipo(),
+      if (paso == 1) _pasoDiseno(anioPortada),
+      if (paso == 2) _pasoDatos(anioPortada, docsAnio, opcionesAnio, aniosDisponibles),
+      if (paso == 3) _pasoGenerar(anioPortada, docsAnio, terminados, totalCaps),
+      const SizedBox(height: 4),
+      Row(children: [
+        if (paso > 0) TextButton.icon(onPressed: () => setState(() => paso -= 1), icon: const Icon(Icons.arrow_back, size: 18), label: const Text('Atrás')),
+        const Spacer(),
+        if (paso < 3) GgButton('Continuar', icon: Icons.arrow_forward, small: true, onTap: () => setState(() => paso += 1)),
+      ]),
     ]);
   }
 }

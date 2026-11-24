@@ -36,9 +36,10 @@ class GgColors extends ThemeExtension<GgColors> {
   );
 
   static const light = GgColors(
-    bg: Color(0xFFF4F6F9), bg2: Color(0xFFEEF1F5), surface: Color(0xFFFFFFFF), surface2: Color(0xFFF5F7FA),
-    surface3: Color(0xFFEDF0F4), text: Color(0xFF0B1220), text2: Color(0xFF566072), text3: Color(0xFF667085),
-    border: Color(0xFFE2E7EE), border2: Color(0xFFD2D9E3), accentText: Brand.accentInk,
+    // "Hielo": blanco con un toque celeste de la marca, para que tarjetas y botones no se pierdan.
+    bg: Color(0xFFEAF2F8), bg2: Color(0xFFE2ECF4), surface: Color(0xFFF8FBFE), surface2: Color(0xFFF0F6FA),
+    surface3: Color(0xFFE6EFF6), text: Color(0xFF0B1220), text2: Color(0xFF566072), text3: Color(0xFF667085),
+    border: Color(0xFFCFE0EC), border2: Color(0xFFBDD3E3), accentText: Brand.accentInk,
     accentSoft: Color(0x1606B6D4), track: Color(0xFFE1E6EE),
     crit: Color(0xFFD61F45), high: Color(0xFFC94444), med: Color(0xFFC77422), low: Color(0xFF2E9E5B),
     lime: Color(0xFF6E9B1F), info: Color(0xFF3B82C4),

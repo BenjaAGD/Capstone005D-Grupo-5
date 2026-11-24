@@ -223,12 +223,20 @@ def _lista_indicadores_export(payload, sb):
 def _excel_indicadores(payload, sb):
     from openpyxl import Workbook
     from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
+
+    _PF = PatternFill
+
+    def PatternFill(tipo, fgColor):  # noqa: N802 - colores con opacidad explícita (FF): algunos visores pintaban celeste los de 6 dígitos
+        c = str(fgColor)
+        return _PF(tipo, fgColor=("FF" + c) if len(c) == 6 else c, bgColor=("FF" + c) if len(c) == 6 else c)
     from openpyxl.utils import get_column_letter
     lista, documento = _lista_indicadores_export(payload, sb)
     wb = Workbook(); ws = wb.active; ws.title = "Plan de acción"
-    navy, cyan, pale, white = "1B2F4B", "12AFC6", "EAF4F8", "FFFFFF"
+    # Encabezado azul marino y filas alternas en gris muy suave (el celeste se veía muy fuerte en el teléfono).
+    navy, cyan, pale, white = "1B2F4B", "1B2F4B", "F4F6F9", "FFFFFF"
+    linea = Side(style="thin", color="DCE3EC")
     ws.merge_cells("A1:J1"); ws["A1"] = "DIRECTA  /  INTELIGENCIA PARA DIRECTORIOS"
-    ws["A1"].fill = PatternFill("solid", fgColor=navy); ws["A1"].font = Font(name="Arial", size=14, bold=True, color=white); ws["A1"].alignment = Alignment(vertical="center")
+    ws["A1"].fill = PatternFill("solid", fgColor=navy); ws["A1"].border = Border(bottom=Side(style="thick", color="C9A24A")); ws["A1"].font = Font(name="Arial", size=14, bold=True, color=white); ws["A1"].alignment = Alignment(vertical="center")
     ws.row_dimensions[1].height = 32
     ws.merge_cells("A3:J3"); ws["A3"] = "Plan de indicadores y acciones"
     ws["A3"].font = Font(name="Arial", size=18, bold=True, color=navy)
@@ -236,13 +244,17 @@ def _excel_indicadores(payload, sb):
     ws["A4"].font = Font(name="Arial", size=10, color="52657D")
     headers = ["Tipo", "Indicador", "Valor actual", "Unidad", "Meta", "Límite", "Estado", "Acción / solución", "Responsable", "Fecha objetivo"]
     for col, title in enumerate(headers, 1):
-        cell = ws.cell(6, col, title); cell.fill = PatternFill("solid", fgColor=cyan); cell.font = Font(name="Arial", bold=True, color=white); cell.alignment = Alignment(vertical="center", wrap_text=True)
+        cell = ws.cell(6, col, title); cell.fill = PatternFill("solid", fgColor="F1F4F8"); cell.font = Font(name="Arial", bold=True, color=navy)
+        cell.alignment = Alignment(vertical="center", wrap_text=True); cell.border = Border(bottom=Side(style="medium", color=navy))
     for row, i in enumerate(lista, 7):
         estado = i.get("estado") or estado_semaforo(i.get("valor"), i.get("meta"), i.get("limite"), i.get("direccion"))
         vals = [i.get("tipo", ""), i.get("nombre", ""), i.get("valor"), i.get("unidad", ""), i.get("meta"), i.get("limite"), _TXT.get(estado, "Sin dato"), i.get("solucion") or "; ".join(i.get("soluciones") or []), i.get("responsable", ""), i.get("fecha", "")]
         for col, value in enumerate(vals, 1):
             cell = ws.cell(row, col, value); cell.font = Font(name="Arial", size=10, color=navy); cell.alignment = Alignment(vertical="top", wrap_text=True)
-            if row % 2 == 1: cell.fill = PatternFill("solid", fgColor=pale)
+            cell.border = Border(bottom=linea)
+            if col == 7:  # estado con su color (sin rayas en las filas)
+                fondo, tinta = {"rojo": ("F6DDE2", "8E1B2E"), "amarillo": ("FBF2DC", "A67C00"), "verde": ("E3F1E9", "2F6B4F")}.get(estado, ("EEF1F5", "5F6877"))
+                cell.fill = PatternFill("solid", fgColor=fondo); cell.font = Font(name="Arial", size=10, bold=True, color=tinta)
         ws.row_dimensions[row].height = 34
     widths = [12, 34, 15, 12, 12, 12, 17, 52, 24, 18]
     for n, width in enumerate(widths, 1): ws.column_dimensions[get_column_letter(n)].width = width
@@ -303,7 +315,7 @@ def crear_router(get_supabase):
                     m["estado"] = estado_semaforo(m.get("valor"), m.get("meta"), m.get("limite"), m["direccion"])
                     lista.append(m)
             nombre_doc = sug["documento"]["nombre"] if sug else "(sin documento)"
-            pdf = html_a_pdf(html_pdf_indicadores(nombre_doc, lista))
+            pdf = pdf_indicadores(nombre_doc, lista)
         except Exception as e:
             print(f"[INDICADORES] Error PDF: {e}", flush=True)
             return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
@@ -330,3 +342,47 @@ def crear_router(get_supabase):
         return JSONResponse({"ok": False, "error": "indicadores.html no está en la carpeta web/"}, status_code=404)
 
     return router
+
+def pdf_indicadores(doc_nombre, indicadores):
+    """Indicadores KPI/KRI con el estilo de la Memoria: tarjeta por indicador con valor, meta y plan."""
+    import reporte_editorial as R
+    for i in indicadores:
+        if i.get("estado") not in _TXT:
+            i["estado"] = estado_semaforo(i.get("valor"), i.get("meta"), i.get("limite"), i.get("direccion"))
+    rojos = [i for i in indicadores if i["estado"] == "rojo"]
+    amar = [i for i in indicadores if i["estado"] == "amarillo"]
+    verdes = [i for i in indicadores if i["estado"] == "verde"]
+    n = len(indicadores)
+    lectura = (f"Se siguen {n} indicadores: {len(rojos)} fuera de meta, {len(amar)} en atención y {len(verdes)} en meta."
+               + (" Requieren acción inmediata: " + ", ".join(i.get("nombre", "") for i in rojos[:4]) + "." if rojos else "")) if n else "No hay indicadores."
+    col = {"rojo": "#8E1B2E", "amarillo": "#A67C00", "verde": "#2F6B4F"}
+    def num(x):
+        try:
+            v = float(x)
+            return f"{v:,.0f}".replace(",", ".") if abs(v) >= 1000 else (f"{v:g}".replace(".", ","))
+        except (TypeError, ValueError):
+            return str(x if x not in (None, "") else "-")
+    def tarjetas(lista):
+        out = []
+        for i in lista:
+            u = str(i.get("unidad") or "")
+            menor = i.get("direccion") == "menor"
+            plan = i.get("solucion") or "; ".join(i.get("soluciones") or []) or "Sin acción definida."
+            out.append({"color": col.get(i["estado"], "#5F6877"), "etiqueta": _TXT.get(i["estado"], "Sin dato"), "area": i.get("tipo", ""),
+                        "titulo": f"{i.get('nombre', '')}:  {num(i.get('valor'))}{u}  (meta {'≤' if menor else '≥'} {num(i.get('meta'))}{u})",
+                        "texto": plan,
+                        "pie": f"Responsable: {i.get('responsable') or 'por asignar'}   ·   Fecha: {i.get('fecha') or 'sin fecha'}"})
+        return R.tarjetas(out)
+    orden = {"rojo": 0, "amarillo": 1, "sin_dato": 2, "verde": 3}
+    kpi = sorted((i for i in indicadores if i.get("tipo") == "KPI"), key=lambda i: orden.get(i["estado"], 2))
+    kri = sorted((i for i in indicadores if i.get("tipo") == "KRI"), key=lambda i: orden.get(i["estado"], 2))
+    resumen = (R.parrafo(lectura, lead=True) + R.cifras([(len(rojos), "Fuera de meta", "#8E1B2E"), (len(amar), "En atención", "#A67C00"),
+                                                         (len(verdes), "En meta", "#2F6B4F"), (n, "Indicadores", "#1B2F4B")])
+               + R.nota("En meta: cumple. Atención: no cumple pero no supera el límite. Fuera de meta: superó el límite y necesita un plan con responsable y fecha."))
+    return R.reporte_pdf(
+        {"kicker": "Indicadores de gestión", "titulo": "KPI y KRI de la Gerencia", "subtitulo": "Cómo vamos, qué nos puede salir mal y qué haremos al respecto.",
+         "documento": doc_nombre, "fecha": datetime.now().strftime("%d/%m/%Y"), "cifra": (f"{len(verdes)}/{n}", "Indicadores en meta")},
+        [("Resumen", f"{n} indicadores", resumen),
+         ("KPI · desempeño", "Miden si se cumplen las metas", tarjetas(kpi) if kpi else R.parrafo("Sin indicadores de desempeño.")),
+         ("KRI · riesgo", "Avisan cuando nos acercamos a un problema", tarjetas(kri) if kri else R.parrafo("Sin indicadores de riesgo."))],
+        "Indicadores de gestión")

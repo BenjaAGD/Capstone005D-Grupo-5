@@ -3,6 +3,9 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/registro_screen.dart';
+import 'core/config.dart';
+import 'core/demo_modo.dart';
+import 'core/servidor_estado.dart';
 import 'core/store.dart';
 import 'core/theme.dart';
 import 'screens/login_screen.dart';
@@ -35,6 +38,8 @@ await Supabase.initialize(
   publishableKey: key,
 );
   final store = await Store.open();
+  // Despierta el servidor (Render) en segundo plano. SIN await: no demora la entrada a la app.
+  ServidorEstado.instance.iniciar(Config.apiPorDefecto());
   runApp(
   AuthRecoveryGate(
     initialRecovery: recovery,
@@ -51,8 +56,19 @@ class DirectaApp extends StatelessWidget {
   final http.Client? client;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: DemoModo.instance,
+        builder: (context, _) => DemoModo.instance.activo ? _demo() : _conSesion(),
+      );
 
+  /// Acceso demo: entra sin sesión de Supabase, pero la app usa el servidor con normalidad.
+  Widget _demo() => ChangeNotifierProvider(
+        key: const ValueKey('demo'),
+        create: (_) => AppState(store.forUser('demo'), client: client)..init(),
+        child: _materialApp(),
+      );
+
+  Widget _conSesion() {
     final auth = Supabase.instance.client.auth;
 
     return StreamBuilder<AuthState>(
@@ -77,26 +93,28 @@ class DirectaApp extends StatelessWidget {
           key: ValueKey(user!.id),
           create: (_) =>
               AppState(store.forUser(user.id), client: client)..init(),
-          child: Consumer<AppState>(
-            builder: (context, st, _) => MaterialApp(
-              title: 'DIRECTA · Gerencia General',
-              debugShowCheckedModeBanner: false,
-              theme: AppTheme.build(Brightness.light),
-              darkTheme: AppTheme.build(Brightness.dark),
-              themeMode: st.themeMode,
-              builder: (context, child) => MediaQuery(
-                data: MediaQuery.of(context).copyWith(
-                  textScaler: TextScaler.linear(st.textScale),
-                ),
-                child: child!,
-              ),
-              home: st.iniciado ? const Shell() : const _Cargando(),
-            ),
-          ),
+          child: _materialApp(),
         );
       },
     );
   }
+
+  Widget _materialApp() => Consumer<AppState>(
+        builder: (context, st, _) => MaterialApp(
+          title: 'DIRECTA · Gerencia General',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.build(Brightness.light),
+          darkTheme: AppTheme.build(Brightness.dark),
+          themeMode: st.themeMode,
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: TextScaler.linear(st.textScale),
+            ),
+            child: child!,
+          ),
+          home: st.iniciado ? const Shell() : const _Cargando(),
+        ),
+      );
 }
 
 class _Cargando extends StatelessWidget {
