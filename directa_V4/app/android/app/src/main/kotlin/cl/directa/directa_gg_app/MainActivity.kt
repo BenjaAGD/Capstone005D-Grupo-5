@@ -16,7 +16,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
@@ -25,7 +25,8 @@ import io.flutter.plugin.common.MethodChannel
  *   Documentos/Directa Gerente General/<Memorias | Informes | Indicadores | ...>
  * También lista, comparte y elimina esos archivos, y mueve los antiguos de Descargas/DIRECTA.
  */
-class MainActivity : FlutterActivity() {
+// FlutterFragmentActivity: la necesita local_auth (huella / rostro).
+class MainActivity : FlutterFragmentActivity() {
     private val channelName = "directa/downloads"
     private val raiz = "Documents/Directa Gerente General"
     private val legado = "Download/DIRECTA"
@@ -58,9 +59,21 @@ class MainActivity : FlutterActivity() {
         val pi = if (abrir != null) PendingIntent.getActivity(
             this, id, abrir, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE) else null
         val b = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) Notification.Builder(this, canalNotif) else Notification.Builder(this)
-        b.setSmallIcon(applicationInfo.icon)
-            .setContentTitle(titulo)
+        // Ícono de silueta (chispa DIRECTA) en celeste; si no existe, el de la app.
+        val icono = resources.getIdentifier("ic_stat_directa", "drawable", packageName)
+        val categoria = when (id) { 4101 -> "Documentos"; 4102 -> "Memoria anual"; else -> "DIRECTA" }
+        val tituloFinal = when {
+            enCurso && valor in 0..100 -> "$titulo · $valor%"
+            !enCurso && !titulo.startsWith("No se pudo") -> "✓ $titulo"
+            else -> titulo
+        }
+        b.setSmallIcon(if (icono != 0) icono else applicationInfo.icon)
+            .setColor(0xFF12AFC6.toInt())
+            .setSubText(categoria)
+            .setContentTitle(tituloFinal)
             .setContentText(texto)
+            .setStyle(Notification.BigTextStyle().bigText(texto))
+            .setShowWhen(!enCurso)
             .setOnlyAlertOnce(true)
             .setOngoing(enCurso)
             .setAutoCancel(!enCurso)
@@ -323,6 +336,13 @@ class MainActivity : FlutterActivity() {
                         result.success(null)
                     } catch (e: Exception) {
                         result.error("OPEN_FAILED", e.message ?: "No se pudo abrir el archivo", null)
+                    }
+                }
+                "read" -> {
+                    val uri = Uri.parse(call.argument<String>("uri") ?: "")
+                    segundoPlano(result, "READ_FAILED") {
+                        contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                            ?: throw IllegalStateException("No se pudo leer el archivo")
                     }
                 }
                 "delete", "deleteMany" -> {

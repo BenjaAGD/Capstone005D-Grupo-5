@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -36,6 +38,14 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
   String? _error;
   int _escala = 1;
   int _tema = 0; // 0 papel · 1 sepia · 2 noche
+  bool _serif = false; // letra moderna por defecto; serif opcional
+
+  // Página original del PDF (imagen): mantiene el orden real de columnas, tablas y títulos.
+  bool _hayOriginal = false;
+  bool _origRevisado = false;
+  bool _verOriginal = true;
+  final Map<int, Uint8List> _imagenes = {};
+  final Set<int> _imagenesConError = {};
   final _scroll = ScrollController();
 
   // Colores de lectura tipo libro electrónico: (fondo de la hoja, tinta, tinta suave, fondo alrededor).
@@ -63,6 +73,7 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
     final pref = context.read<AppState>().store.getJson<Map>(_kLector, const {});
     _escala = ((pref['escala'] as num?)?.toInt() ?? 1).clamp(0, _escalas.length - 1).toInt();
     _tema = ((pref['tema'] as num?)?.toInt() ?? 0).clamp(0, _temas.length - 1).toInt();
+    _serif = pref['serif'] == true;
     WidgetsBinding.instance.addPostFrameCallback((_) => _cargarInfo());
   }
 
@@ -90,6 +101,7 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
         _indice = 0;
         _cargando = false;
       });
+      _revisarOriginal();
       if (paginas.isNotEmpty) await _cargarPagina(paginas.first);
     } catch (e) {
       if (!mounted) return;
@@ -97,6 +109,35 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
         _error = e.toString().replaceFirst('Exception: ', '');
         _cargando = false;
       });
+    }
+  }
+
+  Future<void> _revisarOriginal() async {
+    try {
+      final r = await context.read<AppState>().api.getJson('/api/documentos/$_id/original');
+      if (!mounted) return;
+      setState(() {
+        _hayOriginal = r['ok'] == true;
+        _origRevisado = true;
+      });
+      if (_hayOriginal && _paginas.isNotEmpty) _cargarImagen(_paginas[_indice]);
+    } catch (_) {
+      if (mounted) setState(() => _origRevisado = true);
+    }
+  }
+
+  Future<void> _cargarImagen(int numero) async {
+    if (_imagenes.containsKey(numero)) return;
+    try {
+      final ancho = (MediaQuery.sizeOf(context).width * MediaQuery.devicePixelRatioOf(context)).clamp(600, 1600).round();
+      final b = await context.read<AppState>().api.getBytes('/api/documentos/$_id/pagina/$numero/imagen?ancho=$ancho');
+      if (!mounted) return;
+      setState(() {
+        _imagenes[numero] = b;
+        _imagenesConError.remove(numero);
+      });
+    } catch (_) {
+      if (mounted) setState(() => _imagenesConError.add(numero));
     }
   }
 
@@ -127,10 +168,11 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
     final i = indice.clamp(0, _paginas.length - 1).toInt();
     setState(() => _indice = i);
     if (_scroll.hasClients) _scroll.jumpTo(0);
+    if (_hayOriginal) _cargarImagen(_paginas[i]);
     await _cargarPagina(_paginas[i]);
   }
 
-  void _guardarPref() => context.read<AppState>().store.setJson(_kLector, {'escala': _escala, 'tema': _tema});
+  void _guardarPref() => context.read<AppState>().store.setJson(_kLector, {'escala': _escala, 'tema': _tema, 'serif': _serif});
 
   /// Ajustes de lectura: tamaño de letra y color de la hoja.
   Future<void> _ajustesLectura() async {
@@ -160,6 +202,14 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
                     onSelected: (_) => cambiar(() => _escala = i),
                   ),
                 )),
+            ]),
+            const SizedBox(height: 16),
+            const Text('Tipo de letra', style: TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            Row(children: [
+              Expanded(child: ChoiceChip(label: const Center(child: Text('Moderna')), selected: !_serif, onSelected: (_) => cambiar(() => _serif = false))),
+              const SizedBox(width: 8),
+              Expanded(child: ChoiceChip(label: const Center(child: Text('Libro', style: TextStyle(fontFamily: 'serif'))), selected: _serif, onSelected: (_) => cambiar(() => _serif = true))),
             ]),
             const SizedBox(height: 16),
             const Text('Color de la hoja', style: TextStyle(fontWeight: FontWeight.w600)),
@@ -320,6 +370,12 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
                   onPressed: _paginas.isEmpty ? null : () => setState(() => _buscando = true),
                   icon: const Icon(Icons.search),
                 ),
+                if (_hayOriginal)
+                  IconButton(
+                    tooltip: _verOriginal ? 'Ver como texto' : 'Ver página original',
+                    onPressed: () => setState(() => _verOriginal = !_verOriginal),
+                    icon: Icon(_verOriginal ? Icons.notes_rounded : Icons.picture_as_pdf_outlined),
+                  ),
                 TextButton(
                   onPressed: _ajustesLectura,
                   child: Text('Aa', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: c.text)),
@@ -397,6 +453,7 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
     final escala = _escalas[_escala];
     final (_, hoja, tinta, suave, fondo) = _temas[_tema];
     final avance = _paginas.length > 1 ? _indice / (_paginas.length - 1) : 1.0;
+    if (_hayOriginal && _verOriginal) return _vistaOriginal(numero, totalReal, avance, suave, fondo);
     Widget cuerpo;
     if (texto == null && _error != null && !_cargandoPagina) {
       cuerpo = Column(children: [
@@ -409,17 +466,33 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
     } else if (texto.trim().isEmpty) {
       cuerpo = Text('Esta página no tiene texto (puede ser una imagen).', style: TextStyle(color: suave, fontFamily: 'serif'));
     } else {
+      final esPdf = '${_documento?['nombre_archivo'] ?? widget.nombreArchivo}'.toLowerCase().endsWith('.pdf');
       cuerpo = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        for (final parrafo in texto.split(RegExp(r'\n{2,}')))
-          if (parrafo.trim().isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 14),
-              child: SelectableText(
-                _limpiarTexto(parrafo),
-                textAlign: TextAlign.start, // justificado dejaba huecos enormes en pantallas angostas
-                style: TextStyle(fontFamily: 'serif', fontSize: 16.5 * escala, height: 1.65, color: tinta, letterSpacing: .1),
+        if (_origRevisado && !_hayOriginal && esPdf)
+          Container(
+            margin: const EdgeInsets.only(bottom: 18),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: suave.withValues(alpha: .12), borderRadius: BorderRadius.circular(10)),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Icon(Icons.picture_as_pdf_outlined, size: 20, color: suave),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Estás viendo solo el texto. Este PDF se subió antes de la vista original: elimínalo y vuelve a subirlo para leerlo tal como se ve el PDF.',
+                  style: TextStyle(fontSize: 12.5, height: 1.4, color: tinta),
+                ),
               ),
+            ]),
+          ),
+        for (final parrafo in _parrafos(texto))
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: SelectableText(
+              parrafo,
+              textAlign: TextAlign.start, // justificado dejaba huecos enormes en pantallas angostas
+              style: TextStyle(fontFamily: _serif ? 'serif' : null, fontSize: (_serif ? 16.5 : 15.5) * escala, height: 1.6, color: tinta),
             ),
+          ),
       ]);
     }
     return Container(
@@ -472,16 +545,105 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
     );
   }
 
-  /// Une los saltos de línea del PDF y junta las palabras que vienen con letras separadas
-  /// ("R E S U M E N  E J E C U T I V O" → "RESUMEN EJECUTIVO").
+  /// La página tal cual es en el PDF, con zoom (pellizcar) y doble toque para volver al tamaño normal.
+  Widget _vistaOriginal(int numero, int total, double avance, Color suave, Color fondo) {
+    final img = _imagenes[numero];
+    return Container(
+      color: fondo,
+      child: Column(children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(18, 10, 10, 4),
+          child: Row(children: [
+            Text('Página $numero de $total', style: TextStyle(fontSize: 12.5, color: suave, fontWeight: FontWeight.w600)),
+            const Spacer(),
+            TextButton(onPressed: _irAPagina, child: Text('Ir a página', style: TextStyle(color: suave))),
+          ]),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: LinearProgressIndicator(value: avance, minHeight: 3, color: Brand.accent, backgroundColor: suave.withValues(alpha: .2)),
+          ),
+        ),
+        Expanded(
+          child: img == null
+              ? Center(
+                  child: _imagenesConError.contains(numero)
+                      ? Column(mainAxisSize: MainAxisSize.min, children: [
+                          Text('No se pudo cargar la página.', style: TextStyle(color: suave)),
+                          TextButton.icon(onPressed: () => _cargarImagen(numero), icon: const Icon(Icons.refresh), label: const Text('Reintentar')),
+                          TextButton(onPressed: () => setState(() => _verOriginal = false), child: const Text('Ver como texto')),
+                        ])
+                      : CircularProgressIndicator(color: suave),
+                )
+              : InteractiveViewer(
+                  minScale: 1,
+                  maxScale: 5,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: DecoratedBox(
+                        decoration: const BoxDecoration(boxShadow: [BoxShadow(color: Color(0x22000000), blurRadius: 14, offset: Offset(0, 4))]),
+                        child: Image.memory(img, fit: BoxFit.contain, gaplessPlayback: true),
+                      ),
+                    ),
+                  ),
+                ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Text('Pellizca para ampliar · flechas para cambiar de página', style: TextStyle(fontSize: 11, color: suave)),
+        ),
+      ]),
+    );
+  }
+
+  /// Limpia una porción de texto del PDF: une líneas, quita los puntos de relleno de los índices
+  /// ("Tabla 12 ........ 10" → "Tabla 12 · 10") y junta palabras con letras separadas ("R E S U M E N").
   static String _limpiarTexto(String t) {
-    var s = t.trim().replaceAll(RegExp(r'\s*\n\s*'), ' ');
-    s = s.replaceAllMapped(RegExp(r'(?:\b\p{L} ){3,}\p{L}\b', unicode: true), (m) {
-      final letras = m[0]!.split(' ');
-      // Dos o más espacios seguidos en el original separan palabras; aquí todo viene con uno solo, así que se juntan.
-      return letras.join();
-    });
-    return s;
+    var s = t.trim().replaceAll(RegExp(r'-\s*\n\s*'), '').replaceAll(RegExp(r'\s*\n\s*'), ' ');
+    s = s.replaceAll(RegExp(r'\s*(?:\.\s?){4,}\s*|\s*…{2,}\s*'), '  ·  ');
+    s = s.replaceAllMapped(RegExp(r'(?:\b\p{L} ){3,}\p{L}\b', unicode: true), (m) => m[0]!.replaceAll(' ', ''));
+    return s.replaceAll(RegExp(r' {3,}'), '  ').trim();
+  }
+
+  /// Divide la página en párrafos legibles. El texto del PDF suele venir en un solo bloque, así que se corta
+  /// antes de tablas, figuras, títulos numerados y viñetas, y los bloques muy largos cada 2–3 oraciones.
+  static List<String> _parrafos(String texto) {
+    final out = <String>[];
+    for (final bloque in texto.split(RegExp(r'\n{2,}'))) {
+      final limpio = _limpiarTexto(bloque);
+      if (limpio.isEmpty) continue;
+      final cortes = limpio
+          .replaceAllMapped(
+              RegExp(r'\s+(?=(?:Tabla|Figura|Gráfico|Anexo|Capítulo)\s+\d|(?<!(?:Tabla|Figura|Gráfico|Anexo|Capítulo)\s)\d{1,2}\.\d?\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]|[•▪●]\s|[A-ZÁÉÍÓÚÑ]{4,}(?:\s+[A-ZÁÉÍÓÚÑ]{2,})*\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ])', unicode: true),
+              (_) => '\n')
+          .split('\n');
+      for (final c in cortes) {
+        final p = c.trim();
+        if (p.isEmpty) continue;
+        if (p.length <= 420) {
+          out.add(p);
+          continue;
+        }
+        // Párrafo muy largo: se parte cada ~3 oraciones.
+        final oraciones = p.split(RegExp(r'(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ¿¡])', unicode: true));
+        var buf = '';
+        var n = 0;
+        for (final o in oraciones) {
+          buf = buf.isEmpty ? o : '$buf $o';
+          n++;
+          if (n >= 3 || buf.length > 380) {
+            out.add(buf);
+            buf = '';
+            n = 0;
+          }
+        }
+        if (buf.isNotEmpty) out.add(buf);
+      }
+    }
+    return out;
   }
 
   Widget _vistaBusqueda(BuildContext context) {

@@ -117,6 +117,8 @@ class AppState extends ChangeNotifier {
   Stream<({String msg, bool err})> get toasts => _toasts.stream;
   void toast(String m, {bool err = false}) => _toasts.add((msg: m, err: err));
 
+  /// Pedido interno: cerrar las pantallas secundarias para mostrar la pestaña elegida.
+  static const volverAlInicio = '__volver__';
   final _nav = StreamController<String>.broadcast();
   Stream<String> get navRequests => _nav.stream;
 
@@ -127,8 +129,20 @@ class AppState extends ChangeNotifier {
   /// La vista de análisis reúne los hallazgos y el chat de IA.
   int analisisPestana = 0;
 
+  /// Dentro de "Guía y Chat": true = guía de análisis, false = chat libre.
+  bool modoGuia = true;
+
   void seleccionarAnalisis(int indice) {
     analisisPestana = indice.clamp(0, 1).toInt();
+    notifyListeners();
+  }
+
+  /// Barra de Análisis: 0 = Hallazgos, 1 = Guía, 2 = Chat.
+  int get seccionAnalisis => analisisPestana == 0 ? 0 : (modoGuia ? 1 : 2);
+
+  void irSeccionAnalisis(int i) {
+    analisisPestana = i == 0 ? 0 : 1;
+    if (i > 0) modoGuia = i == 1;
     notifyListeners();
   }
 
@@ -141,12 +155,15 @@ class AppState extends ChangeNotifier {
     if (id == 'chat' || id == 'resultados') {
       tab = tabs.indexOf('analisis');
       analisisPestana = id == 'chat' ? 1 : 0;
+      if (id == 'chat') modoGuia = false;
+      _nav.add(volverAlInicio); // cierra pantallas abiertas encima (ej. Informe IA)
       notifyListeners();
       return;
     }
     final i = tabs.indexOf(id);
     if (i >= 0) {
       tab = i;
+      _nav.add(volverAlInicio);
       notifyListeners();
     } else {
       _nav.add(id);
@@ -436,7 +453,7 @@ class AppState extends ChangeNotifier {
     progreso = {'estado': 'Iniciando', 'fase': 'iniciando', 'procesados': 0, 'total': 0, 'estimado_seg': 0};
     notifyListeners();
     unawaited(Notificaciones.pedirPermiso());
-    unawaited(Notificaciones.progreso(Notificaciones.idDocumento, 'Subiendo $nombre', 'Preparando el documento…'));
+    unawaited(Notificaciones.progreso(Notificaciones.idDocumento, 'Subiendo documento', '$nombre · preparando…'));
 
     void terminar() {
       _polling?.cancel();
@@ -460,15 +477,15 @@ class AppState extends ChangeNotifier {
             _ => '${d['estado'] ?? 'Procesando'}',
           };
           if (est != 'Listo' && est != 'Listo con errores' && est != 'Error') {
-            unawaited(Notificaciones.progreso(Notificaciones.idDocumento, nombre,
-                '${tot > 0 ? '$fase · $proc de $tot' : fase}${((d['estimado_seg'] as num?) ?? 0) > 0 ? ' · faltan ~${_mins((d['estimado_seg'] as num?) ?? 0)}' : ''}',
+            unawaited(Notificaciones.progreso(Notificaciones.idDocumento, 'Analizando documento',
+                '$nombre · ${tot > 0 ? '$fase · $proc de $tot' : fase}${((d['estimado_seg'] as num?) ?? 0) > 0 ? ' · faltan ~${_mins((d['estimado_seg'] as num?) ?? 0)}' : ''}',
                 valor: tot > 0 ? (100 * proc / tot).round() : -1));
           }
           if (est == 'Listo' || est == 'Listo con errores' || est == 'Error') {
             terminar();
             unawaited(Notificaciones.listo(Notificaciones.idDocumento,
-                est == 'Error' ? 'No se pudo procesar el documento' : 'Documento listo',
-                est == 'Error' ? '$nombre · ${d['motivo'] ?? 'revisa el detalle en la app'}' : '$nombre · ya puedes revisar el análisis'));
+                est == 'Error' ? 'No se pudo procesar el documento' : 'Documento listo para analizar',
+                est == 'Error' ? '$nombre · ${d['motivo'] ?? 'revisa el detalle en la app'}' : '$nombre · toca para abrirlo'));
             if (est == 'Error') {
               toast('Error procesando el documento', err: true);
               await cargarDocumentos();

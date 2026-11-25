@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../core/models.dart';
 import '../core/saver.dart';
 import '../core/theme.dart';
+import '../core/usuario.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
 import 'documento_lectura_screen.dart';
@@ -256,9 +257,31 @@ class InicioScreen extends StatelessWidget {
     final nAnalisis = st.analisis?.length ?? 0;
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const PageHead(
-        title: 'Gerencia General',
-        subtitle: 'Sube documentos, mira cómo avanza su análisis y elige cuál usar.',
+      // Saludo con el nombre de la persona; al tocarlo abre su perfil (correo, editar nombre, contraseña).
+      InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => st.go('ajustes'),
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 14, top: 2),
+          child: Row(children: [
+            CircleAvatar(
+              radius: 22,
+              backgroundColor: c.accentSoft,
+              child: UsuarioActual.iniciales.isEmpty
+                  ? Icon(Icons.person_outline_rounded, color: c.accentText)
+                  : Text(UsuarioActual.iniciales, style: TextStyle(fontWeight: FontWeight.w800, color: c.accentText)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('Hola, ${UsuarioActual.primerNombre}', maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 2),
+              Text('Sube documentos, mira cómo avanza su análisis y elige cuál usar.',
+                  style: TextStyle(fontSize: 12.5, color: c.text2, height: 1.35)),
+            ])),
+            Icon(Icons.chevron_right_rounded, color: c.text3),
+          ]),
+        ),
       ),
       const BackendAviso(),
       GgCard(

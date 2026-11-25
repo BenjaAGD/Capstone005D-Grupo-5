@@ -24,3 +24,7 @@ Future<void> abrirArchivoGuardado(ArchivoGuardado archivo) => impl.abrirArchivoG
 Future<bool> abrirUltimoArchivo() => impl.abrirUltimoArchivo();
 
 Future<void> eliminarArchivosGuardados(List<ArchivoGuardado> archivos) => impl.eliminarArchivosGuardados(archivos);
+
+Future<Uint8List> leerArchivoGuardado(ArchivoGuardado archivo) => impl.leerArchivoGuardado(archivo);
+
+ArchivoGuardado? ultimoArchivoGuardado() => impl.ultimoArchivoGuardado();

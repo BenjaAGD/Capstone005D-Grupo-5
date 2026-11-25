@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../core/models.dart';
 import '../core/servidor_estado.dart';
 import '../core/theme.dart';
+import '../core/usuario.dart';
 import '../state/app_state.dart';
 import '../widgets/asistente.dart';
 import 'ajustes_screen.dart';
@@ -104,6 +105,10 @@ class _ShellState extends State<Shell> {
   }
 
   void _abrir(String id) {
+    if (id == AppState.volverAlInicio) {
+      Navigator.of(context).popUntil((r) => r.isFirst);
+      return;
+    }
     if (id == 'guia') {
       abrirAyuda(context, AppState.tabs[context.read<AppState>().tab]);
       return;
@@ -279,7 +284,9 @@ class BarraDirecta extends StatelessWidget implements PreferredSizeWidget {
           icon: CircleAvatar(
             radius: 15,
             backgroundColor: c.accentSoft,
-            child: Icon(Icons.person_outline_rounded, size: 19, color: c.accentText),
+            child: UsuarioActual.iniciales.isEmpty
+                ? Icon(Icons.person_outline_rounded, size: 19, color: c.accentText)
+                : Text(UsuarioActual.iniciales, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: c.accentText)),
           ),
         ),
         const SizedBox(width: 4),

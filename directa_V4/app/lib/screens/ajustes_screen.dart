@@ -6,6 +6,10 @@ import '../core/config.dart';
 import '../core/demo_modo.dart';
 import '../core/servidor_estado.dart';
 import '../core/theme.dart';
+import '../core/bloqueo.dart';
+import '../core/rut.dart';
+import '../core/usuario.dart';
+import 'bloqueo_screen.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
 
@@ -29,6 +33,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
     super.initState();
     _url = TextEditingController(text: context.read<AppState>().apiUrl);
     WidgetsBinding.instance.addPostFrameCallback((_) => _estadoServidor());
+    _cargarBloqueo();
   }
 
   Future<void> _estadoServidor() async {
@@ -136,6 +141,195 @@ class _AjustesScreenState extends State<AjustesScreen> {
     );
   }
 
+  /// Cambiar contraseña: se manda un enlace al correo para confirmar que es la persona.
+  Future<void> _cambiarClave() async {
+    final ok = await showModalBottomSheet<bool>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(22, 0, 22, 18),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            const Text('Cambiar contraseña', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            Text.rich(TextSpan(style: TextStyle(fontSize: 13.5, height: 1.5, color: context.c.text2), children: [
+              const TextSpan(text: 'Por seguridad te enviaremos un enlace a '),
+              TextSpan(text: UsuarioActual.correoOculto, style: const TextStyle(fontWeight: FontWeight.w700)),
+              const TextSpan(text: '. Ábrelo desde este celular y elige tu nueva contraseña.'),
+            ])),
+            const SizedBox(height: 16),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12), child: Text('Enviar enlace a mi correo'))),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          ]),
+        ),
+      ),
+    );
+    if (ok != true || !mounted) return;
+    final st = context.read<AppState>();
+    try {
+      await UsuarioActual.enviarEnlaceClave();
+      st.toast('Enlace enviado. Revisa tu correo (y la carpeta spam).');
+    } on AuthException catch (e) {
+      st.toast(e.statusCode == '429' || (e.code ?? '').startsWith('over_')
+          ? 'Ya enviamos un enlace hace poco. Espera un minuto y vuelve a intentar.'
+          : 'No se pudo enviar el enlace: ${e.message}', err: true);
+    } catch (_) {
+      st.toast('No se pudo enviar el enlace. Revisa tu conexión.', err: true);
+    }
+  }
+
+  // ---------- Bloqueo: PIN o huella (una sola forma) ----------
+  ModoBloqueo? _modo;
+  bool _bioDisponible = false;
+
+  Future<void> _cargarBloqueo() async {
+    final uid = UsuarioActual.id;
+    if (uid == null) return;
+    final m = await Bloqueo.modo(uid);
+    final disp = await Bloqueo.biometriaDisponible();
+    if (mounted) {
+      setState(() {
+        _modo = m;
+        _bioDisponible = disp;
+      });
+    }
+  }
+
+  /// Antes de quitar o cambiar el bloqueo, confirma con la forma actual.
+  Future<bool> _confirmarActual(String uid) async {
+    switch (_modo) {
+      case ModoBloqueo.pin:
+        return await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => ConfirmarPinScreen(uid: uid))) == true;
+      case ModoBloqueo.huella:
+        if (await Bloqueo.pedirBiometria(motivo: 'Confirma que eres tú para cambiar el bloqueo')) return true;
+        if (!mounted) return false;
+        // Si la huella falla, sirve el PIN de respaldo.
+        return await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => ConfirmarPinScreen(uid: uid))) == true;
+      default:
+        return true;
+    }
+  }
+
+  Future<void> _elegirModo(ModoBloqueo nuevo) async {
+    final uid = UsuarioActual.id;
+    if (uid == null || nuevo == _modo) return;
+    final st = context.read<AppState>();
+    if (!await _confirmarActual(uid) || !mounted) return;
+    switch (nuevo) {
+      case ModoBloqueo.pin:
+        if (_modo == ModoBloqueo.huella) {
+          // Ya tiene PIN de respaldo: solo deja de usar la huella.
+          await Bloqueo.usarSoloPin(uid);
+        } else {
+          final pin = await Navigator.of(context).push<String>(MaterialPageRoute(builder: (_) => const CrearPinScreen()));
+          if (pin == null) return;
+          await Bloqueo.definirPin(uid, pin);
+        }
+        st.toast('Listo: pediremos tu PIN al abrir DIRECTA.');
+      case ModoBloqueo.huella:
+        if (!_bioDisponible) {
+          st.toast('Este celular no tiene huella o rostro registrado.', err: true);
+          return;
+        }
+        // La huella siempre tiene un PIN de respaldo por si no te reconoce.
+        if (!await Bloqueo.tienePin(uid)) {
+          if (!mounted) return;
+          final pin = await Navigator.of(context).push<String>(
+              MaterialPageRoute(builder: (_) => const CrearPinScreen(titulo: 'PIN de respaldo')));
+          if (pin == null) return;
+          await Bloqueo.definirPin(uid, pin);
+        }
+        if (!await Bloqueo.pedirBiometria(motivo: 'Confirma tu huella o rostro para activarlo')) {
+          st.toast('No se activó la huella. Quedó activo tu PIN.', err: true);
+          await _cargarBloqueo();
+          return;
+        }
+        await Bloqueo.usarHuella(uid);
+        st.toast('Listo: entrarás con tu huella. Si no te reconoce, te pediremos el PIN.');
+      case ModoBloqueo.ninguno:
+        await Bloqueo.quitar(uid);
+        st.toast('Bloqueo desactivado');
+    }
+    await _cargarBloqueo();
+  }
+
+  Widget _seguridad(BuildContext context) {
+    final c = context.c;
+    final modo = _modo;
+    Widget opcion(ModoBloqueo m, IconData icon, String titulo, String detalle, {bool activa = true}) {
+      final sel = modo == m;
+      return Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Material(
+          color: sel ? c.accentSoft : Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: BorderSide(color: sel ? c.accentText : c.border),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: modo == null || !activa ? null : () => _elegirModo(m),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+              child: Row(children: [
+                Icon(icon, size: 24, color: activa ? c.accentText : c.text3),
+                const SizedBox(width: 12),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(titulo, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: activa ? null : c.text3)),
+                  const SizedBox(height: 1),
+                  Text(detalle, style: TextStyle(fontSize: 11.5, color: c.text3)),
+                ])),
+                Icon(sel ? Icons.radio_button_checked : Icons.radio_button_unchecked, color: sel ? c.accentText : c.text3, size: 20),
+              ]),
+            ),
+          ),
+        ),
+      );
+    }
+    return GgCard(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const SecTitle('Seguridad de la app', bottom: 2),
+        Text('Elige cómo desbloquear DIRECTA al abrirla.', style: TextStyle(fontSize: 12, color: c.text3)),
+        opcion(ModoBloqueo.huella, Icons.fingerprint_rounded, 'Huella o rostro',
+            _bioDisponible ? 'Principal, con tu PIN de respaldo si no te reconoce' : 'Este celular no tiene huella registrada',
+            activa: _bioDisponible),
+        opcion(ModoBloqueo.pin, Icons.dialpad_rounded, 'PIN de 4 dígitos', 'Como en las apps de bancos'),
+        opcion(ModoBloqueo.ninguno, Icons.lock_open_rounded, 'Sin bloqueo', 'Solo la contraseña al iniciar sesión'),
+      ]),
+    );
+  }
+
+  Future<void> _editarPerfil() async {
+    final nombre = TextEditingController(text: UsuarioActual.tieneNombre ? UsuarioActual.nombre : '');
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Tu nombre'),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          TextField(controller: nombre, textCapitalization: TextCapitalization.words, decoration: const InputDecoration(labelText: 'Nombre y apellido')),
+        ]),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Guardar')),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    final st = context.read<AppState>();
+    if (nombre.text.trim().isEmpty) {
+      st.toast('Escribe tu nombre', err: true);
+      return;
+    }
+    try {
+      await UsuarioActual.guardar(nombre: nombre.text);
+      if (mounted) setState(() {});
+      st.toast('Perfil actualizado');
+    } catch (_) {
+      st.toast('No se pudo guardar el perfil. Revisa tu conexión.', err: true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.c;
@@ -152,21 +346,75 @@ class _AjustesScreenState extends State<AjustesScreen> {
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       GgCard(
-        child: Row(children: [
-          CircleAvatar(radius: 22, backgroundColor: c.accentSoft, child: Icon(Icons.person_outline_rounded, color: c.accentText)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Gerencia General', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)),
-              const SizedBox(height: 2),
-              Text(DemoModo.instance.activo ? 'Acceso demo · sin cuenta' : (correo ?? 'Sesión iniciada'), maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12, color: c.text2)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            CircleAvatar(
+              radius: 24,
+              backgroundColor: c.accentSoft,
+              child: DemoModo.instance.activo || UsuarioActual.iniciales.isEmpty
+                  ? Icon(Icons.person_outline_rounded, color: c.accentText)
+                  : Text(UsuarioActual.iniciales, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: c.accentText)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(DemoModo.instance.activo ? 'Modo demo' : UsuarioActual.nombre,
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15.5)),
+                if (!DemoModo.instance.activo && (UsuarioActual.cargo.isNotEmpty || UsuarioActual.empresa.isNotEmpty)) ...[
+                  const SizedBox(height: 2),
+                  Text([UsuarioActual.cargo, UsuarioActual.empresa].where((x) => x.isNotEmpty).join(' · '),
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12.5, color: c.text2, fontWeight: FontWeight.w600)),
+                ],
+                const SizedBox(height: 2),
+                Text(DemoModo.instance.activo ? 'Acceso demo · sin cuenta' : (correo ?? 'Sesión iniciada'), maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: c.text3)),
+              ]),
+            ),
+          ]),
+          if (!DemoModo.instance.activo && UsuarioActual.rut.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Row(children: [
+              Icon(Icons.badge_outlined, size: 18, color: c.text3),
+              const SizedBox(width: 8),
+              Text('RUT ${UsuarioActual.rut}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              const SizedBox(width: 8),
+              if (Rut.esValido(UsuarioActual.rut))
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2E9E5B).withValues(alpha: .12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.verified_rounded, size: 14, color: Color(0xFF2E9E5B)),
+                    SizedBox(width: 4),
+                    Text('Verificado', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: Color(0xFF2E9E5B))),
+                  ]),
+                ),
             ]),
-          ),
-          const SizedBox(width: 8),
-          GgButton(DemoModo.instance.activo ? 'Salir de la demo' : 'Cerrar sesión', ghost: true, small: true, icon: Icons.logout, onTap: _cerrarSesion),
+            if (UsuarioActual.rutEmpresa.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Row(children: [
+                Icon(Icons.business_outlined, size: 18, color: c.text3),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text('${UsuarioActual.empresa.isEmpty ? 'Empresa' : UsuarioActual.empresa} · RUT ${UsuarioActual.rutEmpresa}',
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12.5, color: c.text2)),
+                ),
+              ]),
+            ],
+          ],
+          const SizedBox(height: 12),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            if (!DemoModo.instance.activo)
+              GgButton(UsuarioActual.tieneNombre ? 'Editar nombre' : 'Agregar mi nombre', ghost: true, small: true, icon: Icons.edit_outlined, onTap: _editarPerfil),
+            if (!DemoModo.instance.activo)
+              GgButton('Cambiar contraseña', ghost: true, small: true, icon: Icons.lock_outline_rounded, onTap: _cambiarClave),
+            GgButton(DemoModo.instance.activo ? 'Salir de la demo' : 'Cerrar sesión', ghost: true, small: true, icon: Icons.logout, onTap: _cerrarSesion),
+          ]),
         ]),
       ),
+      if (!DemoModo.instance.activo && UsuarioActual.id != null) _seguridad(context),
       GgCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
