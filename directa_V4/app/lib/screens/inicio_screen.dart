@@ -52,7 +52,7 @@ class InicioScreen extends StatelessWidget {
       width: 44, height: 44, alignment: Alignment.center,
       decoration: BoxDecoration(color: c.surface3, borderRadius: BorderRadius.circular(11)),
       child: Text(_extension(nombre),
-          style: AppTheme.mono(context, size: 10, weight: FontWeight.w700, color: activo ? c.accentText : c.text3)),
+          style: AppTheme.mono(context, size: Fs.xs, weight: FontWeight.w700, color: activo ? c.accentText : c.text3)),
     );
   }
 
@@ -71,12 +71,12 @@ class InicioScreen extends StatelessWidget {
       ]),
       const SizedBox(height: 7),
       Row(children: [
-        Expanded(child: Text('Subido', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: c.low))),
+        Expanded(child: Text('Subido', style: TextStyle(fontSize: Fs.sm, fontWeight: FontWeight.w600, color: c.low))),
         Expanded(
           child: Text('Indexando', textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: indexando ? c.accentText : c.low)),
+              style: TextStyle(fontSize: Fs.sm, fontWeight: FontWeight.w600, color: indexando ? c.accentText : c.low)),
         ),
-        Expanded(child: Text(textoAgentes, textAlign: TextAlign.right, style: TextStyle(fontSize: 11.5, color: c.text3))),
+        Expanded(child: Text(textoAgentes, textAlign: TextAlign.right, style: TextStyle(fontSize: Fs.sm, color: c.text3))),
       ]),
     ]);
   }
@@ -91,9 +91,9 @@ class InicioScreen extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+              Text(nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.body)),
               const SizedBox(height: 2),
-              Text(detalle, style: TextStyle(fontSize: 12, color: c.text2)),
+              Text(detalle, style: TextStyle(fontSize: Fs.sm, color: c.text2)),
             ]),
           ),
           const SizedBox(width: 8),
@@ -173,10 +173,10 @@ class InicioScreen extends StatelessWidget {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(nombre.isEmpty ? '(sin título)' : nombre, maxLines: 2, overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: activo ? c.text : c.text2)),
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.body, color: activo ? c.text : c.text2)),
               const SizedBox(height: 2),
               Text('$paginas · $nAn/$total agentes${activo ? '' : ' · Desactivado'}',
-                  style: TextStyle(fontSize: 12, color: c.text3)),
+                  style: TextStyle(fontSize: Fs.sm, color: c.text3)),
             ]),
           ),
           const SizedBox(width: 8),
@@ -274,10 +274,10 @@ class InicioScreen extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('Hola, ${UsuarioActual.primerNombre}', maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                  style: const TextStyle(fontSize: Fs.xxl, fontWeight: FontWeight.w800)),
               const SizedBox(height: 2),
               Text('Sube documentos, mira cómo avanza su análisis y elige cuál usar.',
-                  style: TextStyle(fontSize: 12.5, color: c.text2, height: 1.35)),
+                  style: TextStyle(fontSize: Fs.md, color: c.text2, height: 1.35)),
             ])),
             Icon(Icons.chevron_right_rounded, color: c.text3),
           ]),
@@ -297,10 +297,10 @@ class InicioScreen extends StatelessWidget {
           const SizedBox(width: 13),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(st.subiendo ? 'Cargando documento…' : 'Cargar documento para analizar',
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.lg)),
             const SizedBox(height: 3),
             Text('PDF, Word o Excel. La IA lo indexa y lo revisa con los agentes.',
-                style: TextStyle(fontSize: 12, color: c.text2, height: 1.35)),
+                style: TextStyle(fontSize: Fs.sm, color: c.text2, height: 1.35)),
           ])),
           const SizedBox(width: 8),
           Icon(Icons.chevron_right, color: c.text3),

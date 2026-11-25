@@ -25,12 +25,12 @@ class AnalisisScreen extends StatelessWidget {
         style: TextButton.styleFrom(
           foregroundColor: seccion == indice ? c.accentText : c.text2,
           backgroundColor: seccion == indice ? c.accentSoft : Colors.transparent,
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 9),
-          minimumSize: const Size(0, 38),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+          minimumSize: const Size(0, 48),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
         child: Text(texto, maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 13.5, fontWeight: seccion == indice ? FontWeight.w700 : FontWeight.w500)),
+            style: TextStyle(fontSize: Fs.md, fontWeight: seccion == indice ? FontWeight.w700 : FontWeight.w500)),
       ),
     );
 
@@ -43,22 +43,26 @@ class AnalisisScreen extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: () => elegirAgente(context, st),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              AgentBadge(st.badgeAgente(st.agenteActual)),
-              Icon(Icons.expand_more, size: 16, color: c.text2),
-            ]),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
+                AgentBadge(st.badgeAgente(st.agenteActual)),
+                Icon(Icons.expand_more, size: 16, color: c.text2),
+              ]),
+            ),
           ),
         ),
       ),
     );
 
-    return Column(children: [
-      Padding(
-        padding: EdgeInsets.fromLTRB(16, consultando ? 8 : 14, 12, consultando ? 6 : 10),
-        child: Center(child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 820),
+    // En el chat con el teclado abierto se oculta el selector de sección para dejar sitio al campo de texto.
+    return LayoutBuilder(builder: (context, box) {
+      final ocultarSelector = consultando && box.maxHeight < 420;
+      return Column(children: [
+        if (!ocultarSelector) Padding(
+          padding: EdgeInsets.fromLTRB(16, consultando ? 8 : 16, 8, 8),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             if (!consultando)
               const PageHead(title: 'Análisis', subtitle: 'Revisa hallazgos y trabaja cinco temas clave con la guía de DIRECTA.'),
@@ -66,7 +70,7 @@ class AnalisisScreen extends StatelessWidget {
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(color: c.surface2, border: Border.all(color: c.border), borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(color: c.surface2, border: Border.all(color: c.border), borderRadius: BorderRadius.circular(13)),
                   child: Row(children: [
                     opcion('Hallazgos', 0),
                     opcion('Guía', 1),
@@ -80,7 +84,7 @@ class AnalisisScreen extends StatelessWidget {
                 if (seccion == 2 && st.mensajes.isNotEmpty)
                   IconButton(
                     tooltip: 'Nueva conversación',
-                    visualDensity: VisualDensity.compact,
+                    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                     onPressed: st.consultando
                         ? null
                         : () async {
@@ -88,27 +92,28 @@ class AnalisisScreen extends StatelessWidget {
                               st.nuevaConversacion();
                             }
                           },
-                    icon: const Icon(Icons.add_comment_outlined, size: 19),
+                    icon: const Icon(Icons.add_comment_outlined, size: 20),
                   ),
-              ],
+              ] else
+                const SizedBox(width: 8),
             ]),
           ]),
+        ),
+        Expanded(child: IndexedStack(
+          index: seleccion,
+          children: [
+            const SafeArea(
+              top: false,
+              child: SingleChildScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(16, 8, 16, 96),
+                child: ResultadosScreen(),
+              ),
+            ),
+            const ChatScreen(),
+          ],
         )),
-      ),
-      Expanded(child: IndexedStack(
-        index: seleccion,
-        children: [
-          SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
-            child: Center(child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 820),
-              child: const ResultadosScreen(),
-            )),
-          ),
-          const ChatScreen(),
-        ],
-      )),
-    ]);
+      ]);
+    });
   }
 }

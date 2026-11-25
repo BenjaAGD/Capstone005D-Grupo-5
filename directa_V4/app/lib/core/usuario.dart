@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'rut.dart';
 
 /// Datos de la persona con sesión iniciada (nombre, cargo y empresa vienen del registro).
-/// Nunca lanza errores: en modo demo o en pruebas sin Supabase devuelve valores vacíos.
+/// Nunca lanza errores: en pruebas sin Supabase devuelve valores vacíos.
 class UsuarioActual {
   UsuarioActual._();
 

@@ -26,11 +26,11 @@ class GestionScreen extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            Flexible(child: Text(titulo, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14))),
+            Flexible(child: Text(titulo, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.body))),
             if (distintivo != null) ...[const SizedBox(width: 7), Pill(distintivo, fg: Colors.white, bg: c.accentText)],
           ]),
           const SizedBox(height: 3),
-          Text(descripcion, style: TextStyle(fontSize: 12, height: 1.35, color: c.text2)),
+          Text(descripcion, style: TextStyle(fontSize: Fs.sm, height: 1.35, color: c.text2)),
         ])),
         Icon(Icons.chevron_right, color: c.text3),
       ]),

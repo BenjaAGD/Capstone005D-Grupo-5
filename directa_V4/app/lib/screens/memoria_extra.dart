@@ -13,7 +13,6 @@ import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../state/trabajo_memoria.dart';
 import '../widgets/common.dart';
-import '../widgets/demo_offline.dart';
 import 'visor_pdf_screen.dart';
 
 const _kMarca = 'directa_marca_memoria_v1';
@@ -101,12 +100,12 @@ class _PortadaMini extends StatelessWidget {
                   Flexible(child: Text(nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: sans(6.5, color, b: true))),
                   logoW,
                 ]),
-                Align(alignment: Alignment.centerRight, child: Text('$anio', style: TextStyle(fontSize: 44 * s, color: color, height: 1.1))),
+                Align(alignment: Alignment.centerRight, child: Text('$anio', style: TextStyle(fontSize: Fs.giant * s, color: color, height: 1.1))),
                 const Spacer(flex: 2),
                 Text(kicker, maxLines: 1, overflow: TextOverflow.ellipsis, style: sans(5.5, const Color(0xFF5F6877), b: true)),
                 SizedBox(height: 5 * s),
                 Text(titulo, maxLines: 3, overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 17 * s, fontWeight: FontWeight.w800, height: 1.1, color: const Color(0xFF1F2733))),
+                    style: TextStyle(fontSize: Fs.xl * s, fontWeight: FontWeight.w800, height: 1.1, color: const Color(0xFF1F2733))),
                 const Spacer(flex: 3),
                 Container(height: 1 * s, color: color),
               ]),
@@ -358,10 +357,10 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
                 decoration: BoxDecoration(shape: BoxShape.circle, color: i <= paso ? Brand.accent : c.surface2, border: Border.all(color: i <= paso ? Brand.accent : c.border2)),
                 child: i < paso
                     ? const Icon(Icons.check, size: 15, color: Brand.onAccent)
-                    : Text('${i + 1}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: i <= paso ? Brand.onAccent : c.text3)),
+                    : Text('${i + 1}', style: TextStyle(fontSize: Fs.sm, fontWeight: FontWeight.w700, color: i <= paso ? Brand.onAccent : c.text3)),
               ),
               const SizedBox(height: 4),
-              Text(nombres[i], style: TextStyle(fontSize: 11, color: i == paso ? c.text : c.text3, fontWeight: i == paso ? FontWeight.w700 : FontWeight.w500)),
+              Text(nombres[i], style: TextStyle(fontSize: Fs.xs, color: i == paso ? c.text : c.text3, fontWeight: i == paso ? FontWeight.w700 : FontWeight.w500)),
             ]),
           ),
         ],
@@ -373,7 +372,7 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
     final c = context.c;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const SecTitle('¿Qué memoria quieres preparar?'),
-      Text('Cada tipo usa capítulos, largo y tono distintos. Puedes cambiarlo cuando quieras.', style: TextStyle(color: c.text2, fontSize: 12.5, height: 1.4)),
+      Text('Cada tipo usa capítulos, largo y tono distintos. Puedes cambiarlo cuando quieras.', style: TextStyle(color: c.text2, fontSize: Fs.md, height: 1.4)),
       const SizedBox(height: 10),
       for (final t in tipos)
         GgCard(
@@ -387,11 +386,11 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
             ),
             const SizedBox(width: 12),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('${t['nombre']}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+              Text('${t['nombre']}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.body)),
               const SizedBox(height: 3),
-              Text('${t['descripcion'] ?? ''}', style: TextStyle(color: c.text2, fontSize: 12, height: 1.35)),
+              Text('${t['descripcion'] ?? ''}', style: TextStyle(color: c.text2, fontSize: Fs.sm, height: 1.35)),
               const SizedBox(height: 6),
-              Text(t['capitulos'] == null ? 'Todos los capítulos de la norma' : '${(t['capitulos'] as List).length} capítulos', style: TextStyle(color: c.text3, fontSize: 11)),
+              Text(t['capitulos'] == null ? 'Todos los capítulos de la norma' : '${(t['capitulos'] as List).length} capítulos', style: TextStyle(color: c.text3, fontSize: Fs.xs)),
             ])),
             if (tipo == t['id']) Icon(Icons.check_circle, color: c.accentText),
           ]),
@@ -406,7 +405,7 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const SecTitle('Elige el diseño de tu memoria'),
-        Text('Se aplica a la portada y a todos los capítulos.', style: TextStyle(color: c.text2, fontSize: 12.5)),
+        Text('Se aplica a la portada y a todos los capítulos.', style: TextStyle(color: c.text2, fontSize: Fs.md)),
         const SizedBox(height: 12),
         LayoutBuilder(builder: (context, box) {
           final ancho = (box.maxWidth - 16) / 3;
@@ -421,13 +420,13 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
                     child: _PortadaMini(diseno: d['id']!, color: _hex(color), titulo: titulo, empresa: _nombre.text, anio: anioPortada, kicker: '${t['kicker'] ?? 'MEMORIA ANUAL'}', logo: logo),
                   ),
                   const SizedBox(height: 6),
-                  Text(d['nombre']!, textAlign: TextAlign.center, maxLines: 2, style: TextStyle(fontSize: 11.5, fontWeight: diseno == d['id'] ? FontWeight.w700 : FontWeight.w500, color: diseno == d['id'] ? c.text : c.text2)),
+                  Text(d['nombre']!, textAlign: TextAlign.center, maxLines: 2, style: TextStyle(fontSize: Fs.sm, fontWeight: diseno == d['id'] ? FontWeight.w700 : FontWeight.w500, color: diseno == d['id'] ? c.text : c.text2)),
                 ]),
               )),
           ]);
         }),
         const SizedBox(height: 6),
-        Text(_disenos.firstWhere((d) => d['id'] == diseno)['descripcion']!, style: TextStyle(color: c.text3, fontSize: 11.5)),
+        Text(_disenos.firstWhere((d) => d['id'] == diseno)['descripcion']!, style: TextStyle(color: c.text3, fontSize: Fs.sm)),
       ])),
       GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const SecTitle('Color de marca y logo'),
@@ -456,7 +455,7 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
           if (logo != null) TextButton(onPressed: () { setState(() => logo = null); _guardarMarca(); }, child: const Text('Quitar logo')),
         ]),
         const SizedBox(height: 4),
-        Text('PNG o JPG, hasta 1,5 MB. Con fondo transparente se ve mejor.', style: TextStyle(color: c.text3, fontSize: 11.5)),
+        Text('PNG o JPG, hasta 1,5 MB. Con fondo transparente se ve mejor.', style: TextStyle(color: c.text3, fontSize: Fs.sm)),
       ])),
     ]);
   }
@@ -469,23 +468,25 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
         if (cargando) const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
         if (!cargando && error != null) IconButton(tooltip: 'Reintentar conexión', onPressed: _cargar, icon: Icon(Icons.refresh, color: c.accentText)),
       ]),
-      Text('Completa los datos editoriales. La empresa, el título y el destinatario se muestran en lugares distintos del libro.', style: TextStyle(color: c.text2, fontSize: 12.5, height: 1.4)),
+      Text('Completa los datos editoriales. La empresa, el título y el destinatario se muestran en lugares distintos del libro.', style: TextStyle(color: c.text2, fontSize: Fs.md, height: 1.4)),
       const SizedBox(height: 14),
-      TextField(controller: _nombre, decoration: const InputDecoration(labelText: 'Empresa u organización', prefixIcon: Icon(Icons.business_outlined)), onChanged: (_) { _guardarMarca(); setState(() {}); }),
-      const SizedBox(height: 10),
-      TextField(controller: _titulo, decoration: InputDecoration(labelText: 'Título de portada', helperText: 'Si lo dejas como "Memoria anual", se usa el título del tipo elegido.', prefixIcon: const Icon(Icons.title)), onChanged: (_) { _guardarMarca(); setState(() {}); }),
-      const SizedBox(height: 10),
-      LayoutBuilder(builder: (context, box) => Wrap(spacing: 10, runSpacing: 10, children: [
-        SizedBox(width: box.maxWidth > 520 ? (box.maxWidth - 10) / 2 : box.maxWidth, child: DropdownButtonFormField<int>(
+      TextField(controller: _nombre, textInputAction: TextInputAction.next, textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(labelText: 'Empresa u organización', prefixIcon: Icon(Icons.business_outlined)), onChanged: (_) { _guardarMarca(); setState(() {}); }),
+      const SizedBox(height: 16),
+      TextField(controller: _titulo, textInputAction: TextInputAction.next, textCapitalization: TextCapitalization.sentences, decoration: InputDecoration(labelText: 'Título de portada', helperText: 'Si lo dejas como "Memoria anual", se usa el título del tipo elegido.', prefixIcon: const Icon(Icons.title)), onChanged: (_) { _guardarMarca(); setState(() {}); }),
+      const SizedBox(height: 16),
+      // Una columna en el celular: año y destinatario uno bajo el otro.
+      DropdownButtonFormField<int>(
           value: opcionesAnio.contains(anioPortada) ? anioPortada : opcionesAnio.first,
           isExpanded: true,
           decoration: const InputDecoration(labelText: 'Año del informe', prefixIcon: Icon(Icons.calendar_today_outlined)),
           items: opcionesAnio.map((a) => DropdownMenuItem(value: a, child: Text('$a${aniosDisponibles.contains(a) ? '' : ' · sin documentos'}', maxLines: 1, overflow: TextOverflow.ellipsis))).toList(),
           onChanged: (v) => setState(() { anio = v; resultado = null; error = null; }),
-        )),
-        SizedBox(width: box.maxWidth > 520 ? (box.maxWidth - 10) / 2 : box.maxWidth, child: TextField(controller: _destinatario, decoration: const InputDecoration(labelText: 'Preparada para', prefixIcon: Icon(Icons.person_outline)), onChanged: (_) { _guardarMarca(); setState(() {}); })),
-      ])),
-      const SizedBox(height: 6),
+        ),
+      const SizedBox(height: 16),
+      TextField(controller: _destinatario, textInputAction: TextInputAction.next, textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(labelText: 'Preparada para', prefixIcon: Icon(Icons.person_outline)), onChanged: (_) { _guardarMarca(); setState(() {}); }),
+      const SizedBox(height: 8),
       Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Icon(Icons.info_outline, size: 16, color: c.text3),
         const SizedBox(width: 7),
@@ -493,16 +494,16 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
           docsAnio.isEmpty
               ? 'Puedes elegir el año de portada. Para generar el borrador, debe haber al menos un documento procesado de ese período.'
               : 'Se incluirán solo documentos procesados de $anio. El documento activo de la barra superior no cambia.',
-          style: TextStyle(color: c.text3, fontSize: 11.5, height: 1.35),
+          style: TextStyle(color: c.text3, fontSize: Fs.sm, height: 1.35),
         )),
       ]),
-      const SizedBox(height: 10),
-      TextField(controller: _firmante, decoration: const InputDecoration(labelText: 'Nombre o cargo de quien firma', prefixIcon: Icon(Icons.draw_outlined)), onChanged: (_) => _guardarMarca()),
+      const SizedBox(height: 16),
+      TextField(controller: _firmante, textInputAction: TextInputAction.done, textCapitalization: TextCapitalization.words, scrollPadding: const EdgeInsets.only(bottom: 160), decoration: const InputDecoration(labelText: 'Nombre o cargo de quien firma', prefixIcon: Icon(Icons.draw_outlined)), onChanged: (_) => _guardarMarca()),
       if (error != null || anios.isEmpty) ...[
         const SizedBox(height: 12),
         Container(width: double.infinity, padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: c.surface, borderRadius: BorderRadius.circular(12)), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Icon(error == null ? Icons.info_outline : Icons.cloud_off_outlined, color: c.accentText, size: 19), const SizedBox(width: 8),
-          Expanded(child: Text(error == null ? 'Aún no hay documentos procesados con un año identificable. Puedes preparar los datos y revisar la portada; la generación se activa cuando haya documentos.' : 'No hay conexión con el servidor. Tus datos de portada se guardan en este dispositivo y puedes seguir editándolos.', style: TextStyle(color: c.text2, fontSize: 12.5, height: 1.35))),
+          Expanded(child: Text(error == null ? 'Aún no hay documentos procesados con un año identificable. Puedes preparar los datos y revisar la portada; la generación se activa cuando haya documentos.' : 'No hay conexión con el servidor. Tus datos de portada se guardan en este dispositivo y puedes seguir editándolos.', style: TextStyle(color: c.text2, fontSize: Fs.md, height: 1.35))),
         ])),
       ],
     ]));
@@ -517,23 +518,23 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
         const SecTitle('Revisión antes de generar'),
         Row(children: [Icon(_iconoTipo(tipo), color: c.accentText), const SizedBox(width: 8), Expanded(child: Text('${t['nombre']} $anioPortada', style: const TextStyle(fontWeight: FontWeight.w700))), Pill(anios.isEmpty ? 'SIN DOCUMENTOS' : '${docsAnio.length} DOCUMENTOS', fg: anios.isEmpty ? c.med : c.low)]),
         const SizedBox(height: 8),
-        Text('Diseño: ${dis['nombre']} · Empresa: ${_nombre.text.trim().isEmpty ? 'sin nombre' : _nombre.text.trim()}', style: TextStyle(color: c.text2, fontSize: 12.5)),
+        Text('Diseño: ${dis['nombre']} · Empresa: ${_nombre.text.trim().isEmpty ? 'sin nombre' : _nombre.text.trim()}', style: TextStyle(color: c.text2, fontSize: Fs.md)),
         const SizedBox(height: 10),
         // Solo un dato informativo (sin barra, para no confundirlo con el progreso de generación).
-        if (totalCaps > 0) Text('Capítulos revisados en «Fuentes y avance»: $terminados de $totalCaps. Los no revisados salen con [COMPLETAR].', style: TextStyle(color: c.text3, fontSize: 12, height: 1.35)),
+        if (totalCaps > 0) Text('Capítulos revisados en «Fuentes y avance»: $terminados de $totalCaps. Los no revisados salen con [COMPLETAR].', style: TextStyle(color: c.text3, fontSize: Fs.sm, height: 1.35)),
         const SizedBox(height: 8),
-        Text(docsAnio.isEmpty ? 'No hay documentos procesados de $anio. Agrega documentos de este período para generar el borrador.' : 'Documentos incluidos: ${docsAnio.map((d) => d['nombre']).join(', ')}', style: TextStyle(color: c.text3, fontSize: 12, height: 1.35)),
+        Text(docsAnio.isEmpty ? 'No hay documentos procesados de $anio. Agrega documentos de este período para generar el borrador.' : 'Documentos incluidos: ${docsAnio.map((d) => d['nombre']).join(', ')}', style: TextStyle(color: c.text3, fontSize: Fs.sm, height: 1.35)),
         const SizedBox(height: 14),
         GgButton(generando ? 'Generando memoria…' : 'Generar borrador PDF', icon: Icons.picture_as_pdf_outlined, expand: true, loading: generando, onTap: anio == null || docsAnio.isEmpty ? null : _generar),
         const SizedBox(height: 8),
-        Text('Puedes salir de esta pantalla: la memoria se sigue generando y te avisamos con una notificación. El PDF se guarda en Documentos/Directa Gerente General.', style: TextStyle(fontSize: 11.5, color: c.text3, height: 1.35)),
+        Text('Puedes salir de esta pantalla: la memoria se sigue generando y te avisamos con una notificación. El PDF se guarda en Documentos/Directa Gerente General.', style: TextStyle(fontSize: Fs.sm, color: c.text3, height: 1.35)),
       ])),
-      if (generando && progreso != null) GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${progreso!['paso'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w600)), const SizedBox(height: 8), GgBar(value: ((progreso!['hechos'] as num?)?.toDouble() ?? 0) / max(1, (progreso!['total'] as num?)?.toDouble() ?? 1)), const SizedBox(height: 4), Text('${progreso!['hechos'] ?? 0} de ${progreso!['total'] ?? 1} pasos', style: TextStyle(fontSize: 11.5, color: c.text3))])),
+      if (generando && progreso != null) GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${progreso!['paso'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w600)), const SizedBox(height: 8), GgBar(value: ((progreso!['hechos'] as num?)?.toDouble() ?? 0) / max(1, (progreso!['total'] as num?)?.toDouble() ?? 1)), const SizedBox(height: 4), Text('${progreso!['hechos'] ?? 0} de ${progreso!['total'] ?? 1} pasos', style: TextStyle(fontSize: Fs.sm, color: c.text3))])),
       if (error != null && !cargando) GgCard(borderColor: c.crit, child: Text(error!, style: TextStyle(color: c.crit))),
       if (resultado != null) GgCard(borderColor: c.low, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [Icon(Icons.check_circle_outline, color: c.low), const SizedBox(width: 8), const Expanded(child: Text('Borrador PDF listo', style: TextStyle(fontWeight: FontWeight.w700)))]),
         const SizedBox(height: 6),
-        Text('${resultado!['nombre'] ?? 'Memoria_borrador.pdf'} · ${(resultado!['revision'] as List? ?? const []).length} alertas de cifras. Revisa el archivo antes de aprobarlo.', style: TextStyle(fontSize: 12.5, color: c.text2)),
+        Text('${resultado!['nombre'] ?? 'Memoria_borrador.pdf'} · ${(resultado!['revision'] as List? ?? const []).length} alertas de cifras. Revisa el archivo antes de aprobarlo.', style: TextStyle(fontSize: Fs.md, color: c.text2)),
         const SizedBox(height: 10),
         Wrap(spacing: 8, runSpacing: 8, children: [
           GgButton('Abrir PDF', icon: Icons.picture_as_pdf_outlined, small: true, onTap: () async {
@@ -674,19 +675,12 @@ class _PerfilTonoState extends State<PerfilTono> {
     final medidas = (perfil?['medidas'] as Map?) ?? {};
     final aprobado = perfil?['estado'] == 'aprobado';
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      if (perfil == null && docs.isEmpty) const DemoAviso(text: 'Ejemplo del perfil editorial. Para extraer un tono real necesitas memorias anteriores cargadas y conexión al servidor.'),
-      if (perfil == null && docs.isEmpty) const GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        SecTitle('Ejemplo de tono corporativo'),
-        DemoFila(titulo: 'Formalidad', detalle: 'Profesional, directa y orientada a decisiones.'),
-        DemoFila(titulo: 'Estilo', detalle: 'Frases claras, cifras acompañadas de contexto y próximos pasos explícitos.'),
-        DemoFila(titulo: 'Regla editorial', detalle: 'Distinguir hechos, proyecciones y asuntos pendientes de validación.'),
-      ])),
       if (error != null) GgCard(borderColor: c.crit, child: Text(error!, style: TextStyle(color: c.crit))),
       GgCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const SecTitle('Memorias anteriores para aprender el tono'),
           Text('Elige al menos $minimo memorias de años anteriores ya subidas. El Redactor describe su estilo sin copiar frases ni cifras.',
-              style: TextStyle(fontSize: 12.5, color: c.text2)),
+              style: TextStyle(fontSize: Fs.md, color: c.text2)),
           const SizedBox(height: 8),
           for (final d in docs)
             CheckboxListTile(
@@ -695,7 +689,7 @@ class _PerfilTonoState extends State<PerfilTono> {
               controlAffinity: ListTileControlAffinity.leading,
               value: seleccion.contains('${d['id']}'),
               onChanged: (v) => setState(() => v == true ? seleccion.add('${d['id']}') : seleccion.remove('${d['id']}')),
-              title: Text(nombreDoc(d), style: const TextStyle(fontSize: 13)),
+              title: Text(nombreDoc(d), style: const TextStyle(fontSize: Fs.md)),
             ),
           const SizedBox(height: 8),
           GgButton(perfil == null ? 'Extraer perfil de tono' : 'Volver a extraer con estas memorias', icon: Icons.auto_awesome,
@@ -709,14 +703,14 @@ class _PerfilTonoState extends State<PerfilTono> {
           borderColor: aprobado ? c.low : c.med,
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              Expanded(child: Text('Perfil de tono v${perfil!['version']}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700))),
+              Expanded(child: Text('Perfil de tono v${perfil!['version']}', style: const TextStyle(fontSize: Fs.lg, fontWeight: FontWeight.w700))),
               Pill(aprobado ? 'APROBADO' : 'BORRADOR', fg: aprobado ? c.low : c.med),
             ]),
             const SizedBox(height: 4),
             Text('Corpus: ${corpus.map((x) => '${x['nombre']}${x['anio'] != null ? ' (${x['anio']})' : ''}').join(', ')}',
-                style: TextStyle(fontSize: 12, color: c.text3)),
+                style: TextStyle(fontSize: Fs.sm, color: c.text3)),
             if ('${perfil!['aviso'] ?? ''}'.isNotEmpty)
-              Padding(padding: const EdgeInsets.only(top: 4), child: Text('${perfil!['aviso']}', style: TextStyle(fontSize: 12, color: c.med))),
+              Padding(padding: const EdgeInsets.only(top: 4), child: Text('${perfil!['aviso']}', style: TextStyle(fontSize: Fs.sm, color: c.med))),
             const SizedBox(height: 12),
             KpiStrip(items: [
               (valor: '${medidas['palabras_por_oracion'] ?? '-'}', etiqueta: 'Palabras por oración', color: null, onTap: null),
@@ -733,7 +727,7 @@ class _PerfilTonoState extends State<PerfilTono> {
             ],
             if ((medidas['terminos_frecuentes'] as List? ?? const []).isNotEmpty)
               Text('Términos más frecuentes (medidos): ${(medidas['terminos_frecuentes'] as List).take(10).join(', ')}',
-                  style: TextStyle(fontSize: 11.5, color: c.text3)),
+                  style: TextStyle(fontSize: Fs.sm, color: c.text3)),
             const SizedBox(height: 12),
             Wrap(spacing: 8, runSpacing: 8, children: [
               GgButton('Guardar cambios', icon: Icons.save_outlined, ghost: true, small: true, loading: trabajando,

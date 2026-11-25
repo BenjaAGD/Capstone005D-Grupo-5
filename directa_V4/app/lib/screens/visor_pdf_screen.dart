@@ -71,8 +71,8 @@ class _VisorPdfScreenState extends State<VisorPdfScreen> {
       backgroundColor: const Color(0xFF4E5662),
       appBar: AppBar(
         title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(widget.archivo.nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-          if (_total > 0) Text('Página $_pagina de $_total', style: TextStyle(fontSize: 11.5, color: c.text2)),
+          Text(widget.archivo.nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: Fs.lg, fontWeight: FontWeight.w700)),
+          if (_total > 0) Text('Página $_pagina de $_total', style: TextStyle(fontSize: Fs.sm, color: c.text2)),
         ]),
         actions: [
           IconButton(tooltip: 'Compartir', onPressed: _compartir, icon: const Icon(Icons.ios_share_outlined)),
@@ -90,7 +90,7 @@ class _VisorPdfScreenState extends State<VisorPdfScreen> {
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white)),
                   const SizedBox(height: 12),
-                  FilledButton(onPressed: () => abrirArchivoGuardado(widget.archivo), child: const Text('Abrir con otra app')),
+                  FilledButton(style: FilledButton.styleFrom(minimumSize: const Size(48, 48)), onPressed: () => abrirArchivoGuardado(widget.archivo), child: const Text('Abrir con otra app')),
                 ]),
               ),
             )
@@ -111,12 +111,14 @@ class _VisorPdfScreenState extends State<VisorPdfScreen> {
                 top: false,
                 child: Row(children: [
                   TextButton.icon(
+                    style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
                     onPressed: _pagina > 1 ? () => ctrl.previousPage(duration: const Duration(milliseconds: 220), curve: Curves.easeOut) : null,
                     icon: const Icon(Icons.chevron_left),
                     label: const Text('Anterior'),
                   ),
                   Expanded(child: Text('$_pagina / $_total', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w700))),
                   TextButton.icon(
+                    style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
                     onPressed: _pagina < _total ? () => ctrl.nextPage(duration: const Duration(milliseconds: 220), curve: Curves.easeOut) : null,
                     iconAlignment: IconAlignment.end,
                     icon: const Icon(Icons.chevron_right),

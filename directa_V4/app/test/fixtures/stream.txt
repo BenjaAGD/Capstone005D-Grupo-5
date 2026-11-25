@@ -1,4 +1,4 @@
-data: {"chunk": "**Modo demo** ("}
+data: {"chunk": "**Respuesta** ("}
 
 data: {"chunk": "respuesta simul"}
 
@@ -54,7 +54,7 @@ data: {"fuentes": [{"pagina": 4, "preview": "Gesti\u00f3n de riesgos. La matriz 
 
 data: {"verificando": true}
 
-data: {"verificacion": {"version": 1, "fecha": "2026-10-15T20:25:06", "capas": ["codigo", "ia"], "estado": "verificada", "etiqueta": "Verificada", "resumen": "2 de 2 afirmaciones respaldadas por el documento.", "afirmaciones": [{"texto": "La matriz de riesgos corporativos se actualizó en septiembre de 2024.", "revisor": "cifras", "estado": "respaldada", "fragmento": "F1", "pagina": 4, "cita": "Gestión de riesgos. La matriz de riesgos corporativos se actualizó en septiembre de 2024. Los factores de\nriesgo principales son riesgo de l", "correccion": ""}, {"texto": "Nuestra misión es abastecer de insumos industriales a la zona norte del país con", "revisor": "evidencia", "estado": "respaldada", "fragmento": "F2", "pagina": 2, "cita": "Perfil de la entidad. Nuestra misión es abastecer de insumos industriales a la zona norte del país con\nseguridad y eficiencia. Nuestra visió", "correccion": ""}], "capa1": {"cifras": [{"cifra": "2024", "estado": "encontrada", "pagina": 4}], "problemas": [], "fecha_corte": "2024-12-31"}, "modelo_verificador": "demo", "mismo_modelo": false, "segundos": 0.0}}
+data: {"verificacion": {"version": 1, "fecha": "2026-10-15T20:25:06", "capas": ["codigo", "ia"], "estado": "verificada", "etiqueta": "Verificada", "resumen": "2 de 2 afirmaciones respaldadas por el documento.", "afirmaciones": [{"texto": "La matriz de riesgos corporativos se actualizó en septiembre de 2024.", "revisor": "cifras", "estado": "respaldada", "fragmento": "F1", "pagina": 4, "cita": "Gestión de riesgos. La matriz de riesgos corporativos se actualizó en septiembre de 2024. Los factores de\nriesgo principales son riesgo de l", "correccion": ""}, {"texto": "Nuestra misión es abastecer de insumos industriales a la zona norte del país con", "revisor": "evidencia", "estado": "respaldada", "fragmento": "F2", "pagina": 2, "cita": "Perfil de la entidad. Nuestra misión es abastecer de insumos industriales a la zona norte del país con\nseguridad y eficiencia. Nuestra visió", "correccion": ""}], "capa1": {"cifras": [{"cifra": "2024", "estado": "encontrada", "pagina": 4}], "problemas": [], "fecha_corte": "2024-12-31"}, "modelo_verificador": "prueba", "mismo_modelo": false, "segundos": 0.0}}
 
 data: [DONE]
 

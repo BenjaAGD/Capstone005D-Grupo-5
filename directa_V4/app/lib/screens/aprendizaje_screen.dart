@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
-import '../widgets/demo_offline.dart';
 
 /// Aprendizaje de los agentes (Frente C2): valoraciones del gerente y lecciones por agente.
 /// Ninguna lección se aplica sin que una persona la pruebe y la apruebe; todas se pueden revertir.
@@ -105,15 +104,31 @@ class _AprendizajeScreenState extends State<AprendizajeScreen> {
 
   Future<void> _editar(Map<String, dynamic> l) async {
     final ctrl = TextEditingController(text: '${l['texto']}');
-    final ok = await showDialog<bool>(
+    final ok = await showModalBottomSheet<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Editar lección'),
-        content: TextField(controller: ctrl, minLines: 2, maxLines: 5, decoration: const InputDecoration(hintText: 'Criterio de estilo o de método, sin cifras')),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Guardar')),
-        ],
+      isScrollControlled: true,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (ctx) => Padding(
+        // Sube con el teclado para que el campo y los botones queden a la vista.
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          const Text('Editar lección', style: TextStyle(fontSize: Fs.xl, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 16),
+          TextField(
+            controller: ctrl,
+            autofocus: true,
+            minLines: 2,
+            maxLines: 5,
+            keyboardType: TextInputType.multiline,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: const InputDecoration(hintText: 'Criterio de estilo o de método, sin cifras'),
+          ),
+          const SizedBox(height: 16),
+          GgButton('Guardar', expand: true, onTap: () => Navigator.pop(ctx, true)),
+          const SizedBox(height: 8),
+          GgButton('Cancelar', ghost: true, expand: true, onTap: () => Navigator.pop(ctx, false)),
+        ]),
       ),
     );
     if (ok == true) await _accion(l, 'editar', cuerpo: {'texto': ctrl.text});
@@ -125,17 +140,18 @@ class _AprendizajeScreenState extends State<AprendizajeScreen> {
     final c = context.c;
     final app = context.watch<AppState>();
     if (cargando) return const GgCard(child: EmptyState(icon: Icons.hourglass_empty, title: 'Cargando…', loading: true));
-    if (error != null && resumen == null) return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const PageHead(title: 'Aprendizaje de los agentes', subtitle: 'Revisa cómo se podrían convertir tus valoraciones en mejoras controladas.'),
-      const DemoAviso(text: 'Ejemplo de interfaz. Las valoraciones y lecciones reales se guardan en el servidor y requieren conexión.'),
-      const DemoDato(valor: '3', titulo: 'Valoraciones necesarias', detalle: 'ejemplo de regla'),
-      const SizedBox(height: 12),
-      const GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        SecTitle('Lección de muestra · pendiente de revisión'),
-        DemoFila(titulo: 'Agente Financiero', detalle: 'Separar los datos informados en el documento de las proyecciones y citar la página de origen.', icon: Icons.school_outlined),
-        DemoFila(titulo: 'Flujo', detalle: 'Probar la lección, revisar su impacto y aprobarla antes de activarla.', icon: Icons.fact_check_outlined),
-      ])),
-    ]);
+    if (error != null && resumen == null) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const PageHead(title: 'Aprendizaje de los agentes', subtitle: 'Revisa cómo se podrían convertir tus valoraciones en mejoras controladas.'),
+        const BackendAviso(),
+        GgCard(child: EmptyState(
+          icon: Icons.cloud_off,
+          title: 'No se pudieron cargar las valoraciones',
+          text: 'Las valoraciones y lecciones se guardan en el servidor. Revisa tu conexión e inténtalo de nuevo.',
+          action: GgButton('Reintentar', icon: Icons.refresh, expand: true, onTap: _cargar),
+        )),
+      ]);
+    }
     final porAgente = Map<String, dynamic>.from((resumen?['por_agente'] as Map?) ?? {});
     final motivos = Map<String, dynamic>.from((resumen?['motivos'] as Map?) ?? {});
     final pendientes = lecciones.where((l) => l['estado'] == 'pendiente').toList();
@@ -152,7 +168,7 @@ class _AprendizajeScreenState extends State<AprendizajeScreen> {
       ),
       if (error != null) GgCard(borderColor: c.crit, child: Text(error!, style: TextStyle(color: c.crit))),
       if (aviso.isNotEmpty)
-        GgCard(borderColor: c.med, color: c.med.withValues(alpha: 0.08), child: Text(aviso, style: TextStyle(fontSize: 12.5, color: c.text2))),
+        GgCard(borderColor: c.med, color: c.med.withValues(alpha: 0.08), child: Text(aviso, style: TextStyle(fontSize: Fs.md, color: c.text2))),
       KpiStrip(items: [
         (valor: '$positivas', etiqueta: 'Buenas respuestas', color: positivas > 0 ? c.low : null, onTap: null),
         (valor: '$negativas', etiqueta: 'Malas respuestas', color: negativas > 0 ? c.high : null, onTap: null),
@@ -163,7 +179,7 @@ class _AprendizajeScreenState extends State<AprendizajeScreen> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const SecTitle('Valoraciones por agente'),
           if (porAgente.isEmpty)
-            Text('Todavía no hay valoraciones. Usa los pulgares bajo cada respuesta del chat.', style: TextStyle(fontSize: 12.5, color: c.text3)),
+            Text('Todavía no hay valoraciones. Usa los pulgares bajo cada respuesta del chat.', style: TextStyle(fontSize: Fs.md, color: c.text3)),
           for (final e in porAgente.entries)
             Builder(builder: (context) {
               final a = Map<String, dynamic>.from(e.value as Map);
@@ -175,10 +191,10 @@ class _AprendizajeScreenState extends State<AprendizajeScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(app.nombreAgente(e.key), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                      Text(app.nombreAgente(e.key), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: Fs.md)),
                       Text('${a['positivas']} buenas · ${a['negativas']} malas (${a['negativas_nuevas']} nuevas)'
                           '${mot.isEmpty ? '' : ' · ${mot.entries.map((m) => '${motivos[m.key] ?? m.key}: ${m.value}').join(', ')}'}',
-                          style: TextStyle(fontSize: 11.8, color: c.text3)),
+                          style: TextStyle(fontSize: Fs.sm, color: c.text3)),
                     ]),
                   ),
                   if (a['puede_generar'] == true)
@@ -187,7 +203,7 @@ class _AprendizajeScreenState extends State<AprendizajeScreen> {
               );
             }),
           Text('Se proponen lecciones cuando un agente junta ${resumen?['minimo_para_lecciones'] ?? 3} valoraciones negativas nuevas.',
-              style: TextStyle(fontSize: 11.5, color: c.text3)),
+              style: TextStyle(fontSize: Fs.sm, color: c.text3)),
         ]),
       ),
       if (pendientes.isNotEmpty) const SecTitle('Por revisar'),
@@ -199,7 +215,7 @@ class _AprendizajeScreenState extends State<AprendizajeScreen> {
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
             tilePadding: EdgeInsets.zero,
-            title: Text('Historial (${historial.length} rechazadas o revertidas)', style: TextStyle(fontSize: 13, color: c.text2)),
+            title: Text('Historial (${historial.length} rechazadas o revertidas)', style: TextStyle(fontSize: Fs.md, color: c.text2)),
             children: [for (final l in historial) _tarjeta(context, app, l)],
           ),
         ),
@@ -218,8 +234,8 @@ class _AprendizajeScreenState extends State<AprendizajeScreen> {
         Row(children: [
           AgentBadge(app.badgeAgente('${l['agente']}')),
           const SizedBox(width: 8),
-          Expanded(child: Text(app.nombreAgente('${l['agente']}'), style: TextStyle(fontSize: 12, color: c.text3))),
-          Text('v${l['version'] ?? 1}', style: TextStyle(fontSize: 11, color: c.text3)),
+          Expanded(child: Text(app.nombreAgente('${l['agente']}'), style: TextStyle(fontSize: Fs.sm, color: c.text3))),
+          Text('v${l['version'] ?? 1}', style: TextStyle(fontSize: Fs.xs, color: c.text3)),
           const SizedBox(width: 8),
           Pill(estadoL.toUpperCase(), fg: switch (estadoL) {
             'aprobada' => c.low,
@@ -228,9 +244,9 @@ class _AprendizajeScreenState extends State<AprendizajeScreen> {
           }),
         ]),
         const SizedBox(height: 8),
-        Text('${l['texto']}', style: const TextStyle(fontSize: 13.5, height: 1.4)),
+        Text('${l['texto']}', style: const TextStyle(fontSize: Fs.body, height: 1.4)),
         if (progresoPrueba[id] != null)
-          Padding(padding: const EdgeInsets.only(top: 8), child: Text(progresoPrueba[id]!, style: TextStyle(fontSize: 12, color: c.text3))),
+          Padding(padding: const EdgeInsets.only(top: 8), child: Text(progresoPrueba[id]!, style: TextStyle(fontSize: Fs.sm, color: c.text3))),
         if (prueba != null)
           Padding(
             padding: const EdgeInsets.only(top: 8),
@@ -243,7 +259,7 @@ class _AprendizajeScreenState extends State<AprendizajeScreen> {
                   '${prueba['conclusion']} Sin la lección: ${(prueba['sin_leccion'] as Map?)?['aciertos']} cifras clave y '
                   '${(prueba['sin_leccion'] as Map?)?['alertas']} alertas; con la lección: ${(prueba['con_leccion'] as Map?)?['aciertos']} y '
                   '${(prueba['con_leccion'] as Map?)?['alertas']}.',
-                  style: TextStyle(fontSize: 12, color: c.text2),
+                  style: TextStyle(fontSize: Fs.sm, color: c.text2),
                 ),
               ),
             ]),
@@ -267,7 +283,7 @@ class _AprendizajeScreenState extends State<AprendizajeScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Text('«Probar» responde las preguntas de este agente con y sin la lección sobre el documento activo.',
-                style: TextStyle(fontSize: 11, color: c.text3)),
+                style: TextStyle(fontSize: Fs.xs, color: c.text3)),
           ),
       ]),
     );

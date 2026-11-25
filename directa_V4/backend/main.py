@@ -238,7 +238,7 @@ def _contar_chunks_doc(document_id):
         return None
 
 
-_CHUNKS_CON_ORDEN = True  # se apaga solo si la columna `orden` no existe (ver migracion_v5_orden_chunks.sql)
+_CHUNKS_CON_ORDEN = True  # se apaga solo si la columna `orden` no existe (ver base_de_datos.sql)
 
 
 def guardar_chunks_batch(document_id, items):

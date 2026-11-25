@@ -11,7 +11,6 @@ import '../core/store.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
-import '../widgets/demo_offline.dart';
 
 const estadosPlan = [('pendiente', 'Pendiente'), ('curso', 'En curso'), ('hecho', 'Hecha')];
 
@@ -188,7 +187,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
     final List<Widget> cuerpo;
     if (app.docActivoMap == null) {
-      cuerpo = [_demoDashboard(context)];
+      cuerpo = [GgCard(child: EmptyState(
+        icon: Icons.insights_outlined,
+        title: 'Elige un documento analizado',
+        text: 'Este panel muestra los resultados y gráficos del documento activo. Sube uno o actívalo en Documentos.',
+        action: GgButton('Ir a Documentos', icon: Icons.upload_file, expand: true, onTap: () => app.go('docs')),
+      ))];
     } else if (!app.backendOk && data == null) {
       cuerpo = [const BackendAviso()];
     } else if (app.documentos.isEmpty) {
@@ -226,48 +230,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (app.docActivoMap != null)
         Padding(
           padding: const EdgeInsets.only(bottom: 10),
-          child: Text('Documento: ${nombreDoc(app.docActivoMap)}', style: TextStyle(fontSize: 12.5, color: c.text3)),
+          child: Text('Documento: ${nombreDoc(app.docActivoMap)}', style: TextStyle(fontSize: Fs.md, color: c.text3)),
         ),
       ...cuerpo,
     ]);
   }
 
   Widget _pestanasDashboard(BuildContext context) {
-    final c = context.c;
     const tabs = ['Resumen', 'Señales', 'Plan de acción', 'Comparar'];
     return Wrap(spacing: 8, runSpacing: 8, children: [
       for (var i = 0; i < tabs.length; i++) ChipBtn(tabs[i], on: _tab == i, onTap: () => setState(() => _tab = i)),
-    ]);
-  }
-
-  Widget _demoDashboard(BuildContext context) {
-    final c = context.c;
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      GgCard(child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Icon(Icons.insights_outlined, color: c.accentText), const SizedBox(width: 10),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Panel de análisis ejecutivo', style: TextStyle(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 4),
-          Text('Cuando selecciones un documento analizado, este panel mostrará sus resultados y gráficos. Puedes explorar la estructura desde ahora.', style: TextStyle(fontSize: 12.5, height: 1.4, color: c.text2)),
-        ])),
-      ])),
-      GridCols(cols: 2, children: const [
-        DemoDato(valor: '—', titulo: 'Preparación global', detalle: 'Se calcula con los agentes'),
-        DemoDato(valor: '—', titulo: 'Señales críticas y altas', detalle: 'Del documento analizado'),
-        DemoDato(valor: '—', titulo: 'Omisiones', detalle: 'Temas no cubiertos'),
-        DemoDato(valor: '—', titulo: 'Agentes con hallazgos', detalle: 'Resultados disponibles'),
-      ]),
-      GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const SecTitle('Gráficos del análisis'),
-        for (final x in [('Señales por gravedad', Icons.donut_large_outlined), ('Puntaje por área', Icons.bar_chart_outlined), ('Evolución entre documentos', Icons.show_chart_outlined)])
-          Padding(padding: const EdgeInsets.symmetric(vertical: 7), child: Row(children: [Icon(x.$2, color: c.accentText, size: 18), const SizedBox(width: 9), Expanded(child: Text(x.$1, style: TextStyle(color: c.text2))), Text('Sin datos', style: TextStyle(color: c.text3, fontSize: 11.5))])),
-        const SizedBox(height: 4),
-        Text('Los gráficos se completan con información de tus documentos, sin estimar cifras.', style: TextStyle(fontSize: 11.5, color: c.text3)),
-      ])),
-      GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const SecTitle('Prioridades para la sesión'),
-        Text('Las prioridades aparecerán al seleccionar un documento con análisis.', style: TextStyle(color: c.text2, fontSize: 12.5)),
-      ])),
     ]);
   }
 
@@ -281,9 +253,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const SecTitle('Preparación global'),
         Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Text(g?.toString() ?? '—', style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w600, letterSpacing: -2, height: 1)),
+          Text(g?.toString() ?? '—', style: const TextStyle(fontSize: Fs.giant, fontWeight: FontWeight.w600, letterSpacing: -2, height: 1)),
           const SizedBox(width: 4),
-          Padding(padding: const EdgeInsets.only(bottom: 6), child: Text('/100', style: TextStyle(fontSize: 15, color: c.text3))),
+          Padding(padding: const EdgeInsets.only(bottom: 6), child: Text('/100', style: TextStyle(fontSize: Fs.lg, color: c.text3))),
           const Spacer(),
           Flexible(child: Pill('${r['etiqueta']}', fg: bc, dot: true)),
         ]),
@@ -291,7 +263,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _barraPreparacion(context, g),
         const SizedBox(height: 10),
         Text('Promedio de ${r['agentes_con_info']} agentes con información relevante. Es el mismo cálculo del informe en PDF.',
-            style: TextStyle(fontSize: 12, color: c.text3)),
+            style: TextStyle(fontSize: Fs.sm, color: c.text3)),
       ]),
     );
   }
@@ -336,7 +308,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             for (final m in cortes)
               Positioned(
                 left: math.max(0.0, math.min(w - 22, w * m / 100 - (m == 0 ? 0 : (m == 100 ? 22 : 9)))),
-                child: Text('$m', style: TextStyle(fontSize: 10.5, color: c.text3)),
+                child: Text('$m', style: TextStyle(fontSize: Fs.xs, color: c.text3)),
               ),
           ]),
         ),
@@ -356,12 +328,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           const Expanded(child: SecTitle('Qué atender ahora', bottom: 0)),
-          InkWell(
-            onTap: _irASenales,
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: Text('Ver señales', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.accentText)),
-            ),
+          TextButton(
+            onPressed: _irASenales,
+            child: Text('Ver señales', style: TextStyle(fontSize: Fs.sm, fontWeight: FontWeight.w600, color: c.accentText)),
           ),
         ]),
         const SizedBox(height: 12),
@@ -370,7 +339,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             SevPill('${top[i]['severidad']}'),
             const SizedBox(width: 10),
-            Expanded(child: Text('${top[i]['titulo']}', style: const TextStyle(fontSize: 13, height: 1.35))),
+            Expanded(child: Text('${top[i]['titulo']}', style: const TextStyle(fontSize: Fs.md, height: 1.35))),
           ]),
         ],
       ]),
@@ -412,7 +381,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             padding: const EdgeInsets.symmetric(vertical: 6),
             child: Row(children: [
               SizedBox(width: 112, child: Text('${a['nombre']}', maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12.5, color: puntaje ? c.text : c.text3))),
+                  style: TextStyle(fontSize: Fs.md, color: puntaje ? c.text : c.text3))),
               Expanded(
                 child: puntaje
                     ? GgBar(value: (a['score'] as num) / 100, color: bandaColor(context, a['banda']), height: 8)
@@ -421,7 +390,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               SizedBox(
                 width: 62,
                 child: Text(puntaje ? '${a['score']}' : 'Sin datos', textAlign: TextAlign.right,
-                    style: TextStyle(fontSize: puntaje ? 13 : 11, fontWeight: puntaje ? FontWeight.w700 : FontWeight.w500,
+                    style: TextStyle(fontSize: puntaje ? Fs.md : Fs.xs, fontWeight: puntaje ? FontWeight.w700 : FontWeight.w500,
                         color: puntaje ? c.text : c.text3)),
               ),
             ]),
@@ -452,7 +421,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           const Expanded(child: SecTitle('Cobertura NCG 461', bottom: 0)),
-          Text('$f de $t temas', style: TextStyle(fontSize: 12, color: c.text2)),
+          Text('$f de $t temas', style: TextStyle(fontSize: Fs.sm, color: c.text2)),
         ]),
         const SizedBox(height: 10),
         ClipRRect(
@@ -467,7 +436,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        Text('Con evidencia $f · Débil $w · Sin evidencia $s', style: TextStyle(fontSize: 11.5, color: c.text3)),
+        Text('Con evidencia $f · Débil $w · Sin evidencia $s', style: TextStyle(fontSize: Fs.sm, color: c.text3)),
       ]),
     );
   }
@@ -486,8 +455,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           shape: const Border(),
           collapsedShape: const Border(),
           expandedCrossAxisAlignment: CrossAxisAlignment.start,
-          title: const Text('Más detalle', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-          subtitle: Text('Distribución por tramo y volumen detectado', style: TextStyle(fontSize: 11.5, color: c.text3)),
+          title: const Text('Más detalle', style: TextStyle(fontSize: Fs.body, fontWeight: FontWeight.w600)),
+          subtitle: Text('Distribución por tramo y volumen detectado', style: TextStyle(fontSize: Fs.sm, color: c.text3)),
           children: [
             GridCols(cols: 2, children: [
               KpiTile(value: '${r['omisiones']}', label: 'Omisiones detectadas', leading: Icon(Icons.checklist_outlined, size: 17, color: c.accentText)),
@@ -497,7 +466,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Padding(
                 padding: const EdgeInsets.only(top: 10),
                 child: MarkdownLite('${r['senales_transversales']} de las ${r['senales_total']} señales son **transversales** (Riesgos y Estrategia cruzan hechos que otros agentes ya reportaron, por lo que pueden repetir un tema).',
-                    size: 12.3, color: c.text3),
+                    size: Fs.sm, color: c.text3),
               ),
             const SizedBox(height: 12),
             _graficos(context, d),
@@ -518,19 +487,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
       (d['omisiones'] as List? ?? const []).length,
       math.max((d['preguntas'] as List? ?? const []).length, (d['recomendaciones'] as List? ?? const []).length),
     );
-    return GridCols(cols: 2, minItemWidth: 300, children: [
+    // En el celular los gráficos van uno bajo el otro, a todo el ancho.
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: 12, children: [
       GgCard(
         margin: EdgeInsets.zero,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const SecTitle('Alertas por gravedad'),
-          Text('$tot señales en el análisis', style: TextStyle(fontSize: 12, color: c.text3)),
+          Text('$tot señales en el análisis', style: TextStyle(fontSize: Fs.sm, color: c.text3)),
           const SizedBox(height: 10),
           for (final k in severidades)
             Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Row(children: [
-              SizedBox(width: 82, child: Text(sevLabel(k), style: TextStyle(fontSize: 12, color: c.text2))),
+              SizedBox(width: 82, child: Text(sevLabel(k), style: TextStyle(fontSize: Fs.sm, color: c.text2))),
               Expanded(child: GgBar(value: ((sen[k] as num?)?.toInt() ?? 0) / maxSen, color: sevColor(context, k), height: 10)),
               SizedBox(width: 30, child: Text('${sen[k] ?? 0}', textAlign: TextAlign.right,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
+                style: const TextStyle(fontSize: Fs.sm, fontWeight: FontWeight.w700))),
             ])),
         ]),
       ),
@@ -538,7 +508,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         margin: EdgeInsets.zero,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const SecTitle('Distribución de puntajes'),
-          Text('Agentes con información sustantiva por tramo', style: TextStyle(fontSize: 12, color: c.text3)),
+          Text('Agentes con información sustantiva por tramo', style: TextStyle(fontSize: Fs.sm, color: c.text3)),
           const SizedBox(height: 10),
           for (final tramo in [
             ('0–39', 0, 39, c.crit),
@@ -550,9 +520,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Builder(builder: (context) {
               final n = ags.where((a) => (a['score'] as num).toInt() >= tramo.$2 && (a['score'] as num).toInt() <= tramo.$3).length;
               return Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Row(children: [
-                SizedBox(width: 58, child: Text(tramo.$1, style: TextStyle(fontSize: 11.5, color: c.text2))),
+                SizedBox(width: 58, child: Text(tramo.$1, style: TextStyle(fontSize: Fs.sm, color: c.text2))),
                 Expanded(child: GgBar(value: n / math.max(1, ags.length), color: tramo.$4, height: 9)),
-                SizedBox(width: 25, child: Text('$n', textAlign: TextAlign.right, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
+                SizedBox(width: 25, child: Text('$n', textAlign: TextAlign.right, style: const TextStyle(fontSize: Fs.sm, fontWeight: FontWeight.w700))),
               ]));
             }),
         ]),
@@ -561,7 +531,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         margin: EdgeInsets.zero,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const SecTitle('Trabajo generado por los agentes'),
-          Text('Volumen detectado en el documento', style: TextStyle(fontSize: 12, color: c.text3)),
+          Text('Volumen detectado en el documento', style: TextStyle(fontSize: Fs.sm, color: c.text3)),
           const SizedBox(height: 10),
           for (final item in [
             ('Omisiones', (d['omisiones'] as List? ?? const []).length, c.accentText),
@@ -569,9 +539,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ('Recomendaciones', (d['recomendaciones'] as List? ?? const []).length, c.low),
           ])
             Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Row(children: [
-              SizedBox(width: 100, child: Text(item.$1, style: TextStyle(fontSize: 12, color: c.text2))),
+              SizedBox(width: 100, child: Text(item.$1, style: TextStyle(fontSize: Fs.sm, color: c.text2))),
               Expanded(child: GgBar(value: item.$2 / math.max(1, maxActividad), color: item.$3, height: 10)),
-              SizedBox(width: 30, child: Text('${item.$2}', textAlign: TextAlign.right, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
+              SizedBox(width: 30, child: Text('${item.$2}', textAlign: TextAlign.right, style: const TextStyle(fontSize: Fs.sm, fontWeight: FontWeight.w700))),
             ])),
         ]),
       ),
@@ -591,12 +561,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final maxTot = math.max(1, ags.fold<int>(0, (m, a) => math.max(m, tot(a))));
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const SizedBox(height: 18),
-      const Text('Semáforo por agente', style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700)),
+      const Text('Semáforo por agente', style: TextStyle(fontSize: Fs.reading, fontWeight: FontWeight.w700)),
       const SizedBox(height: 3),
       Text('Puntaje de cada agente y cuántas señales levantó, por severidad. Toca un agente para ver solo sus señales.',
-          style: TextStyle(fontSize: 12.3, color: c.text2)),
+          style: TextStyle(fontSize: Fs.sm, color: c.text2)),
       const SizedBox(height: 10),
-      Wrap(spacing: 6, children: [
+      Wrap(spacing: 8, children: [
         ChipBtn('Menor puntaje primero', on: orden == 'puntaje', onTap: () => setState(() => orden = 'puntaje')),
         ChipBtn('Orden de análisis', on: orden == 'ola', onTap: () => setState(() => orden = 'ola')),
       ]),
@@ -620,10 +590,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Row(children: [
                     Expanded(child: Wrap(spacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                      Text('${ags[i]['nombre']}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
+                      Text('${ags[i]['nombre']}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.body)),
                       if (ags[i]['transversal'] == true) Pill('transversal', fg: c.text3, bg: c.surface3),
                     ])),
-                    Text('Omis. ${ags[i]['n_omisiones']} · Preg. ${ags[i]['n_preguntas']}', style: TextStyle(fontSize: 11, color: c.text3)),
+                    Text('Omis. ${ags[i]['n_omisiones']} · Preg. ${ags[i]['n_preguntas']}', style: TextStyle(fontSize: Fs.xs, color: c.text3)),
                   ]),
                   const SizedBox(height: 6),
                   Row(children: [
@@ -634,11 +604,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     else
                       const Spacer(),
                     const SizedBox(width: 8),
-                    SizedBox(width: 130, child: Text('${ags[i]['etiqueta']}', style: TextStyle(fontSize: 11.5, color: c.text2))),
+                    SizedBox(width: 130, child: Text('${ags[i]['etiqueta']}', style: TextStyle(fontSize: Fs.sm, color: c.text2))),
                   ]),
                   const SizedBox(height: 6),
                   if (tot(ags[i]) == 0)
-                    Text('Sin señales', style: TextStyle(fontSize: 11.5, color: c.text3))
+                    Text('Sin señales', style: TextStyle(fontSize: Fs.sm, color: c.text3))
                   else
                     Row(children: [
                       Flexible(
@@ -664,7 +634,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         severidades.where((k) => ((ags[i]['senales'][k] as num?) ?? 0) > 0)
                             .map((k) => '${ags[i]['senales'][k]} ${(ags[i]['senales'][k] == 1 ? sevLabel(k) : sevPlural(k)).toLowerCase()}')
                             .join(' · '),
-                        style: TextStyle(fontSize: 11.5, color: c.text2),
+                        style: TextStyle(fontSize: Fs.sm, color: c.text2),
                       ),
                     ),
                 ]),
@@ -689,9 +659,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ];
     return Column(key: _kSenales, crossAxisAlignment: CrossAxisAlignment.start, children: [
       const SizedBox(height: 18),
-      const Text('Señales', style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700)),
+      const Text('Señales', style: TextStyle(fontSize: Fs.reading, fontWeight: FontWeight.w700)),
       const SizedBox(height: 3),
-      Text('Ordenadas por severidad; a igual severidad, primero las de los agentes especialistas.', style: TextStyle(fontSize: 12.3, color: c.text2)),
+      Text('Ordenadas por severidad; a igual severidad, primero las de los agentes especialistas.', style: TextStyle(fontSize: Fs.sm, color: c.text2)),
       const SizedBox(height: 10),
       Wrap(spacing: 6, runSpacing: 6, children: [
         ChipBtn('Todas (${todas.length})', on: filtroSev == null, onTap: () => setState(() => filtroSev = null)),
@@ -708,7 +678,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         dense: true,
         value: ocultarTransv,
         onChanged: (v) => setState(() => ocultarTransv = v),
-        title: Text('Ocultar transversales', style: TextStyle(fontSize: 13, color: c.text2)),
+        title: Text('Ocultar transversales', style: TextStyle(fontSize: Fs.md, color: c.text2)),
       ),
       GgCard(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
@@ -722,11 +692,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 SevPill('${vis[i]['severidad']}'),
                 const SizedBox(width: 10),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('${vis[i]['titulo']}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                  Text('${vis[i]['titulo']}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.md)),
                   if ('${vis[i]['descripcion'] ?? ''}'.isNotEmpty)
-                    Text('${vis[i]['descripcion']}', style: TextStyle(fontSize: 12.5, color: c.text2)),
+                    Text('${vis[i]['descripcion']}', style: TextStyle(fontSize: Fs.md, color: c.text2)),
                   const SizedBox(height: 4),
-                  Text('${vis[i]['agente_nombre']}${vis[i]['transversal'] == true ? ' · transversal' : ''}', style: TextStyle(fontSize: 11.5, color: c.text3)),
+                  Text('${vis[i]['agente_nombre']}${vis[i]['transversal'] == true ? ' · transversal' : ''}', style: TextStyle(fontSize: Fs.sm, color: c.text3)),
                 ])),
               ]),
             ),
@@ -751,10 +721,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final agOps = <String, String>{for (final r in recs) '${r['agente']}': '${r['agente_nombre']}'};
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const SizedBox(height: 18),
-      const Text('Plan de acción', style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700)),
+      const Text('Plan de acción', style: TextStyle(fontSize: Fs.reading, fontWeight: FontWeight.w700)),
       const SizedBox(height: 3),
       Text('Las recomendaciones de los agentes convertidas en tareas. Asigna responsable y fecha, y marca el avance. Se guarda en este teléfono.',
-          style: TextStyle(fontSize: 12.3, color: c.text2)),
+          style: TextStyle(fontSize: Fs.sm, color: c.text2)),
       const SizedBox(height: 10),
       GgCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -802,10 +772,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Expanded(child: _modo(context, 'Competencia', _competencia, () => _cambiarModo(true))),
       ]),
       const SizedBox(height: 14),
-      Text(_competencia ? 'Comparación de competencia' : 'Comparar con otro documento', style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700)),
+      Text(_competencia ? 'Comparación de competencia' : 'Comparar con otro documento', style: const TextStyle(fontSize: Fs.reading, fontWeight: FontWeight.w700)),
       const SizedBox(height: 3),
       if (_competencia) ...[
-        Text('Selecciona un documento cargado que represente a la empresa competidora. La comparación usa solo documentos de tu espacio; no consulta fuentes externas.', style: TextStyle(fontSize: 12.3, color: c.text2)),
+        Text('Selecciona un documento cargado que represente a la empresa competidora. La comparación usa solo documentos de tu espacio; no consulta fuentes externas.', style: TextStyle(fontSize: Fs.sm, color: c.text2)),
         const SizedBox(height: 8),
         TextField(controller: _competidor, decoration: const InputDecoration(labelText: 'Nombre de la empresa competidora', prefixIcon: Icon(Icons.business_outlined))),
         const SizedBox(height: 8),
@@ -813,11 +783,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ];
     if (otros.isEmpty) {
       hijos.add(Text('Cuando tengas un segundo documento analizado (por ejemplo, el trimestre anterior) podrás ver aquí cómo cambió cada agente.',
-          style: TextStyle(fontSize: 12.3, color: c.text2)));
+          style: TextStyle(fontSize: Fs.sm, color: c.text2)));
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: hijos);
     }
     hijos.addAll([
-      Text(_competencia ? 'Elige el documento de la empresa competidora; se compara con el documento activo. Los resultados son referenciales y dependen del contenido cargado.' : 'Elige el documento anterior; se compara contra el que estás viendo.', style: TextStyle(fontSize: 12.3, color: c.text2)),
+      Text(_competencia ? 'Elige el documento de la empresa competidora; se compara con el documento activo. Los resultados son referenciales y dependen del contenido cargado.' : 'Elige el documento anterior; se compara contra el que estás viendo.', style: TextStyle(fontSize: Fs.sm, color: c.text2)),
       const SizedBox(height: 10),
       GgSelect<String>(label: _competencia ? 'Documento de la empresa competidora' : 'Documento anterior', value: cmpId, items: [('', 'Elegir…'), for (final o in otros) ('${o['id']}', nombreDoc(o))],
           onChanged: _comparar),
@@ -843,14 +813,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   leading: SevPill('${s['severidad']}'),
-                  title: Text('${s['titulo']}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                  title: Text('${s['titulo']}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: Fs.md)),
                   subtitle: Text('${s['agente_nombre']}${s['severidad_anterior'] != null && s['severidad_anterior'] != s['severidad'] ? ' · antes ${s['severidad_anterior']}' : ''}',
-                      style: TextStyle(fontSize: 11.5, color: c.text3)),
+                      style: TextStyle(fontSize: Fs.sm, color: c.text3)),
                 ),
             ]);
       hijos.add(GgCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (_competencia) Padding(padding: const EdgeInsets.only(bottom: 10), child: Text('Comparación basada en el documento cargado “${nombreDoc(x['a'] as Map?)}” y el documento activo. No representa investigación de mercado externa.', style: TextStyle(fontSize: 11.5, color: c.text3))),
+          if (_competencia) Padding(padding: const EdgeInsets.only(bottom: 10), child: Text('Comparación basada en el documento cargado “${nombreDoc(x['a'] as Map?)}” y el documento activo. No representa investigación de mercado externa.', style: TextStyle(fontSize: Fs.sm, color: c.text3))),
           Align(
             alignment: Alignment.centerRight,
             child: GgButton('Descargar comparación (PDF)', icon: Icons.picture_as_pdf_outlined, small: true, loading: cmpPdfCargando,
@@ -860,7 +830,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 10),
           Wrap(spacing: 18, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
             _bloqueCmp(context, _competencia ? (_competidor.text.trim().isEmpty ? 'Competidor' : _competidor.text.trim()) : 'Antes', g['a'], nombreDoc(x['a'] as Map?)),
-            Text('→', style: TextStyle(fontSize: 24, color: c.text3)),
+            Text('→', style: TextStyle(fontSize: Fs.display, color: c.text3)),
             _bloqueCmp(context, 'Ahora', g['b'], nombreDoc(x['b'] as Map?)),
             delta(g['delta'], size: 20),
           ]),
@@ -871,14 +841,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               decoration: BoxDecoration(border: Border(bottom: BorderSide(color: c.border))),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [
-                  Expanded(child: Text('${ag['nombre']}${ag['transversal'] == true ? ' (transversal)' : ''}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13))),
-                  Text('${ag['score_a'] ?? '—'} → ${ag['score_b'] ?? '—'}  ', style: TextStyle(fontSize: 12, color: c.text2)),
+                  Expanded(child: Text('${ag['nombre']}${ag['transversal'] == true ? ' (transversal)' : ''}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.md))),
+                  Text('${ag['score_a'] ?? '—'} → ${ag['score_b'] ?? '—'}  ', style: TextStyle(fontSize: Fs.sm, color: c.text2)),
                   delta(ag['delta']),
                 ]),
                 const SizedBox(height: 6),
                 _Dumbbell(a: (ag['score_a'] as num?)?.toDouble(), b: (ag['score_b'] as num?)?.toDouble()),
                 const SizedBox(height: 3),
-                Text('Señales: ${ag['senales_a']} → ${ag['senales_b']}', style: TextStyle(fontSize: 11.5, color: c.text3)),
+                Text('Señales: ${ag['senales_a']} → ${ag['senales_b']}', style: TextStyle(fontSize: Fs.sm, color: c.text3)),
               ]),
             ),
           const SizedBox(height: 8),
@@ -888,7 +858,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [listaS(x['resueltas'] as List, 'No hay señales resueltas.')]),
           ExpansionTile(tilePadding: EdgeInsets.zero, title: Text('Señales que persisten (${(x['persisten'] as List).length})'),
               children: [listaS(x['persisten'] as List, 'Ninguna señal persiste.')]),
-          Text('${x['nota'] ?? ''}', style: TextStyle(fontSize: 12, color: c.text3)),
+          Text('${x['nota'] ?? ''}', style: TextStyle(fontSize: Fs.sm, color: c.text3)),
         ]),
       ));
     }
@@ -914,7 +884,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 11),
           child: Text(texto, textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: activo ? c.accentText : c.text2)),
+              style: TextStyle(fontSize: Fs.md, fontWeight: FontWeight.w600, color: activo ? c.accentText : c.text2)),
         ),
       ),
     );
@@ -922,9 +892,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _bloqueCmp(BuildContext context, String t, Object? v, String nombre) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         SecTitle(t, bottom: 2),
-        Text('${v ?? '—'}', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w600)),
+        Text('${v ?? '—'}', style: const TextStyle(fontSize: Fs.hero, fontWeight: FontWeight.w600)),
         ConstrainedBox(constraints: const BoxConstraints(maxWidth: 150),
-            child: Text(nombre, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, color: context.c.text3))),
+            child: Text(nombre, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: Fs.sm, color: context.c.text3))),
       ]);
 }
 
@@ -993,9 +963,9 @@ class _TareaState extends State<_Tarea> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(color: c.surface2, borderRadius: BorderRadius.circular(10), border: Border.all(color: c.border)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('${widget.r['agente_nombre']}', style: TextStyle(fontSize: 11.5, color: c.accentText, fontWeight: FontWeight.w700)),
+        Text('${widget.r['agente_nombre']}', style: TextStyle(fontSize: Fs.sm, color: c.accentText, fontWeight: FontWeight.w700)),
         const SizedBox(height: 3),
-        Text('${widget.r['texto']}', style: TextStyle(fontSize: 13, decoration: hecho ? TextDecoration.lineThrough : null, color: hecho ? c.text3 : c.text)),
+        Text('${widget.r['texto']}', style: TextStyle(fontSize: Fs.md, decoration: hecho ? TextDecoration.lineThrough : null, color: hecho ? c.text3 : c.text)),
         const SizedBox(height: 10),
         TextFormField(
           controller: _responsable,
@@ -1007,7 +977,7 @@ class _TareaState extends State<_Tarea> {
           icon: Icons.auto_awesome, small: true, ghost: true, loading: _sugiriendo,
           onTap: _sugiriendo ? null : _pedirSugerencia),
         if (_dirty) Padding(padding: const EdgeInsets.only(top: 5), child: Text(
-          'Revisa el responsable y guarda los cambios.', style: TextStyle(fontSize: 11, color: c.text3))),
+          'Revisa el responsable y guarda los cambios.', style: TextStyle(fontSize: Fs.xs, color: c.text3))),
         const SizedBox(height: 8),
         Row(children: [
           Expanded(
@@ -1024,7 +994,7 @@ class _TareaState extends State<_Tarea> {
                 });
               },
               icon: const Icon(Icons.event, size: 16),
-              label: Text(_fecha.isEmpty ? 'Fecha límite' : _fecha, style: const TextStyle(fontSize: 12.5)),
+              label: Text(_fecha.isEmpty ? 'Fecha límite' : _fecha, style: const TextStyle(fontSize: Fs.md)),
             ),
           ),
           const SizedBox(width: 8),
@@ -1041,7 +1011,7 @@ class _TareaState extends State<_Tarea> {
         if (_guardado) Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [
           Icon(Icons.check_circle_outline, size: 16, color: c.low),
           const SizedBox(width: 6),
-          Text('Guardado en este teléfono', style: TextStyle(fontSize: 11.5, color: c.low)),
+          Text('Guardado en este teléfono', style: TextStyle(fontSize: Fs.sm, color: c.low)),
         ])),
       ]),
     );
@@ -1054,7 +1024,7 @@ class _Dumbbell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.c;
-    if (a == null && b == null) return Text('Sin datos', style: TextStyle(fontSize: 11.5, color: c.text3));
+    if (a == null && b == null) return Text('Sin datos', style: TextStyle(fontSize: Fs.sm, color: c.text3));
     return LayoutBuilder(builder: (context, box) {
       final w = box.maxWidth;
       double x(double v) => (w - 14) * v / 100;

@@ -10,7 +10,6 @@ import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../state/trabajo_memoria.dart';
 import '../widgets/common.dart';
-import '../widgets/demo_offline.dart';
 import 'memoria_extra.dart';
 
 const estadosCap = [('pend', 'Pendiente'), ('curso', 'En redacción'), ('listo', 'Listo')];
@@ -158,10 +157,10 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
       ),
       GgCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('¿Qué quieres hacer?', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: context.c.text)),
+          Text('¿Qué quieres hacer?', style: TextStyle(fontSize: Fs.xl, fontWeight: FontWeight.w700, color: context.c.text)),
           const SizedBox(height: 5),
           Text('La memoria reúne la gestión, los resultados y la información de la empresa durante el año. DIRECTA te ayuda a ordenar la evidencia y preparar un borrador revisable.',
-              style: TextStyle(fontSize: 13, height: 1.45, color: context.c.text2)),
+              style: TextStyle(fontSize: Fs.md, height: 1.45, color: context.c.text2)),
           const SizedBox(height: 14),
           Container(
             padding: const EdgeInsets.all(4),
@@ -217,7 +216,7 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 10.5, height: 1.15, fontWeight: FontWeight.w700,
+                  style: TextStyle(fontSize: Fs.xs, height: 1.15, fontWeight: FontWeight.w700,
                       color: activa ? c.accentText : c.text2),
                 ),
               ]),
@@ -243,7 +242,7 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
         controlAffinity: ListTileControlAffinity.leading,
         value: soloMarcados,
         onChanged: (v) => setState(() => soloMarcados = v ?? true),
-        title: Text('En el PDF, solo los temas que marqué como revisados', style: TextStyle(fontSize: 13, color: c.text2)),
+        title: Text('En el PDF, solo los temas que marqué como revisados', style: TextStyle(fontSize: Fs.md, color: c.text2)),
       ),
       GgSelect<String>(
             key: ValueKey('fuente-$fuente-Busca'),
@@ -259,7 +258,7 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
           const SizedBox(width: 7),
           Expanded(child: Text(
             'La casilla marca que revisaste el tema. La evidencia se calcula aparte a partir de los documentos.',
-            style: TextStyle(fontSize: 11.5, height: 1.35, color: c.text3),
+            style: TextStyle(fontSize: Fs.sm, height: 1.35, color: c.text3),
           )),
         ]),
       ),
@@ -267,14 +266,12 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
     ];
 
     if (app.documentos.isEmpty) {
-      hijos.add(const DemoAviso(text: 'Ejemplo para revisar la estructura de capítulos y su avance. La cobertura real requiere documentos y conexión al servidor.'));
-      hijos.add(GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const SecTitle('Avance ilustrativo · NCG 461'),
-        const DemoFila(titulo: '1 · Índice de contenidos', detalle: '2 de 2 temas con evidencia · muestra', icon: Icons.check_circle_outline),
-        const DemoFila(titulo: '2 · Perfil de la entidad', detalle: '3 de 5 temas con evidencia · muestra', icon: Icons.timelapse),
-        const DemoFila(titulo: '3 · Gobierno corporativo', detalle: 'Pendiente de revisión · muestra', icon: Icons.radio_button_unchecked),
-        GgButton('Ir a Documentos', icon: Icons.upload_file, ghost: true, onTap: () => app.go('docs')),
-      ])));
+      hijos.add(GgCard(child: EmptyState(
+        icon: Icons.menu_book_outlined,
+        title: 'Aún no hay documentos',
+        text: 'La cobertura de la memoria (NCG 461) se calcula a partir de tus documentos. Sube uno para empezar.',
+        action: GgButton('Ir a Documentos', icon: Icons.upload_file, expand: true, onTap: () => app.go('docs')),
+      )));
     } else if (!app.backendOk && data == null) {
       hijos.add(const BackendAviso());
     } else if (cargando && data == null) {
@@ -303,7 +300,7 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             const Expanded(child: SecTitle('Cobertura NCG 461', bottom: 0)),
-            Text('$f de $t temas', style: TextStyle(fontSize: 12, color: c.text2)),
+            Text('$f de $t temas', style: TextStyle(fontSize: Fs.sm, color: c.text2)),
           ]),
           const SizedBox(height: 10),
           ClipRRect(
@@ -319,9 +316,9 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          Text('Con evidencia $f · Débil $w · Sin evidencia $sn', style: TextStyle(fontSize: 11.5, color: c.text3)),
+          Text('Con evidencia $f · Débil $w · Sin evidencia $sn', style: TextStyle(fontSize: Fs.sm, color: c.text3)),
           const SizedBox(height: 4),
-          Text('$listos de ${caps.length} capítulos marcados como listos', style: TextStyle(fontSize: 11.5, color: c.text3)),
+          Text('$listos de ${caps.length} capítulos marcados como listos', style: TextStyle(fontSize: Fs.sm, color: c.text3)),
         ]),
       ),
       const SecTitle('Capítulos'),
@@ -333,7 +330,7 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
       ),
       GgCard(
         color: c.surface2,
-        child: MarkdownLite('**Cómo leer esto.** ${d['aviso']} ${d['referencia']}', size: 12.3, color: c.text2),
+        child: MarkdownLite('**Cómo leer esto.** ${d['aviso']} ${d['referencia']}', size: Fs.sm, color: c.text2),
       ),
       KeyedSubtree(key: _kDetalle, child: _detalle(context, actual, caps.length, (d['fuentes'] as List).length == 1)),
     ]);
@@ -365,17 +362,17 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
             width: 26, height: 26, alignment: Alignment.center,
             decoration: BoxDecoration(color: sel ? Brand.accent : c.surface3, borderRadius: BorderRadius.circular(8)),
             child: Text('${x['numero']}',
-                style: AppTheme.mono(context, size: 12, weight: FontWeight.w700, color: sel ? Brand.onAccent : c.text2)),
+                style: AppTheme.mono(context, size: Fs.sm, weight: FontWeight.w700, color: sel ? Brand.onAccent : c.text2)),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('${x['titulo']}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
+              Text('${x['titulo']}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: Fs.body)),
               const SizedBox(height: 6),
               Row(children: [
                 Expanded(child: GgBar(value: pct, color: pct >= 0.8 ? c.low : (pct >= 0.4 ? c.med : c.crit), height: 6)),
                 const SizedBox(width: 8),
-                Text('$con/$total', style: TextStyle(fontSize: 11, color: c.text3)),
+                Text('$con/$total', style: TextStyle(fontSize: Fs.xs, color: c.text3)),
               ]),
             ]),
           ),
@@ -411,14 +408,14 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
       GgCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           SecTitle('Capítulo ${x['numero']} de $total', bottom: 2),
-          Text('${x['titulo']}', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+          Text('${x['titulo']}', style: const TextStyle(fontSize: Fs.xl, fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
           GgSelect<String>(label: 'Estado del capítulo', value: '${m['estado']}', items: estadosCap, onChanged: (v) {
             setState(() => m['estado'] = v);
             _save();
           }),
           const SizedBox(height: 10),
-          Text('${x['descripcion']}', style: TextStyle(fontSize: 12.8, color: c.text2)),
+          Text('${x['descripcion']}', style: TextStyle(fontSize: Fs.md, color: c.text2)),
           const SizedBox(height: 12),
           const SecTitle('Temas que pide la norma'),
           Padding(
@@ -428,7 +425,7 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
               const SizedBox(width: 7),
               Expanded(child: Text(
                 'Marca cada casilla cuando hayas revisado ese tema. El nivel de evidencia se muestra por separado.',
-                style: TextStyle(fontSize: 11.5, height: 1.35, color: c.text3),
+                style: TextStyle(fontSize: Fs.sm, height: 1.35, color: c.text3),
               )),
             ]),
           ),
@@ -452,19 +449,19 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
                 const SizedBox(height: 4),
                 if ((a['senales'] as List).isEmpty)
                   Text(a['analizado'] == true ? 'Sin señales para este tema.' : 'Este agente no tiene análisis guardado para los documentos elegidos.',
-                      style: TextStyle(fontSize: 12.3, color: c.text3)),
+                      style: TextStyle(fontSize: Fs.sm, color: c.text3)),
                 for (final sg in (a['senales'] as List).take(6))
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
                     child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       SevPill('${sg['severidad']}'),
                       const SizedBox(width: 8),
-                      Expanded(child: Text('${sg['titulo']}${unico ? '' : ' · ${sg['doc']}'}', style: const TextStyle(fontSize: 12.5))),
+                      Expanded(child: Text('${sg['titulo']}${unico ? '' : ' · ${sg['doc']}'}', style: const TextStyle(fontSize: Fs.md))),
                     ]),
                   ),
                 if ((a['senales'] as List).length > 6)
                   Padding(padding: const EdgeInsets.only(top: 4),
-                      child: Text('… y ${(a['senales'] as List).length - 6} más (ver el Dashboard)', style: TextStyle(fontSize: 12, color: c.text3))),
+                      child: Text('… y ${(a['senales'] as List).length - 6} más (ver el Dashboard)', style: TextStyle(fontSize: Fs.sm, color: c.text3))),
               ]),
             ),
         ]),
@@ -474,7 +471,7 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
           const SecTitle('Notas de redacción'),
           Wrap(spacing: 8, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
             GgButton('Sugerir borrador con IA', icon: Icons.auto_awesome, ghost: true, small: true, loading: sugiriendo, onTap: _sugerir),
-            Text(sugMsg, style: TextStyle(fontSize: 12, color: c.text3)),
+            Text(sugMsg, style: TextStyle(fontSize: Fs.sm, color: c.text3)),
           ]),
           const SizedBox(height: 8),
           GgSelect<String>(
@@ -492,18 +489,17 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 const SecTitle('Borrador sugerido · revísalo antes de usarlo'),
                 for (final p in '${s['texto']}'.split('\n\n'))
-                  Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(p, style: const TextStyle(fontSize: 13, height: 1.5))),
+                  Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(p, style: AppTheme.lectura(context))),
                 if (s['verificacion'] is Map) _revisionCifras(context, s),
                 if ((s['pendientes'] as List? ?? const []).isNotEmpty) ...[
                   const SecTitle('Por completar', bottom: 4),
                   for (final p in s['pendientes'] as List)
-                    Text('• ${p['dato']}${'${p['quien'] ?? ''}'.isNotEmpty ? ' — ${p['quien']}' : ''}', style: const TextStyle(fontSize: 12.5)),
+                    Text('• ${p['dato']}${'${p['quien'] ?? ''}'.isNotEmpty ? ' — ${p['quien']}' : ''}', style: const TextStyle(fontSize: Fs.md)),
                 ],
                 const SizedBox(height: 10),
-                Wrap(spacing: 8, children: [
-                  GgButton('Usar en mis notas', small: true, onTap: _usarSug),
-                  GgButton('Descartar', ghost: true, small: true, onTap: () => setState(() => sug.remove(id))),
-                ]),
+                GgButton('Usar en mis notas', expand: true, onTap: _usarSug),
+                const SizedBox(height: 8),
+                GgButton('Descartar', ghost: true, expand: true, onTap: () => setState(() => sug.remove(id))),
               ]),
             ),
           const SizedBox(height: 10),
@@ -511,6 +507,9 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
             controller: _notas,
             minLines: 6,
             maxLines: 14,
+            keyboardType: TextInputType.multiline,
+            textCapitalization: TextCapitalization.sentences,
+            style: AppTheme.lectura(context),
             decoration: const InputDecoration(hintText: 'Escribe aquí el borrador, pendientes o a quién pedirle cada dato. Se guarda en este teléfono.'),
             onChanged: (v) {
               m['notas'] = v;
@@ -552,7 +551,7 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
             padding: const EdgeInsets.only(top: 10),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                Text('${t['nombre']}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                Text('${t['nombre']}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: Fs.md)),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
@@ -564,7 +563,7 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
                         size: 12, color: rev['${t['id']}'] == true ? c.low : c.text3),
                     const SizedBox(width: 4),
                     Text(rev['${t['id']}'] == true ? 'Revisado por mí' : 'Sin revisar',
-                        style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600,
+                        style: TextStyle(fontSize: Fs.xs, fontWeight: FontWeight.w600,
                             color: rev['${t['id']}'] == true ? c.low : c.text3)),
                   ]),
                 ),
@@ -574,7 +573,7 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     Icon(ic, size: 12, color: col),
                     const SizedBox(width: 4),
-                    Text(txt, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: col)),
+                    Text(txt, style: TextStyle(fontSize: Fs.xs, fontWeight: FontWeight.w700, color: col)),
                   ]),
                 ),
               ]),
@@ -591,13 +590,13 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
                   child: ExpansionTile(
                     tilePadding: EdgeInsets.zero,
                     dense: true,
-                    title: Text('Ver fragmento', style: TextStyle(fontSize: 12.3, color: c.text3)),
+                    title: Text('Ver fragmento', style: TextStyle(fontSize: Fs.sm, color: c.text3)),
                     children: [
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(color: c.surface2, border: Border(left: BorderSide(color: Brand.accent, width: 3))),
-                        child: Text('${fr['texto']}\n${fr['doc']} · pág. ${fr['pagina'] ?? '?'}', style: TextStyle(fontSize: 12.3, color: c.text2)),
+                        child: Text('${fr['texto']}\n${fr['doc']} · pág. ${fr['pagina'] ?? '?'}', style: TextStyle(fontSize: Fs.sm, color: c.text2)),
                       ),
                     ],
                   ),
@@ -621,13 +620,13 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
         Row(children: [
           Icon(estado == 'cifras_ok' ? Icons.verified_outlined : Icons.rule, size: 15, color: col),
           const SizedBox(width: 5),
-          Expanded(child: Text('${v['etiqueta']} · ${v['resumen']}', style: TextStyle(fontSize: 12, color: col))),
+          Expanded(child: Text('${v['etiqueta']} · ${v['resumen']}', style: TextStyle(fontSize: Fs.sm, color: col))),
         ]),
         for (final o in otros)
           Text('• «${o['cifra']}» solo aparece en ${o['documento'] ?? 'un documento anterior'} (pág. ${o['pagina'] ?? '?'}).',
-              style: TextStyle(fontSize: 11.8, color: c.med)),
-        for (final a in (s['alertas'] as List? ?? const [])) Text('• $a', style: TextStyle(fontSize: 11.8, color: c.med)),
-        if (s['tono'] is Map) Text('Escrito con el perfil de tono v${(s['tono'] as Map)['version']}.', style: TextStyle(fontSize: 11.5, color: c.text3)),
+              style: TextStyle(fontSize: Fs.sm, color: c.med)),
+        for (final a in (s['alertas'] as List? ?? const [])) Text('• $a', style: TextStyle(fontSize: Fs.sm, color: c.med)),
+        if (s['tono'] is Map) Text('Escrito con el perfil de tono v${(s['tono'] as Map)['version']}.', style: TextStyle(fontSize: Fs.sm, color: c.text3)),
       ]),
     );
   }
@@ -635,6 +634,6 @@ class _MemoriaScreenState extends State<MemoriaScreen> {
   Widget _pg(BuildContext context, String t) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), border: Border.all(color: context.c.border2)),
-        child: Text(t, style: AppTheme.mono(context, size: 11, color: context.c.text2)),
+        child: Text(t, style: AppTheme.mono(context, size: Fs.xs, color: context.c.text2)),
       );
 }

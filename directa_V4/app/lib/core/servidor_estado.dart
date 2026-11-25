@@ -4,6 +4,9 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+/// Mensaje único cuando no hay conexión (login y avisos dentro de la app).
+const mensajeSinConexion = 'No se pudo conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.';
+
 enum EstadoServidor { desconocido, despertando, enLinea, sinConexion }
 
 /// Estado del servidor (Render). El plan gratuito lo duerme tras un rato sin uso y tarda cerca de
