@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -9,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:directa_gg_app/core/api.dart';
+import 'package:directa_gg_app/core/bloqueo.dart';
 import 'package:directa_gg_app/core/sev.dart';
 import 'package:directa_gg_app/core/store.dart';
 import 'package:directa_gg_app/core/theme.dart';
@@ -104,6 +106,49 @@ void main() {
   test('si el servidor responde 401 la app pide volver a entrar', () async {
     final api = Api('http://x', client: MockClient((_) async => http.Response('{"ok":false}', 401)));
     expect(() => api.getJson('/api/documentos'), throwsA(predicate((e) => '$e'.contains('vuelve a entrar'))));
+  });
+
+  group('PIN en almacenamiento seguro', () {
+    setUp(() {
+      FlutterSecureStorage.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({});
+    });
+
+    test('se guarda como hash, se verifica y cuenta los errores', () async {
+      await Bloqueo.definirPin('u1', '4821');
+      expect(await Bloqueo.tienePin('u1'), isTrue);
+      expect(await Bloqueo.modo('u1'), ModoBloqueo.pin);
+      expect(await Bloqueo.verificarPin('u1', '0000'), isFalse);
+      expect(await Bloqueo.intentosRestantes('u1'), Bloqueo.maxIntentos - 1);
+      expect(await Bloqueo.verificarPin('u1', '4821'), isTrue);
+      expect(await Bloqueo.intentosRestantes('u1'), Bloqueo.maxIntentos);
+      // El PIN en claro no queda guardado en ningún lado.
+      final todo = await const FlutterSecureStorage().readAll();
+      expect(todo.values.any((v) => v.contains('4821')), isFalse);
+      // Tampoco queda nada en SharedPreferences.
+      expect((await SharedPreferences.getInstance()).getKeys().where((k) => k.contains('bloqueo')), isEmpty);
+    });
+
+    test('es por usuario y quitar borra todo', () async {
+      await Bloqueo.definirPin('u1', '1111');
+      expect(await Bloqueo.tienePin('u2'), isFalse);
+      await Bloqueo.quitar('u1');
+      expect(await Bloqueo.tienePin('u1'), isFalse);
+      expect(await Bloqueo.modo('u1'), ModoBloqueo.ninguno);
+    });
+
+    test('pasa a almacenamiento seguro el PIN que dejó la versión anterior', () async {
+      // Una instalación vieja: PIN, sal y modo en SharedPreferences.
+      SharedPreferences.setMockInitialValues({
+        'directa.bloqueo.u9.pin': 'x',
+        'directa.bloqueo.u9.sal': 's',
+        'directa.bloqueo.u9.modo': 'huella',
+      });
+      expect(await Bloqueo.modo('u9'), ModoBloqueo.huella);
+      final p = await SharedPreferences.getInstance();
+      expect(p.getKeys().where((k) => k.contains('bloqueo')), isEmpty);
+      expect(await const FlutterSecureStorage().read(key: 'directa.bloqueo.u9.pin'), 'x');
+    });
   });
 
   test('las 14 rutas de preguntas guía tienen 6 preguntas en tres niveles', () {

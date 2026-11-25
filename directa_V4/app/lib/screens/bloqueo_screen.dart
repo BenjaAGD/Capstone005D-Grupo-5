@@ -150,8 +150,15 @@ class _PantallaBloqueoState extends State<PantallaBloqueo> {
     }
     final quedan = await Bloqueo.intentosRestantes(widget.uid);
     if (quedan <= 0) {
-      await Bloqueo.quitar(widget.uid);
-      await _salir();
+      // Primero se cierra la sesión; el PIN solo se borra cuando ya no hay sesión. Si el cierre falla
+      // (por ejemplo sin internet), el PIN se conserva y la app sigue bloqueada: nunca queda abierta.
+      if (await _salir()) await Bloqueo.quitar(widget.uid);
+      if (mounted) {
+        setState(() {
+          _pin = '';
+          _error = 'Demasiados intentos. Cierra la sesión e inicia de nuevo con tu contraseña.';
+        });
+      }
       return;
     }
     HapticFeedback.heavyImpact();
@@ -164,10 +171,14 @@ class _PantallaBloqueoState extends State<PantallaBloqueo> {
   }
 
   /// Cierra la sesión: para volver hay que entrar con correo y contraseña.
-  Future<void> _salir() async {
+  /// Devuelve true si ya no queda sesión guardada en el celular.
+  Future<bool> _salir() async {
+    final auth = Supabase.instance.client.auth;
     try {
-      await Supabase.instance.client.auth.signOut();
+      // scope local: borra la sesión del celular sin depender de la red.
+      await auth.signOut(scope: SignOutScope.local);
     } catch (_) {}
+    return auth.currentSession == null;
   }
 
   @override

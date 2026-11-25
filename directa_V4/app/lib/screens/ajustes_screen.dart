@@ -407,9 +407,10 @@ class _AjustesScreenState extends State<AjustesScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(Icons.verified_rounded, size: 14, color: Color(0xFF2E9E5B)),
+                    Icon(Icons.check_circle_outline, size: 14, color: Color(0xFF2E9E5B)),
                     SizedBox(width: 4),
-                    Text('Verificado', style: TextStyle(fontSize: Fs.sm, fontWeight: FontWeight.w700, color: Color(0xFF2E9E5B))),
+                    // Solo significa que el dígito verificador del RUT cuadra; no prueba que sea de la persona.
+                    Text('RUT válido', style: TextStyle(fontSize: Fs.sm, fontWeight: FontWeight.w700, color: Color(0xFF2E9E5B))),
                   ]),
                 ),
             ]),

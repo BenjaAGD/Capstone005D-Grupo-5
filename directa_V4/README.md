@@ -110,6 +110,9 @@ Si esas tablas no existen, la app funciona igual, pero valoraciones, lecciones y
 1. En Render → Environment agrega `SUPABASE_SERVICE_ROLE_KEY` (Supabase → Project Settings → API → `service_role`). Nunca la pongas en la app ni en GitHub.
 2. Despliega el backend nuevo.
 3. Recién entonces pega `backend/migracion_v8_seguridad.sql` en el SQL Editor de Supabase y revisa los 3 resultados finales (0 políticas abiertas; todas las cuentas y documentos con empresa).
+4. Después pega `backend/migracion_v9_perfiles.sql`: crea la tabla `perfiles` con el RUT único, hace que una cuenta sin confirmar (de más de 24 horas) ya no bloquee el RUT y elimina la tabla `usuarios`, que no se usaba.
+
+**En la app:** el PIN se guarda en el almacén cifrado del celular (`flutter_secure_storage`; si había uno guardado por la versión anterior, se pasa solo), el respaldo automático de Android está desactivado y, tras 5 PIN errados, primero se cierra la sesión y recién después se borra el PIN. La insignia del perfil dice "RUT válido": solo comprueba el dígito verificador, no que el RUT sea de esa persona.
 
 Pruebas del backend (sin llaves): `cd backend && python -m unittest test_seguridad -v`.
 

@@ -7,20 +7,12 @@ drop table if exists perfiles_tono cascade;
 drop table if exists analisis cascade;
 drop table if exists document_chunks cascade;
 drop table if exists documentos cascade;
-drop table if exists usuarios cascade;
 drop function if exists match_document_chunks(vector, float, int, text);
 
 -- 1. EXTENSIÓN VECTORIAL
 create extension if not exists vector;
 
--- 2. TABLA USUARIOS 
-create table usuarios (
-    id uuid primary key default gen_random_uuid(),
-    nombre text not null,
-    correo text unique not null,
-    rol text not null default 'gerente_general',
-    creado_en timestamptz default now()
-);
+-- 2. USUARIOS: viven en Supabase Auth (auth.users); su perfil está en public.perfiles (migracion_v9).
 
 -- 3. TABLA DOCUMENTOS
 
@@ -87,18 +79,15 @@ create index idx_document_chunks_doc_pagina_orden
 on document_chunks (document_id, page_number, orden);
 
 -- 7. ROW LEVEL SECURITY
-alter table usuarios        enable row level security;
 alter table documentos      enable row level security;
 alter table document_chunks enable row level security;
 alter table analisis        enable row level security;
 
 -- 8. POLÍTICAS (MVP: lectura y escritura abiertas)
-create policy "Leer usuarios"        on usuarios        for select using (true);
 create policy "Leer documentos"      on documentos      for select using (true);
 create policy "Leer chunks"          on document_chunks for select using (true);
 create policy "Leer analisis"        on analisis        for select using (true);
 
-create policy "Insertar usuarios"    on usuarios        for insert with check (true);
 create policy "Insertar documentos"  on documentos      for insert with check (true);
 create policy "Insertar chunks"      on document_chunks for insert with check (true);
 create policy "Insertar analisis"    on analisis        for insert with check (true);

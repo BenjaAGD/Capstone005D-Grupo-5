@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'empresa.dart';
 import 'rut.dart';
 
 /// Datos de la persona con sesión iniciada (nombre, cargo y empresa vienen del registro).
@@ -68,8 +69,8 @@ class UsuarioActual {
   }
 
   static bool get tieneNombre => _meta('nombre').isNotEmpty;
-  /// DIRECTA es para la gerencia general: el cargo es fijo.
-  static String get cargo => 'Gerente General';
+  /// Cargo guardado en el perfil; DIRECTA es para la gerencia general, así que si falta es "Gerente General".
+  static String get cargo => _meta('cargo').isEmpty ? EmpresaDirecta.cargo : _meta('cargo');
   static String get rut => _meta('rut').isEmpty ? '' : Rut.formatear(_meta('rut'));
   static String get rutEmpresa => _meta('rut_empresa').isEmpty ? '' : Rut.formatear(_meta('rut_empresa'));
   static String get empresa => _meta('empresa_solicitada');
