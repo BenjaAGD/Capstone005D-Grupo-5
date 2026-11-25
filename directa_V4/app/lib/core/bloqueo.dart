@@ -7,7 +7,10 @@ import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Bloqueo de la app con PIN de 4 dígitos y, opcionalmente, huella o rostro.
+/// Forma principal de desbloqueo. Con huella, el PIN queda de respaldo si la huella falla.
+enum ModoBloqueo { ninguno, pin, huella }
+
+/// Bloqueo de la app: PIN de 4 dígitos, o huella/rostro como forma principal con el PIN de respaldo.
 /// Es por usuario y por celular. El PIN nunca se guarda: solo su huella SHA-256 con sal.
 class Bloqueo {
   Bloqueo._();
@@ -26,6 +29,21 @@ class Bloqueo {
 
   static Future<bool> tienePin(String uid) async => (await _p).getString(_k(uid, 'pin')) != null;
 
+  static Future<ModoBloqueo> modo(String uid) async {
+    final p = await _p;
+    final m = p.getString(_k(uid, 'modo'));
+    final hayPin = p.getString(_k(uid, 'pin')) != null;
+    if (m == 'huella' && hayPin) return ModoBloqueo.huella;
+    if (m == 'pin' || p.getString(_k(uid, 'pin')) != null) return ModoBloqueo.pin;
+    return ModoBloqueo.ninguno;
+  }
+
+  /// Huella como forma principal; el PIN (ya creado) queda de respaldo.
+  static Future<void> usarHuella(String uid) async => (await _p).setString(_k(uid, 'modo'), 'huella');
+
+  /// Solo PIN (mantiene el PIN ya creado).
+  static Future<void> usarSoloPin(String uid) async => (await _p).setString(_k(uid, 'modo'), 'pin');
+
   static Future<void> definirPin(String uid, String pin) async {
     final r = Random.secure();
     final sal = base64Url.encode(List<int>.generate(16, (_) => r.nextInt(256)));
@@ -33,6 +51,7 @@ class Bloqueo {
     await p.setString(_k(uid, 'sal'), sal);
     await p.setString(_k(uid, 'pin'), _hash(pin, sal));
     await p.setInt(_k(uid, 'fallos'), 0);
+    await p.setString(_k(uid, 'modo'), 'pin');
   }
 
   /// true si el PIN es correcto. Cuenta los intentos fallidos.
@@ -51,14 +70,10 @@ class Bloqueo {
   /// Quita PIN y huella (al desactivar o tras demasiados intentos).
   static Future<void> quitar(String uid) async {
     final p = await _p;
-    for (final k in ['pin', 'sal', 'fallos', 'bio']) {
+    for (final k in ['pin', 'sal', 'fallos', 'bio', 'modo']) {
       await p.remove(_k(uid, k));
     }
   }
-
-  static Future<bool> usaBiometria(String uid) async => (await _p).getBool(_k(uid, 'bio')) ?? false;
-
-  static Future<void> setBiometria(String uid, bool v) async => (await _p).setBool(_k(uid, 'bio'), v);
 
   /// ¿El celular tiene huella o rostro registrado?
   static Future<bool> biometriaDisponible() async {

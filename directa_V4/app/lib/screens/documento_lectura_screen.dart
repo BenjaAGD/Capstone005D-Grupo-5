@@ -42,6 +42,7 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
 
   // Página original del PDF (imagen): mantiene el orden real de columnas, tablas y títulos.
   bool _hayOriginal = false;
+  bool _origRevisado = false;
   bool _verOriginal = true;
   final Map<int, Uint8List> _imagenes = {};
   final Set<int> _imagenesConError = {};
@@ -115,9 +116,14 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
     try {
       final r = await context.read<AppState>().api.getJson('/api/documentos/$_id/original');
       if (!mounted) return;
-      setState(() => _hayOriginal = r['ok'] == true);
+      setState(() {
+        _hayOriginal = r['ok'] == true;
+        _origRevisado = true;
+      });
       if (_hayOriginal && _paginas.isNotEmpty) _cargarImagen(_paginas[_indice]);
-    } catch (_) {}
+    } catch (_) {
+      if (mounted) setState(() => _origRevisado = true);
+    }
   }
 
   Future<void> _cargarImagen(int numero) async {
@@ -460,7 +466,24 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
     } else if (texto.trim().isEmpty) {
       cuerpo = Text('Esta página no tiene texto (puede ser una imagen).', style: TextStyle(color: suave, fontFamily: 'serif'));
     } else {
+      final esPdf = '${_documento?['nombre_archivo'] ?? widget.nombreArchivo}'.toLowerCase().endsWith('.pdf');
       cuerpo = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        if (_origRevisado && !_hayOriginal && esPdf)
+          Container(
+            margin: const EdgeInsets.only(bottom: 18),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: suave.withValues(alpha: .12), borderRadius: BorderRadius.circular(10)),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Icon(Icons.picture_as_pdf_outlined, size: 20, color: suave),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Estás viendo solo el texto. Este PDF se subió antes de la vista original: elimínalo y vuelve a subirlo para leerlo tal como se ve el PDF.',
+                  style: TextStyle(fontSize: 12.5, height: 1.4, color: tinta),
+                ),
+              ),
+            ]),
+          ),
         for (final parrafo in _parrafos(texto))
           Padding(
             padding: const EdgeInsets.only(bottom: 16),

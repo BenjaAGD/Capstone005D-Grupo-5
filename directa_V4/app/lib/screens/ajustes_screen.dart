@@ -7,6 +7,7 @@ import '../core/demo_modo.dart';
 import '../core/servidor_estado.dart';
 import '../core/theme.dart';
 import '../core/bloqueo.dart';
+import '../core/rut.dart';
 import '../core/usuario.dart';
 import 'bloqueo_screen.dart';
 import '../state/app_state.dart';
@@ -178,92 +179,123 @@ class _AjustesScreenState extends State<AjustesScreen> {
     }
   }
 
-  // ---------- Bloqueo con PIN y huella ----------
-  bool? _tienePin;
-  bool _usaBio = false;
+  // ---------- Bloqueo: PIN o huella (una sola forma) ----------
+  ModoBloqueo? _modo;
   bool _bioDisponible = false;
 
   Future<void> _cargarBloqueo() async {
     final uid = UsuarioActual.id;
     if (uid == null) return;
-    final pin = await Bloqueo.tienePin(uid);
-    final bio = await Bloqueo.usaBiometria(uid);
+    final m = await Bloqueo.modo(uid);
     final disp = await Bloqueo.biometriaDisponible();
-    if (mounted) setState(() {
-      _tienePin = pin;
-      _usaBio = bio;
-      _bioDisponible = disp;
-    });
+    if (mounted) {
+      setState(() {
+        _modo = m;
+        _bioDisponible = disp;
+      });
+    }
   }
 
-  Future<void> _cambiarPin(bool activar) async {
+  /// Antes de quitar o cambiar el bloqueo, confirma con la forma actual.
+  Future<bool> _confirmarActual(String uid) async {
+    switch (_modo) {
+      case ModoBloqueo.pin:
+        return await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => ConfirmarPinScreen(uid: uid))) == true;
+      case ModoBloqueo.huella:
+        if (await Bloqueo.pedirBiometria(motivo: 'Confirma que eres tú para cambiar el bloqueo')) return true;
+        if (!mounted) return false;
+        // Si la huella falla, sirve el PIN de respaldo.
+        return await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => ConfirmarPinScreen(uid: uid))) == true;
+      default:
+        return true;
+    }
+  }
+
+  Future<void> _elegirModo(ModoBloqueo nuevo) async {
     final uid = UsuarioActual.id;
-    if (uid == null) return;
+    if (uid == null || nuevo == _modo) return;
     final st = context.read<AppState>();
-    if (activar) {
-      final pin = await Navigator.of(context).push<String>(MaterialPageRoute(builder: (_) => const CrearPinScreen()));
-      if (pin == null) return;
-      await Bloqueo.definirPin(uid, pin);
-      st.toast('PIN activado. Lo pediremos al abrir DIRECTA.');
-    } else {
-      final ok = await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => ConfirmarPinScreen(uid: uid)));
-      if (ok != true) return;
-      await Bloqueo.quitar(uid);
-      st.toast('Bloqueo desactivado');
+    if (!await _confirmarActual(uid) || !mounted) return;
+    switch (nuevo) {
+      case ModoBloqueo.pin:
+        if (_modo == ModoBloqueo.huella) {
+          // Ya tiene PIN de respaldo: solo deja de usar la huella.
+          await Bloqueo.usarSoloPin(uid);
+        } else {
+          final pin = await Navigator.of(context).push<String>(MaterialPageRoute(builder: (_) => const CrearPinScreen()));
+          if (pin == null) return;
+          await Bloqueo.definirPin(uid, pin);
+        }
+        st.toast('Listo: pediremos tu PIN al abrir DIRECTA.');
+      case ModoBloqueo.huella:
+        if (!_bioDisponible) {
+          st.toast('Este celular no tiene huella o rostro registrado.', err: true);
+          return;
+        }
+        // La huella siempre tiene un PIN de respaldo por si no te reconoce.
+        if (!await Bloqueo.tienePin(uid)) {
+          if (!mounted) return;
+          final pin = await Navigator.of(context).push<String>(
+              MaterialPageRoute(builder: (_) => const CrearPinScreen(titulo: 'PIN de respaldo')));
+          if (pin == null) return;
+          await Bloqueo.definirPin(uid, pin);
+        }
+        if (!await Bloqueo.pedirBiometria(motivo: 'Confirma tu huella o rostro para activarlo')) {
+          st.toast('No se activó la huella. Quedó activo tu PIN.', err: true);
+          await _cargarBloqueo();
+          return;
+        }
+        await Bloqueo.usarHuella(uid);
+        st.toast('Listo: entrarás con tu huella. Si no te reconoce, te pediremos el PIN.');
+      case ModoBloqueo.ninguno:
+        await Bloqueo.quitar(uid);
+        st.toast('Bloqueo desactivado');
     }
-    await _cargarBloqueo();
-  }
-
-  Future<void> _cambiarBio(bool activar) async {
-    final uid = UsuarioActual.id;
-    if (uid == null) return;
-    if (activar) {
-      final ok = await Bloqueo.pedirBiometria(motivo: 'Confirma tu huella o rostro para activarlo');
-      if (!ok) return;
-    }
-    await Bloqueo.setBiometria(uid, activar);
     await _cargarBloqueo();
   }
 
   Widget _seguridad(BuildContext context) {
     final c = context.c;
-    final pin = _tienePin ?? false;
-    Widget opcion({required IconData icon, required String titulo, required String detalle, required bool valor, ValueChanged<bool>? cambiar}) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Row(children: [
-            Container(
-              width: 38, height: 38,
-              decoration: BoxDecoration(color: c.accentSoft, borderRadius: BorderRadius.circular(11)),
-              child: Icon(icon, size: 21, color: c.accentText),
+    final modo = _modo;
+    Widget opcion(ModoBloqueo m, IconData icon, String titulo, String detalle, {bool activa = true}) {
+      final sel = modo == m;
+      return Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Material(
+          color: sel ? c.accentSoft : Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: BorderSide(color: sel ? c.accentText : c.border),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: modo == null || !activa ? null : () => _elegirModo(m),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+              child: Row(children: [
+                Icon(icon, size: 24, color: activa ? c.accentText : c.text3),
+                const SizedBox(width: 12),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(titulo, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: activa ? null : c.text3)),
+                  const SizedBox(height: 1),
+                  Text(detalle, style: TextStyle(fontSize: 11.5, color: c.text3)),
+                ])),
+                Icon(sel ? Icons.radio_button_checked : Icons.radio_button_unchecked, color: sel ? c.accentText : c.text3, size: 20),
+              ]),
             ),
-            const SizedBox(width: 12),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(titulo, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
-              const SizedBox(height: 1),
-              Text(detalle, style: TextStyle(fontSize: 11.5, color: c.text3)),
-            ])),
-            Switch(value: valor, onChanged: cambiar),
-          ]),
-        );
+          ),
+        ),
+      );
+    }
     return GgCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const SecTitle('Seguridad de la app'),
-        opcion(
-          icon: Icons.pin_outlined,
-          titulo: 'PIN de acceso',
-          detalle: 'Pide un PIN de 4 dígitos al abrir la app',
-          valor: pin,
-          cambiar: _tienePin == null ? null : _cambiarPin,
-        ),
-        opcion(
-          icon: Icons.fingerprint_rounded,
-          titulo: 'Huella o rostro',
-          detalle: !_bioDisponible
-              ? 'Este celular no tiene huella o rostro registrado'
-              : pin ? 'Entrar con tu huella en vez del PIN' : 'Primero activa el PIN',
-          valor: pin && _usaBio,
-          cambiar: pin && _bioDisponible ? _cambiarBio : null,
-        ),
+        const SecTitle('Seguridad de la app', bottom: 2),
+        Text('Elige cómo desbloquear DIRECTA al abrirla.', style: TextStyle(fontSize: 12, color: c.text3)),
+        opcion(ModoBloqueo.huella, Icons.fingerprint_rounded, 'Huella o rostro',
+            _bioDisponible ? 'Principal, con tu PIN de respaldo si no te reconoce' : 'Este celular no tiene huella registrada',
+            activa: _bioDisponible),
+        opcion(ModoBloqueo.pin, Icons.dialpad_rounded, 'PIN de 4 dígitos', 'Como en las apps de bancos'),
+        opcion(ModoBloqueo.ninguno, Icons.lock_open_rounded, 'Sin bloqueo', 'Solo la contraseña al iniciar sesión'),
       ]),
     );
   }
@@ -297,11 +329,6 @@ class _AjustesScreenState extends State<AjustesScreen> {
       st.toast('No se pudo guardar el perfil. Revisa tu conexión.', err: true);
     }
   }
-
-  Widget _dato(BuildContext context, String k, String v) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(k, style: TextStyle(fontSize: 10.5, color: context.c.text3)),
-        Text(v, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-      ]);
 
   @override
   Widget build(BuildContext context) {
@@ -344,12 +371,38 @@ class _AjustesScreenState extends State<AjustesScreen> {
               ]),
             ),
           ]),
-          if (!DemoModo.instance.activo && (UsuarioActual.rut.isNotEmpty || UsuarioActual.rutEmpresa.isNotEmpty)) ...[
+          if (!DemoModo.instance.activo && UsuarioActual.rut.isNotEmpty) ...[
             const SizedBox(height: 12),
-            Wrap(spacing: 18, runSpacing: 6, children: [
-              if (UsuarioActual.rut.isNotEmpty) _dato(context, 'RUT', UsuarioActual.rut),
-              if (UsuarioActual.rutEmpresa.isNotEmpty) _dato(context, 'RUT empresa', UsuarioActual.rutEmpresa),
+            Row(children: [
+              Icon(Icons.badge_outlined, size: 18, color: c.text3),
+              const SizedBox(width: 8),
+              Text('RUT ${UsuarioActual.rut}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              const SizedBox(width: 8),
+              if (Rut.esValido(UsuarioActual.rut))
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2E9E5B).withValues(alpha: .12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.verified_rounded, size: 14, color: Color(0xFF2E9E5B)),
+                    SizedBox(width: 4),
+                    Text('Verificado', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: Color(0xFF2E9E5B))),
+                  ]),
+                ),
             ]),
+            if (UsuarioActual.rutEmpresa.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Row(children: [
+                Icon(Icons.business_outlined, size: 18, color: c.text3),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text('${UsuarioActual.empresa.isEmpty ? 'Empresa' : UsuarioActual.empresa} · RUT ${UsuarioActual.rutEmpresa}',
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12.5, color: c.text2)),
+                ),
+              ]),
+            ],
           ],
           const SizedBox(height: 12),
           Wrap(spacing: 8, runSpacing: 8, children: [

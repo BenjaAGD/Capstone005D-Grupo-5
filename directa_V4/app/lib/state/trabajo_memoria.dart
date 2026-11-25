@@ -27,7 +27,7 @@ class TrabajoMemoria extends ChangeNotifier {
     error = null;
     notifyListeners();
     unawaited(Notificaciones.pedirPermiso());
-    unawaited(Notificaciones.progreso(Notificaciones.idMemoria, 'Generando memoria', 'Iniciando…'));
+    unawaited(Notificaciones.progreso(Notificaciones.idMemoria, 'Generando tu memoria', 'Iniciando…'));
     try {
       final r = await st.api.postJson('/api/memoria/borrador', cuerpo);
       if (r['ok'] != true) throw Exception(r['error'] ?? 'No se pudo iniciar');
@@ -43,7 +43,7 @@ class TrabajoMemoria extends ChangeNotifier {
           notifyListeners();
           final hechos = (e['hechos'] as num?)?.toInt() ?? 0;
           final total = (e['total'] as num?)?.toInt() ?? 1;
-          unawaited(Notificaciones.progreso(Notificaciones.idMemoria, 'Generando memoria',
+          unawaited(Notificaciones.progreso(Notificaciones.idMemoria, 'Generando tu memoria',
               '${e['paso'] ?? ''} · $hechos de $total', valor: (100 * hechos / (total < 1 ? 1 : total)).round()));
           if (e['corriendo'] != true && !listo.isCompleted) {
             t.cancel();
@@ -64,7 +64,7 @@ class TrabajoMemoria extends ChangeNotifier {
       final nombre = '${e['nombre'] ?? 'Memoria_borrador.pdf'}';
       st.toast(await guardarArchivo(nombre, bytes, 'application/pdf'));
       resultado = e;
-      unawaited(Notificaciones.listo(Notificaciones.idMemoria, 'Memoria lista', '$nombre · guardada en Documentos/Directa Gerente General'));
+      unawaited(Notificaciones.listo(Notificaciones.idMemoria, 'Memoria lista', '$nombre · guardada en Documentos/Directa Gerente General. Toca para abrir la app.'));
     } catch (e) {
       error = e.toString().replaceFirst('Exception: ', '');
       unawaited(Notificaciones.listo(Notificaciones.idMemoria, 'No se pudo generar la memoria', error!));

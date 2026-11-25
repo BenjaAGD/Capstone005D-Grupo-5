@@ -59,9 +59,21 @@ class MainActivity : FlutterFragmentActivity() {
         val pi = if (abrir != null) PendingIntent.getActivity(
             this, id, abrir, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE) else null
         val b = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) Notification.Builder(this, canalNotif) else Notification.Builder(this)
-        b.setSmallIcon(applicationInfo.icon)
-            .setContentTitle(titulo)
+        // Ícono de silueta (chispa DIRECTA) en celeste; si no existe, el de la app.
+        val icono = resources.getIdentifier("ic_stat_directa", "drawable", packageName)
+        val categoria = when (id) { 4101 -> "Documentos"; 4102 -> "Memoria anual"; else -> "DIRECTA" }
+        val tituloFinal = when {
+            enCurso && valor in 0..100 -> "$titulo · $valor%"
+            !enCurso && !titulo.startsWith("No se pudo") -> "✓ $titulo"
+            else -> titulo
+        }
+        b.setSmallIcon(if (icono != 0) icono else applicationInfo.icon)
+            .setColor(0xFF12AFC6.toInt())
+            .setSubText(categoria)
+            .setContentTitle(tituloFinal)
             .setContentText(texto)
+            .setStyle(Notification.BigTextStyle().bigText(texto))
+            .setShowWhen(!enCurso)
             .setOnlyAlertOnce(true)
             .setOngoing(enCurso)
             .setAutoCancel(!enCurso)

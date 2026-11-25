@@ -39,11 +39,13 @@ class _BloqueoGateState extends State<BloqueoGate> with WidgetsBindingObserver {
 
   Future<void> _revisar() async {
     final uid = widget.uid;
-    final pin = uid != null && await Bloqueo.tienePin(uid);
-    if (mounted) setState(() {
-      _bloqueada = pin;
-      _revisado = true;
-    });
+    final activo = uid != null && await Bloqueo.modo(uid) != ModoBloqueo.ninguno;
+    if (mounted) {
+      setState(() {
+        _bloqueada = activo;
+        _revisado = true;
+      });
+    }
   }
 
   @override
@@ -87,6 +89,8 @@ class _PantallaBloqueoState extends State<PantallaBloqueo> {
   String _pin = '';
   String? _error;
   bool _bio = false;
+  bool _listo = false;
+  bool _tieneHuella = false;
   bool _ocupado = false;
 
   @override
@@ -96,10 +100,13 @@ class _PantallaBloqueoState extends State<PantallaBloqueo> {
   }
 
   Future<void> _iniciar() async {
-    final usa = await Bloqueo.usaBiometria(widget.uid) && await Bloqueo.biometriaDisponible();
+    final usa = await Bloqueo.modo(widget.uid) == ModoBloqueo.huella;
     if (!mounted) return;
-    setState(() => _bio = usa);
-    if (usa) _huella();
+    setState(() {
+      _bio = usa;
+      _tieneHuella = usa;
+      _listo = true;
+    });
   }
 
   Future<void> _huella() async {
@@ -107,7 +114,16 @@ class _PantallaBloqueoState extends State<PantallaBloqueo> {
     _ocupado = true;
     final ok = await Bloqueo.pedirBiometria();
     _ocupado = false;
-    if (ok && mounted) widget.onAbierta();
+    if (!mounted) return;
+    if (ok) {
+      widget.onAbierta();
+    } else {
+      // No se reconoció (o se canceló): pasa al PIN de respaldo.
+      setState(() {
+        _bio = false;
+        _error = 'No pudimos verificar tu huella. Ingresa tu PIN.';
+      });
+    }
   }
 
   Future<void> _tecla(String t) async {
@@ -169,29 +185,68 @@ class _PantallaBloqueoState extends State<PantallaBloqueo> {
                 const SizedBox(height: 8),
                 Text('Hola, ${UsuarioActual.primerNombre}', style: const TextStyle(color: Color(0xFFA9C1D6), fontSize: 14)),
                 const Spacer(),
-                Icon(Icons.lock_outline_rounded, color: _cyan.withValues(alpha: .9), size: 26),
-                const SizedBox(height: 10),
-                const Text('Ingresa tu PIN', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
-                const SizedBox(height: 18),
-                PuntosPin(largo: _pin.length, claro: true),
-                SizedBox(
-                  height: 34,
-                  child: Center(
-                    child: Text(_error ?? '', style: const TextStyle(color: Color(0xFFFFB4A8), fontSize: 12.5)),
+                if (!_listo)
+                  const SizedBox.shrink()
+                else if (_bio) ...[
+                  // Modo huella: un solo botón grande, sin teclado.
+                  Material(
+                    color: _cyan.withValues(alpha: .12),
+                    shape: const CircleBorder(side: BorderSide(color: _cyan, width: 2)),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: _huella,
+                      child: const SizedBox(
+                        width: 104,
+                        height: 104,
+                        child: Icon(Icons.fingerprint_rounded, size: 58, color: _cyan),
+                      ),
+                    ),
                   ),
-                ),
-                TecladoPin(
-                  claro: true,
-                  onTecla: _tecla,
-                  extra: _bio
-                      ? IconButton(
-                          // Sin tooltip: esta pantalla está fuera del Navigator (no hay Overlay).
-                          iconSize: 30,
-                          onPressed: _huella,
-                          icon: const Icon(Icons.fingerprint_rounded, color: _cyan),
-                        )
-                      : null,
-                ),
+                  const SizedBox(height: 18),
+                  const Text('Toca para desbloquear', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 6),
+                  const Text('Usa tu huella o tu rostro', style: TextStyle(color: Color(0xFFA9C1D6), fontSize: 13)),
+                  const SizedBox(height: 26),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: const BorderSide(color: Colors.white38),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    ),
+                    onPressed: () => setState(() => _bio = false),
+                    icon: const Icon(Icons.dialpad_rounded, size: 18),
+                    label: const Text('Usar mi PIN'),
+                  ),
+                ] else ...[
+                  Icon(Icons.lock_outline_rounded, color: _cyan.withValues(alpha: .9), size: 26),
+                  const SizedBox(height: 10),
+                  const Text('Ingresa tu PIN', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 18),
+                  PuntosPin(largo: _pin.length, claro: true),
+                  SizedBox(
+                    height: 34,
+                    child: Center(
+                      child: Text(_error ?? '', style: const TextStyle(color: Color(0xFFFFB4A8), fontSize: 12.5)),
+                    ),
+                  ),
+                  TecladoPin(
+                    claro: true,
+                    onTecla: _tecla,
+                    extra: _tieneHuella
+                        ? IconButton(
+                            iconSize: 30,
+                            onPressed: () {
+                              setState(() {
+                                _bio = true;
+                                _error = null;
+                              });
+                              _huella();
+                            },
+                            icon: const Icon(Icons.fingerprint_rounded, color: _cyan),
+                          )
+                        : null,
+                  ),
+                ],
                 const Spacer(),
                 TextButton(
                   onPressed: _salir,

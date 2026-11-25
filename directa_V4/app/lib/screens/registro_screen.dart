@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../core/empresa.dart';
 import '../core/rut.dart';
 import 'auth_location_stub.dart'
     if (dart.library.js_interop) 'auth_location_web.dart';
@@ -204,9 +205,10 @@ class _CuentaScreen extends StatefulWidget {
 class _CuentaScreenState extends State<_CuentaScreen> {
   final _form = GlobalKey<FormState>();
   final _nombre = TextEditingController();
-  final _empresa = TextEditingController();
+  final _empresa = TextEditingController(text: EmpresaDirecta.nombre);
   final _rut = TextEditingController();
-  final _rutEmpresa = TextEditingController();
+  final _rutEmpresa = TextEditingController(text: EmpresaDirecta.rut);
+  final _cargo = TextEditingController(text: EmpresaDirecta.cargo);
   final _correo = TextEditingController();
   final _clave = TextEditingController();
   final _confirmacion = TextEditingController();
@@ -265,6 +267,7 @@ class _CuentaScreenState extends State<_CuentaScreen> {
       _empresa,
       _rut,
       _rutEmpresa,
+      _cargo,
       _correo,
       _clave,
       _confirmacion,
@@ -352,9 +355,9 @@ class _CuentaScreenState extends State<_CuentaScreen> {
             data: {
               'nombre': _nombre.text.trim(),
               'rut': Rut.normalizar(_rut.text),
-              'empresa_solicitada': _empresa.text.trim(),
-              'rut_empresa': Rut.normalizar(_rutEmpresa.text),
-              'cargo': 'Gerente General',
+              'empresa_solicitada': EmpresaDirecta.nombre,
+              'rut_empresa': Rut.normalizar(EmpresaDirecta.rut),
+              'cargo': EmpresaDirecta.cargo,
             },
           );
 
@@ -394,12 +397,14 @@ class _CuentaScreenState extends State<_CuentaScreen> {
     String? Function(String?)? validate,
     bool secret = false,
     int? limit,
+    bool soloLectura = false,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextFormField(
         controller: c,
         enabled: !_busy,
+        readOnly: soloLectura,
         validator: validate,
         maxLength: limit,
         autocorrect: false,
@@ -437,7 +442,9 @@ class _CuentaScreenState extends State<_CuentaScreen> {
           counterText: '',
           prefixIcon: Icon(icon, size: 19),
           helperText: c == _clave ? 'Mínimo 8 caracteres.' : null,
-          suffixIcon: !secret
+          suffixIcon: soloLectura
+              ? const Icon(Icons.lock_outline, size: 17)
+              : !secret
               ? null
               : IconButton(
                   tooltip: _visible
@@ -575,22 +582,11 @@ class _CuentaScreenState extends State<_CuentaScreen> {
                       limit: 12,
                       validate: (v) => Rut.validar(v),
                     ),
-                    _field(
-                      _empresa,
-                      'Empresa',
-                      Icons.business_outlined,
-                      limit: 120,
-                      validate: (v) => (v ?? '').trim().isEmpty ? 'Escribe el nombre de tu empresa.' : null,
-                    ),
-                    _field(
-                      _rutEmpresa,
-                      'RUT de la empresa',
-                      Icons.domain_verification_outlined,
-                      limit: 12,
-                      validate: (v) => Rut.validar(v, que: 'RUT de la empresa'),
-                    ),
+                    _field(_empresa, 'Empresa', Icons.business_outlined, soloLectura: true),
+                    _field(_rutEmpresa, 'RUT de la empresa', Icons.domain_verification_outlined, soloLectura: true),
+                    _field(_cargo, 'Cargo', Icons.work_outline, soloLectura: true),
                     const Text(
-                      'Solo pueden crear cuenta las personas de empresas habilitadas en DIRECTA.',
+                      'La empresa y el cargo vienen asignados por DIRECTA.',
                       style: TextStyle(fontSize: 11.5, color: Color(0xFF7D8B98)),
                     ),
                     const Divider(height: 24),

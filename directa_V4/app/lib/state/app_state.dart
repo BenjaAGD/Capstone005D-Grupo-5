@@ -436,7 +436,7 @@ class AppState extends ChangeNotifier {
     progreso = {'estado': 'Iniciando', 'fase': 'iniciando', 'procesados': 0, 'total': 0, 'estimado_seg': 0};
     notifyListeners();
     unawaited(Notificaciones.pedirPermiso());
-    unawaited(Notificaciones.progreso(Notificaciones.idDocumento, 'Subiendo $nombre', 'Preparando el documento…'));
+    unawaited(Notificaciones.progreso(Notificaciones.idDocumento, 'Subiendo documento', '$nombre · preparando…'));
 
     void terminar() {
       _polling?.cancel();
@@ -460,15 +460,15 @@ class AppState extends ChangeNotifier {
             _ => '${d['estado'] ?? 'Procesando'}',
           };
           if (est != 'Listo' && est != 'Listo con errores' && est != 'Error') {
-            unawaited(Notificaciones.progreso(Notificaciones.idDocumento, nombre,
-                '${tot > 0 ? '$fase · $proc de $tot' : fase}${((d['estimado_seg'] as num?) ?? 0) > 0 ? ' · faltan ~${_mins((d['estimado_seg'] as num?) ?? 0)}' : ''}',
+            unawaited(Notificaciones.progreso(Notificaciones.idDocumento, 'Analizando documento',
+                '$nombre · ${tot > 0 ? '$fase · $proc de $tot' : fase}${((d['estimado_seg'] as num?) ?? 0) > 0 ? ' · faltan ~${_mins((d['estimado_seg'] as num?) ?? 0)}' : ''}',
                 valor: tot > 0 ? (100 * proc / tot).round() : -1));
           }
           if (est == 'Listo' || est == 'Listo con errores' || est == 'Error') {
             terminar();
             unawaited(Notificaciones.listo(Notificaciones.idDocumento,
-                est == 'Error' ? 'No se pudo procesar el documento' : 'Documento listo',
-                est == 'Error' ? '$nombre · ${d['motivo'] ?? 'revisa el detalle en la app'}' : '$nombre · ya puedes revisar el análisis'));
+                est == 'Error' ? 'No se pudo procesar el documento' : 'Documento listo para analizar',
+                est == 'Error' ? '$nombre · ${d['motivo'] ?? 'revisa el detalle en la app'}' : '$nombre · toca para abrirlo'));
             if (est == 'Error') {
               toast('Error procesando el documento', err: true);
               await cargarDocumentos();
