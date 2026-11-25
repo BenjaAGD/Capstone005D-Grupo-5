@@ -130,7 +130,7 @@ class _ArchivosScreenState extends State<ArchivosScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Row(children: [
-                Expanded(child: Text('${archivos.length} archivos', style: TextStyle(color: c.text3, fontSize: 12.5))),
+                Expanded(child: Text('${archivos.length} archivos', style: TextStyle(color: c.text3, fontSize: Fs.md))),
                 TextButton.icon(
                   onPressed: () => _eliminarTodo(archivos),
                   icon: Icon(Icons.delete_sweep_outlined, size: 18, color: c.crit),
@@ -194,9 +194,9 @@ class _ArchivoRow extends StatelessWidget {
         ),
         const SizedBox(width: 11),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(archivo.nombre, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+          Text(archivo.nombre, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.md)),
           const SizedBox(height: 3),
-          Text('$fecha · $tamano · toca para abrir', style: TextStyle(color: c.text3, fontSize: 11.5)),
+          Text('$fecha · $tamano · toca para abrir', style: TextStyle(color: c.text3, fontSize: Fs.sm)),
         ])),
         IconButton(onPressed: compartir, tooltip: 'Compartir', icon: Icon(Icons.ios_share_outlined, color: c.accentText)),
         IconButton(onPressed: eliminar, tooltip: 'Eliminar', icon: Icon(Icons.delete_outline, color: c.crit)),

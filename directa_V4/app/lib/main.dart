@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/registro_screen.dart';
 import 'core/config.dart';
-import 'core/demo_modo.dart';
 import 'core/servidor_estado.dart';
 import 'core/store.dart';
 import 'core/theme.dart';
@@ -49,26 +47,11 @@ await Supabase.initialize(
 }
 
 class DirectaApp extends StatelessWidget {
-  const DirectaApp({super.key, required this.store, this.client});
+  const DirectaApp({super.key, required this.store});
   final Store store;
 
-  /// Solo para pruebas: cliente HTTP simulado.
-  final http.Client? client;
-
   @override
-  Widget build(BuildContext context) => AnimatedBuilder(
-        animation: DemoModo.instance,
-        builder: (context, _) => DemoModo.instance.activo ? _demo() : _conSesion(),
-      );
-
-  /// Acceso demo: entra sin sesión de Supabase, pero la app usa el servidor con normalidad.
-  Widget _demo() => ChangeNotifierProvider(
-        key: const ValueKey('demo'),
-        create: (_) => AppState(store.forUser('demo'), client: client)..init(),
-        child: _materialApp(),
-      );
-
-  Widget _conSesion() {
+  Widget build(BuildContext context) {
     final auth = Supabase.instance.client.auth;
 
     return StreamBuilder<AuthState>(
@@ -91,27 +74,37 @@ class DirectaApp extends StatelessWidget {
 
         return ChangeNotifierProvider(
           key: ValueKey(user!.id),
-          create: (_) =>
-              AppState(store.forUser(user.id), client: client)..init(),
-          child: _materialApp(),
+          create: (_) => AppState(store.forUser(user.id))..init(),
+          child: const AppConSesion(),
         );
       },
     );
   }
+}
 
-  Widget _materialApp() => Consumer<AppState>(
+/// La app una vez iniciada la sesión. Necesita un [AppState] más arriba en el árbol
+/// (las pruebas lo crean con un cliente HTTP simulado).
+class AppConSesion extends StatelessWidget {
+  const AppConSesion({super.key});
+
+  @override
+  Widget build(BuildContext context) => Consumer<AppState>(
         builder: (context, st, _) => MaterialApp(
           title: 'DIRECTA · Gerencia General',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.build(Brightness.light),
           darkTheme: AppTheme.build(Brightness.dark),
           themeMode: st.themeMode,
-          builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              textScaler: TextScaler.linear(st.textScale),
-            ),
-            child: child!,
-          ),
+          // Respeta el tamaño de texto del sistema y le aplica el ajuste propio de la app (Ajustes).
+          builder: (context, child) {
+            final sistema = MediaQuery.textScalerOf(context).scale(1);
+            return MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: TextScaler.linear((sistema * st.textScale).clamp(0.8, 1.6)),
+              ),
+              child: child!,
+            );
+          },
           home: st.iniciado ? const Shell() : const _Cargando(),
         ),
       );

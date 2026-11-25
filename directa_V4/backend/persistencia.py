@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Guardado de las tablas nuevas de la versión 3 (valoraciones, lecciones y perfiles de tono).
 
-Si la tabla existe en Supabase se usa Supabase. Si no existe (todavía no se corrió migracion_v3.sql),
+Si la tabla existe en Supabase se usa Supabase. Si no existe (todavía no se corrió base_de_datos.sql completo),
 se guarda en un archivo JSON local para que nada falle. OJO: en Render gratis ese archivo se borra en
 cada despliegue o reinicio, por eso /api/estado avisa dónde se está guardando.
 """
@@ -151,5 +151,5 @@ def estado(get_sb, tablas=("valoraciones", "lecciones", "perfiles_tono")):
         out[t] = destino
     out["aviso"] = ("" if all(out[t] == "supabase" for t in tablas) else
                     "Algunas tablas se guardan en un archivo local del servidor, que en Render se borra al reiniciar. "
-                    "Corre backend/migracion_v3.sql en Supabase para guardarlas de forma permanente.")
+                    "Corre backend/base_de_datos.sql en Supabase para guardarlas de forma permanente.")
     return out

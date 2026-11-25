@@ -11,7 +11,6 @@ import '../core/store.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
-import '../widgets/demo_offline.dart';
 
 const estadosSol = [
   ('pendiente', 'Pendiente'),
@@ -289,7 +288,6 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
     actual['fecha'] = _aj(id)['fecha'] ?? '';
     final r = await showModalBottomSheet<Map<String, dynamic>>(
       context: context, isScrollControlled: true, useSafeArea: true,
-      constraints: const BoxConstraints(maxWidth: 640),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (_) => _FormIndicador(previo: actual, doc: _doc, api: st),
     );
@@ -309,7 +307,6 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      constraints: const BoxConstraints(maxWidth: 640),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -460,10 +457,10 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
         const SizedBox(height: 18),
         Text(
           t.$1,
-          style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700),
+          style: const TextStyle(fontSize: Fs.reading, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 3),
-        Text(t.$2, style: TextStyle(fontSize: 12.3, color: c.text2)),
+        Text(t.$2, style: TextStyle(fontSize: Fs.sm, color: c.text2)),
         const SizedBox(height: 10),
         Wrap(spacing: 6, runSpacing: 6, children: [
           for (final f in [('todos', 'Todos'), ('rojo', 'Fuera de meta'), ('amarillo', 'En atención'), ('verde', 'En meta'), ('sin_dato', 'Sin dato')])
@@ -521,19 +518,19 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
         tilePadding: const EdgeInsets.fromLTRB(14, 8, 12, 8),
         childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
         leading: Container(width: 38, height: 38, decoration: BoxDecoration(color: semColor(context, estado).withValues(alpha: .12), borderRadius: BorderRadius.circular(11)), child: Icon(i['tipo'] == 'KRI' ? Icons.shield_outlined : Icons.trending_up, size: 19, color: semColor(context, estado))),
-        title: Text('${i['nombre']}', maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13.8, fontWeight: FontWeight.w700)),
-        subtitle: Padding(padding: const EdgeInsets.only(top: 5), child: Row(children: [Flexible(child: Text('${fmtNum(i['valor'])} $unidad  ·  Meta $meta', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, color: c.text2))), const SizedBox(width: 6), Pill(semTxt[estado] ?? 'Sin dato', fg: semColor(context, estado))])),
+        title: Text('${i['nombre']}', maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: Fs.body, fontWeight: FontWeight.w700)),
+        subtitle: Padding(padding: const EdgeInsets.only(top: 5), child: Row(children: [Flexible(child: Text('${fmtNum(i['valor'])} $unidad  ·  Meta $meta', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: Fs.sm, color: c.text2))), const SizedBox(width: 6), Pill(semTxt[estado] ?? 'Sin dato', fg: semColor(context, estado))])),
         children: [
           Divider(height: 1, color: c.border), const SizedBox(height: 12),
           Row(children: [Expanded(child: _valorCol(context, 'VALOR ACTUAL', '${fmtNum(i['valor'])} $unidad')), Expanded(child: _valorCol(context, 'META', meta)), Expanded(child: _valorCol(context, 'LÍMITE', limite))]),
           const SizedBox(height: 10),
           _Bala(valor: numero(i['valor']), meta: numero(i['meta']), limite: numero(i['limite']), menor: menor),
-          if ('${i['como'] ?? ''}'.trim().isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10), child: Text('${i['como']}', style: TextStyle(fontSize: 12.2, color: c.text2, height: 1.4))),
+          if ('${i['como'] ?? ''}'.trim().isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10), child: Text('${i['como']}', style: TextStyle(fontSize: Fs.sm, color: c.text2, height: 1.4))),
           const SizedBox(height: 14),
           Row(children: [const Expanded(child: SecTitle('Plan de acción', bottom: 0)), if (auto) Pill('SUGERIDO', fg: c.accentText)]),
           const SizedBox(height: 8),
           if (auto && soluciones.isNotEmpty && '${a['solucion'] ?? ''}'.trim().isEmpty)
-            for (final sol in soluciones.take(2)) Padding(padding: const EdgeInsets.only(bottom: 5), child: Text('• $sol', style: TextStyle(fontSize: 12.2, color: c.text2))),
+            for (final sol in soluciones.take(2)) Padding(padding: const EdgeInsets.only(bottom: 5), child: Text('• $sol', style: TextStyle(fontSize: Fs.sm, color: c.text2))),
           TextFormField(key: ValueKey('sol-$id-${_verCampos[id] ?? 0}'), initialValue: '${a['solucion'] ?? (!auto ? i['solucion'] : '') ?? ''}', minLines: 1, maxLines: 3, decoration: const InputDecoration(labelText: 'Acción / solución'), onChanged: (v) => setCampo('solucion', v)),
           const SizedBox(height: 8),
           Wrap(spacing: 8, runSpacing: 8, children: [
@@ -541,7 +538,7 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
             SizedBox(width: 160, child: TextFormField(key: ValueKey('fecha-$id'), initialValue: fecha, decoration: const InputDecoration(labelText: 'Fecha objetivo', hintText: 'AAAA-MM-DD'), onChanged: (v) => setCampo('fecha', v))),
             SizedBox(width: 170, child: GgSelect<String>(label: 'Estado de acción', value: estadosSol.any((x) => x.$1 == estSol) ? estSol : 'pendiente', items: estadosSol, onChanged: (v) => setCampo('estado', v))),
           ]),
-          if (vencida) Padding(padding: const EdgeInsets.only(top: 8), child: Text('La fecha objetivo ya pasó y la acción sigue pendiente.', style: TextStyle(color: c.crit, fontWeight: FontWeight.w600, fontSize: 12))),
+          if (vencida) Padding(padding: const EdgeInsets.only(top: 8), child: Text('La fecha objetivo ya pasó y la acción sigue pendiente.', style: TextStyle(color: c.crit, fontWeight: FontWeight.w600, fontSize: Fs.sm))),
           const SizedBox(height: 10),
           Wrap(spacing: 8, runSpacing: 8, children: [
             GgButton('Guardar cambios', icon: Icons.check_rounded, small: true, onTap: () {
@@ -558,7 +555,7 @@ class _IndicadoresScreenState extends State<IndicadoresScreen> {
     );
   }
 
-  Widget _valorCol(BuildContext context, String label, String value) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: TextStyle(fontSize: 9.5, letterSpacing: .4, color: context.c.text3)), const SizedBox(height: 3), Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700))]);
+  Widget _valorCol(BuildContext context, String label, String value) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: TextStyle(fontSize: Fs.xxs, letterSpacing: .4, color: context.c.text3)), const SizedBox(height: 3), Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: Fs.md, fontWeight: FontWeight.w700))]);
 
 }
 
@@ -631,10 +628,10 @@ class _Bala extends StatelessWidget {
             children: [
               Text(
                 'Valor actual',
-                style: TextStyle(fontSize: 10.5, color: c.text3),
+                style: TextStyle(fontSize: Fs.xs, color: c.text3),
               ),
               const Spacer(),
-              Text('Meta', style: TextStyle(fontSize: 10.5, color: c.text3)),
+              Text('Meta', style: TextStyle(fontSize: Fs.xs, color: c.text3)),
             ],
           ),
         ],
@@ -770,33 +767,37 @@ class _FormIndicadorState extends State<_FormIndicador> {
       String? hint,
       bool num = false,
       int lines = 1,
+      TextInputType? teclado,
+      TextInputAction accion = TextInputAction.next,
     }) => Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 16),
       child: TextField(
         controller: f[k],
         minLines: lines,
         maxLines: lines == 1 ? 1 : 4,
         keyboardType: num
             ? const TextInputType.numberWithOptions(decimal: true, signed: true)
-            : null,
+            : (teclado ?? (lines > 1 ? TextInputType.multiline : TextInputType.text)),
+        textInputAction: lines > 1 ? TextInputAction.newline : accion,
+        textCapitalization: num ? TextCapitalization.none : TextCapitalization.sentences,
         decoration: InputDecoration(labelText: label, hintText: hint),
       ),
     );
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               widget.previo == null ? 'Nuevo indicador' : 'Editar indicador',
-              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+              style: const TextStyle(fontSize: Fs.xl, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 4),
             Text(
               'Completa lo básico. El semáforo se calcula solo con el valor, la meta y el límite.',
-              style: TextStyle(fontSize: 12.5, color: c.text2),
+              style: TextStyle(fontSize: Fs.md, color: c.text2),
             ),
             const SizedBox(height: 14),
             GgSelect<String>(
@@ -808,74 +809,43 @@ class _FormIndicadorState extends State<_FormIndicador> {
               ],
               onChanged: (v) => setState(() => tipo = v),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
+            // Una columna: en el celular cada campo usa todo el ancho.
             campo(
               'nombre',
               'Nombre del indicador *',
               hint: 'Ej: Ventas versus presupuesto',
             ),
-            Row(
-              children: [
-                Expanded(child: campo('valor', 'Valor actual *', num: true)),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: campo('unidad', 'Unidad', hint: '%, \$, días…'),
-                ),
-              ],
+            campo('valor', 'Valor actual *', num: true),
+            campo('unidad', 'Unidad', hint: '%, \$, días…'),
+            campo(
+              'meta',
+              'Meta *',
+              hint: kri ? 'Máximo aceptable' : 'Lo que queremos lograr',
+              num: true,
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: campo(
-                    'meta',
-                    'Meta *',
-                    hint: kri ? 'Máximo aceptable' : 'Lo que queremos lograr',
-                    num: true,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: campo(
-                    'limite',
-                    'Límite (pasa a rojo)',
-                    hint: kri
-                        ? 'Sobre este valor es rojo'
-                        : 'Bajo este valor es rojo',
-                    num: true,
-                  ),
-                ),
-              ],
+            campo(
+              'limite',
+              'Límite (pasa a rojo)',
+              hint: kri ? 'Sobre este valor es rojo' : 'Bajo este valor es rojo',
+              num: true,
             ),
             campo('solucion', 'Solución / acción a tomar', lines: 2),
-            Row(
-              children: [
-                Expanded(
-                  child: campo(
-                    'responsable',
-                    'Responsable',
-                    hint: 'Nombre o área',
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: campo('fecha', 'Fecha límite', hint: 'AAAA-MM-DD'),
-                ),
-              ],
-            ),
+            campo('responsable', 'Responsable', hint: 'Nombre o área'),
+            campo('fecha', 'Fecha límite', hint: 'AAAA-MM-DD', teclado: TextInputType.datetime, accion: TextInputAction.done),
             GgCard(borderColor: Brand.accent.withValues(alpha: .65), color: c.accentSoft,
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [Icon(Icons.auto_awesome, size: 18, color: c.accentText), const SizedBox(width: 8), const Expanded(child: Text('Sugerencia con IA', style: TextStyle(fontWeight: FontWeight.w700)))]),
                 const SizedBox(height: 4),
-                Text('Completa los campos vacíos con una sugerencia basada en el análisis disponible. Revisa y ajusta cada dato antes de guardar.', style: TextStyle(fontSize: 11.8, height: 1.35, color: c.text2)),
-                if (iaMsg.isNotEmpty) ...[const SizedBox(height: 7), Text(iaMsg, style: TextStyle(fontSize: 11.8, color: iaMsg.startsWith('No se pudo') ? c.crit : c.text2))],
+                Text('Completa los campos vacíos con una sugerencia basada en el análisis disponible. Revisa y ajusta cada dato antes de guardar.', style: TextStyle(fontSize: Fs.sm, height: 1.35, color: c.text2)),
+                if (iaMsg.isNotEmpty) ...[const SizedBox(height: 7), Text(iaMsg, style: TextStyle(fontSize: Fs.sm, color: iaMsg.startsWith('No se pudo') ? c.crit : c.text2))],
                 const SizedBox(height: 8), GgButton('Sugerir con IA', icon: Icons.auto_awesome, ghost: true, small: true, loading: ia, onTap: _ia),
               ])),
             if (error != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(error!, style: TextStyle(color: c.crit, fontWeight: FontWeight.w600))),
             const SizedBox(height: 12),
-            Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
-              GgButton('Guardar indicador', icon: Icons.check, onTap: _guardar),
-              GgButton('Cancelar', ghost: true, onTap: () => Navigator.pop(context)),
-            ]),
+            GgButton('Guardar indicador', icon: Icons.check, expand: true, onTap: _guardar),
+            const SizedBox(height: 8),
+            GgButton('Cancelar', ghost: true, expand: true, onTap: () => Navigator.pop(context)),
           ],
         ),
       ),

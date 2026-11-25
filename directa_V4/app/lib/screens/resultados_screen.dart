@@ -6,7 +6,6 @@ import '../core/sev.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
-import '../widgets/demo_offline.dart';
 import '../widgets/verificacion.dart';
 
 class ResultadosScreen extends StatefulWidget {
@@ -34,7 +33,17 @@ class _ResultadosScreenState extends State<ResultadosScreen> {
     final keys = res.keys.toList()..sort((a, b) => st.ordenAgente(a).compareTo(st.ordenAgente(b)));
     final doc = st.docActivoMap;
 
-    if (keys.isEmpty && doc == null) return _demoResultados(context);
+    if (keys.isEmpty && doc == null) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const PageHead(title: 'Análisis', subtitle: 'Los hallazgos, las señales y las preguntas del directorio aparecen al analizar un documento.'),
+        GgCard(child: EmptyState(
+          icon: Icons.manage_search_outlined,
+          title: 'Todavía no hay un documento activo',
+          text: 'Sube un documento o actívalo para ver los resultados reales de los agentes.',
+          action: GgButton('Ir a Documentos', icon: Icons.upload_file, expand: true, onTap: () => st.go('docs')),
+        )),
+      ]);
+    }
 
     if (keys.isEmpty) {
       final procesando = doc != null && estadosProcesando.contains(doc['estado']);
@@ -102,7 +111,7 @@ class _ResultadosScreenState extends State<ResultadosScreen> {
               footer: Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
                 SevPill(s['severidad']),
                 AgentBadge(st.badgeAgente(s['agente'])),
-                Text(st.nombreAgente(s['agente']), style: TextStyle(fontSize: 11.5, color: c.text3)),
+                Text(st.nombreAgente(s['agente']), style: TextStyle(fontSize: Fs.sm, color: c.text3)),
                 MarcaVerificacionSenal(s),
               ]),
             ),
@@ -123,7 +132,7 @@ class _ResultadosScreenState extends State<ResultadosScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: Text('Son preguntas que el directorio podría hacer y que el documento no deja resueltas. Sirven para llegar preparado a la sesión; por eso no se envían al chat, que solo puede responder con lo que dice el documento.',
-                  style: TextStyle(fontSize: 12.5, color: c.text2, height: 1.45)),
+                  style: TextStyle(fontSize: Fs.md, color: c.text2, height: 1.45)),
             ),
           for (final p in all)
             SigRow(color: c.info, title: '“${p['pregunta'] ?? ''}”', footer: _quien(context, st, p['agente'])),
@@ -138,10 +147,10 @@ class _ResultadosScreenState extends State<ResultadosScreen> {
               color: c.med.withValues(alpha: 0.08),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('Faltan ${faltan.length} agente${faltan.length > 1 ? 's' : ''} por analizar: ${faltan.map((x) => x.name).join(', ')}.',
-                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.md)),
                 const SizedBox(height: 3),
                 Text('No se pudieron analizar al subir el archivo. El análisis no se repite solo. El puntaje global solo considera los agentes que tienen resultado.',
-                    style: TextStyle(fontSize: 12, color: c.text2)),
+                    style: TextStyle(fontSize: Fs.sm, color: c.text2)),
                 const SizedBox(height: 8),
                 TextButton.icon(
                   onPressed: () => st.go('diagnosticos'),
@@ -163,12 +172,12 @@ class _ResultadosScreenState extends State<ResultadosScreen> {
                 color: si.color,
                 title: st.nombreAgente(k),
                 footer: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  MarkdownLite('${res[k]!['resumen_ejecutivo'] ?? 'Sin resumen ejecutivo.'}', size: 12.5, color: c.text2),
+                  MarkdownLite('${res[k]!['resumen_ejecutivo'] ?? 'Sin resumen ejecutivo.'}', size: Fs.md, color: c.text2),
                   const SizedBox(height: 4),
                   Wrap(spacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
                     AgentBadge(st.badgeAgente(k)),
                     Pill('Score ${scoreDe(res[k])}', fg: si.color),
-                    Text(si.label, style: TextStyle(fontSize: 11, color: si.color)),
+                    Text(si.label, style: TextStyle(fontSize: Fs.xs, color: si.color)),
                   ]),
                 ]),
               );
@@ -218,42 +227,16 @@ class _ResultadosScreenState extends State<ResultadosScreen> {
           padding: const EdgeInsets.only(bottom: 8),
           child: Text('${gi.label}: promedio de ${g.n} agente${g.n == 1 ? '' : 's'} con hallazgos'
               '${g.sinInfo > 0 ? ' (${g.sinInfo} sin información relevante no cuentan)' : ''}.',
-              style: TextStyle(fontSize: 12.5, color: gi.color, fontWeight: FontWeight.w600)),
+              style: TextStyle(fontSize: Fs.md, color: gi.color, fontWeight: FontWeight.w600)),
         ),
       cuerpo,
-    ]);
-  }
-
-  Widget _demoResultados(BuildContext context) {
-    final c = context.c;
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const PageHead(title: 'Análisis', subtitle: 'Explora cómo se presentan los hallazgos, las señales y las preguntas del directorio.'),
-      const DemoAviso(text: 'Estos hallazgos son ficticios y sirven para recorrer la experiencia. Sube un documento para ver resultados reales de los agentes.'),
-      GridCols(cols: 3, minItemWidth: 130, children: const [
-        DemoDato(valor: '78', titulo: 'Preparación global', detalle: 'de ejemplo / 100'),
-        DemoDato(valor: '2', titulo: 'Alertas altas'),
-        DemoDato(valor: '5', titulo: 'Preguntas para sesión'),
-      ]),
-      const SizedBox(height: 12),
-      GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const SecTitle('Señales de ejemplo'),
-        DemoFila(titulo: 'Margen bajo presión', detalle: 'El crecimiento de ingresos no se tradujo en mejora del margen. Revisar costos y proyección del próximo período.', icon: Icons.trending_down, color: c.med),
-        DemoFila(titulo: 'Inversión por validar', detalle: 'Solicitar retorno esperado, hitos y responsable del CAPEX antes de aprobar el plan.', icon: Icons.account_balance, color: c.info),
-        DemoFila(titulo: 'Continuidad operacional', detalle: 'Confirmar estado de controles y planes de contingencia.', icon: Icons.shield_outlined, color: c.low),
-      ])),
-      GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const SecTitle('Preguntas que podría hacer el directorio'),
-        Text('¿Qué explica la variación del margen y qué medidas se tomarán?', style: TextStyle(fontSize: 13, color: c.text)),
-        const Divider(height: 20),
-        Text('¿Qué hitos y retorno se esperan de las inversiones del próximo año?', style: TextStyle(fontSize: 13, color: c.text)),
-      ])),
     ]);
   }
 
   Widget _quien(BuildContext context, AppState st, String k) => Row(children: [
         AgentBadge(st.badgeAgente(k)),
         const SizedBox(width: 6),
-        Text(st.nombreAgente(k), style: TextStyle(fontSize: 11.5, color: context.c.text3)),
+        Text(st.nombreAgente(k), style: TextStyle(fontSize: Fs.sm, color: context.c.text3)),
       ]);
 }
 
@@ -274,7 +257,7 @@ class _TarjetaAgente extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.only(top: 12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('$titulo (${items.length})', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: c.text2)),
+          Text('$titulo (${items.length})', style: TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.md, color: c.text2)),
           const SizedBox(height: 6),
           for (final it in items) Padding(padding: const EdgeInsets.only(bottom: 8), child: f(it)),
         ]),
@@ -290,33 +273,33 @@ class _TarjetaAgente extends StatelessWidget {
           childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
           expandedCrossAxisAlignment: CrossAxisAlignment.start,
           leading: AgentBadge(st.badgeAgente(k)),
-          title: Text(st.nombreAgente(k), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+          title: Text(st.nombreAgente(k), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.body)),
           subtitle: Text('${si.label} · ${listaDe(r, 'hallazgos').length} hallaz. · ${sens.length} señales · ${listaDe(r, 'omisiones').length} omis.',
-              style: TextStyle(fontSize: 11.5, color: si.color)),
-          trailing: Text('${scoreDe(r)}', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: si.color)),
+              style: TextStyle(fontSize: Fs.sm, color: si.color)),
+          trailing: Text('${scoreDe(r)}', style: TextStyle(fontSize: Fs.xxl, fontWeight: FontWeight.w700, color: si.color)),
           children: [
             const SecTitle('Resumen', bottom: 4),
-            MarkdownLite('${r['resumen_ejecutivo'] ?? '—'}', size: 13),
+            MarkdownLite('${r['resumen_ejecutivo'] ?? '—'}', size: Fs.md),
             bloque('Hallazgos', listaDe(r, 'hallazgos'), (h) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('${h['titulo'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                  Text('${h['descripcion'] ?? ''}', style: TextStyle(fontSize: 12.5, color: c.text2)),
+                  Text('${h['titulo'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.md)),
+                  Text('${h['descripcion'] ?? ''}', style: TextStyle(fontSize: Fs.md, color: c.text2)),
                 ])),
             bloque('Señales', sens, (s) {
               final sv = normSev(s['severidad']);
               return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Wrap(spacing: 6, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
                   SevPill(sv),
-                  Text('${s['titulo'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                  Text('${s['titulo'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.md)),
                   MarcaVerificacionSenal(s),
                 ]),
                 const SizedBox(height: 2),
-                Text('${s['descripcion'] ?? ''}', style: TextStyle(fontSize: 12.5, color: c.text2)),
+                Text('${s['descripcion'] ?? ''}', style: TextStyle(fontSize: Fs.md, color: c.text2)),
               ]);
             }),
-            bloque('Omisiones', listaDe(r, 'omisiones'), (o) => Text('${o['descripcion'] ?? o['titulo'] ?? ''}', style: const TextStyle(fontSize: 12.5))),
+            bloque('Omisiones', listaDe(r, 'omisiones'), (o) => Text('${o['descripcion'] ?? o['titulo'] ?? ''}', style: const TextStyle(fontSize: Fs.md))),
             bloque('Preguntas probables del directorio (para preparar la sesión)', listaDe(r, 'preguntas'),
-                (q) => Text('“${q['pregunta'] ?? ''}”', style: const TextStyle(fontSize: 12.5, fontStyle: FontStyle.italic))),
-            bloque('Recomendaciones', listaDe(r, 'recomendaciones'), (x) => Text('${x['descripcion'] ?? x['titulo'] ?? ''}', style: const TextStyle(fontSize: 12.5))),
+                (q) => Text('“${q['pregunta'] ?? ''}”', style: const TextStyle(fontSize: Fs.md, fontStyle: FontStyle.italic))),
+            bloque('Recomendaciones', listaDe(r, 'recomendaciones'), (x) => Text('${x['descripcion'] ?? x['titulo'] ?? ''}', style: const TextStyle(fontSize: Fs.md))),
             const SizedBox(height: 12),
             GgButton(enInforme ? 'En el informe (quitar)' : 'Agregar al informe', icon: enInforme ? Icons.check : Icons.add, ghost: true, small: true,
                 onTap: () => st.toggleAnalisisEnInforme(k)),
@@ -344,7 +327,7 @@ class _AvisoVerificacion extends StatelessWidget {
         child: Row(children: [
           const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
           const SizedBox(width: 12),
-          Expanded(child: Text('Verificando las señales graves con el documento… ${st.progresoVerificacion}', style: const TextStyle(fontSize: 13))),
+          Expanded(child: Text('Verificando las señales graves con el documento… ${st.progresoVerificacion}', style: const TextStyle(fontSize: Fs.md))),
         ]),
       );
     }
@@ -356,7 +339,7 @@ class _AvisoVerificacion extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text('Hay señales altas o críticas que todavía no pasaron por el verificador (análisis anterior a esta versión).',
-                style: TextStyle(fontSize: 12.5, color: c.text2)),
+                style: TextStyle(fontSize: Fs.md, color: c.text2)),
           ),
           const SizedBox(width: 8),
           GgButton('Verificar', small: true, icon: Icons.verified_outlined, onTap: st.verificarAnalisis),
@@ -375,7 +358,7 @@ class _AvisoVerificacion extends StatelessWidget {
             '${n('parcial') > 0 ? ', ${n('parcial')} con reservas' : ''}'
             '${n('no_respaldada') > 0 ? ', ${n('no_respaldada')} sin respaldo' : ''}'
             '${n('contradicha') > 0 ? ', ${n('contradicha')} contradichas (bajaron a severidad baja)' : ''}.',
-            style: TextStyle(fontSize: 12.3, color: c.text2),
+            style: TextStyle(fontSize: Fs.sm, color: c.text2),
           ),
         ),
       ]),

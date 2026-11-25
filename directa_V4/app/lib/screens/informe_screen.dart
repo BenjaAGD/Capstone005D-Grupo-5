@@ -109,7 +109,6 @@ class _InformeScreenState extends State<InformeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.c;
     final st = context.watch<AppState>();
     final items = st.itemsInforme;
     final activos = items.where((i) => i['excluido'] != true).toList();
@@ -150,11 +149,11 @@ class _InformeScreenState extends State<InformeScreen> {
     return Column(key: const ValueKey('contenido'), crossAxisAlignment: CrossAxisAlignment.start, children: [
       GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          const Expanded(child: Text('Contenido del informe', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16))),
-          Text('$cantidad seleccionados', style: TextStyle(fontSize: 12, color: c.accentText, fontWeight: FontWeight.w700)),
+          const Expanded(child: Text('Contenido del informe', style: TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.reading))),
+          Text('$cantidad seleccionados', style: TextStyle(fontSize: Fs.sm, color: c.accentText, fontWeight: FontWeight.w700)),
         ]),
         const SizedBox(height: 4),
-        Text('Elige qué análisis y conversaciones se incluirán en el PDF.', style: TextStyle(fontSize: 12.5, color: c.text2)),
+        Text('Elige qué análisis y conversaciones se incluirán en el PDF.', style: TextStyle(fontSize: Fs.md, color: c.text2)),
         const SizedBox(height: 12),
         Wrap(spacing: 8, runSpacing: 8, children: [
           GgButton('Seleccionar todos', ghost: true, small: true, onTap: () => st.setTodosExcluidos(false)),
@@ -166,9 +165,10 @@ class _InformeScreenState extends State<InformeScreen> {
             icon: Icons.description_outlined,
             title: 'Aún no hay contenido',
             text: 'Agrega análisis desde Resultados o respuestas desde el chat para comenzar el informe.',
-            action: Wrap(spacing: 8, children: [
-              GgButton('Ir a Resultados', icon: Icons.insights_outlined, ghost: true, onTap: () => st.go('resultados')),
-              GgButton('Ir al chat', icon: Icons.chat_bubble_outline, ghost: true, onTap: () => st.go('chat')),
+            action: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              GgButton('Ir a Resultados', icon: Icons.insights_outlined, ghost: true, expand: true, onTap: () => st.go('resultados')),
+              const SizedBox(height: 8),
+              GgButton('Ir al chat', icon: Icons.chat_bubble_outline, ghost: true, expand: true, onTap: () => st.go('chat')),
             ]),
           ),
         for (final it in ordenados) _itemContenido(context, st, it),
@@ -185,12 +185,14 @@ class _InformeScreenState extends State<InformeScreen> {
         : plano((it['resultado'] as Map?)?['resumen_ejecutivo']).replaceAll(RegExp(r'\s+'), ' ');
     final registrosVerif = _verificaciones([it]);
     final verif = it['verificacion'] is Map ? it['verificacion'] as Map : null;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: c.surface2,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+      color: c.surface2,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(11),
-        border: Border.all(color: it['excluido'] == true ? c.border : Brand.accent.withValues(alpha: 0.55)),
+        side: BorderSide(color: it['excluido'] == true ? c.border : Brand.accent.withValues(alpha: 0.55)),
       ),
       child: CheckboxListTile(
         value: it['excluido'] != true,
@@ -200,14 +202,14 @@ class _InformeScreenState extends State<InformeScreen> {
         title: Row(children: [
           AgentBadge(st.badgeAgente('${it['agente_key']}')),
           const SizedBox(width: 7),
-          Expanded(child: Text(nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13))),
+          Expanded(child: Text(nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.md))),
           Pill(chat ? 'CHAT' : 'ANÁLISIS', fg: c.text2, bg: c.surface3),
         ]),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 5),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(resumen.isEmpty ? (chat ? 'Respuesta de conversación' : 'Análisis del agente') : resumen,
-                maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: c.text2, height: 1.35)),
+                maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: Fs.sm, color: c.text2, height: 1.35)),
             if (registrosVerif.isNotEmpty) ...[
               const SizedBox(height: 5),
               Builder(builder: (context) {
@@ -215,11 +217,12 @@ class _InformeScreenState extends State<InformeScreen> {
                 final info = selloInfo(context, '$estado');
                 final etiqueta = verif?['etiqueta'] ?? (registrosVerif.first['verificacion'] as Map)['etiqueta'] ?? info.label;
                 return Row(children: [Icon(info.icon, size: 14, color: info.color), const SizedBox(width: 4),
-                  Text('$etiqueta', style: TextStyle(fontSize: 11, color: info.color, fontWeight: FontWeight.w600))]);
+                  Text('$etiqueta', style: TextStyle(fontSize: Fs.xs, color: info.color, fontWeight: FontWeight.w600))]);
               }),
             ],
           ]),
         ),
+      ),
       ),
     );
   }
@@ -230,9 +233,9 @@ class _InformeScreenState extends State<InformeScreen> {
     final sinVerificar = activos.where((item) => !_tieneVerificacion(item)).length;
     return Column(key: const ValueKey('verificacion'), crossAxisAlignment: CrossAxisAlignment.start, children: [
       GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Revisión de evidencia', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+        const Text('Revisión de evidencia', style: TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.reading)),
         const SizedBox(height: 4),
-        Text('Se muestran las verificaciones que ya están registradas en los elementos seleccionados.', style: TextStyle(fontSize: 12.5, color: c.text2)),
+        Text('Se muestran las verificaciones que ya están registradas en los elementos seleccionados.', style: TextStyle(fontSize: Fs.md, color: c.text2)),
         const SizedBox(height: 12),
         if (verificaciones.isEmpty)
           _AvisoInforme(
@@ -261,9 +264,9 @@ class _InformeScreenState extends State<InformeScreen> {
         ],
       ])),
       GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Fuentes disponibles', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+        const Text('Fuentes disponibles', style: TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.lg)),
         const SizedBox(height: 4),
-        Text('Las referencias de página se conservarán cuando estén disponibles.', style: TextStyle(fontSize: 12, color: c.text2)),
+        Text('Las referencias de página se conservarán cuando estén disponibles.', style: TextStyle(fontSize: Fs.sm, color: c.text2)),
         const SizedBox(height: 8),
         for (final item in activos.where((i) => i['tipo'] == 'chat'))
           for (final fuente in (item['fuentes'] as List? ?? const []).whereType<Map>())
@@ -273,11 +276,11 @@ class _InformeScreenState extends State<InformeScreen> {
                 Icon(Icons.description_outlined, size: 16, color: c.accentText),
                 const SizedBox(width: 8),
                 Expanded(child: Text('${fuente['documento'] ?? nombreDoc(doc)} · pág. ${fuente['pagina'] ?? '?'}',
-                    style: TextStyle(fontSize: 12, color: c.text2))),
+                    style: TextStyle(fontSize: Fs.sm, color: c.text2))),
               ]),
             ),
         if (!activos.any((i) => i['tipo'] == 'chat' && (i['fuentes'] as List? ?? const []).isNotEmpty))
-          Text('No hay referencias de página guardadas para los elementos seleccionados.', style: TextStyle(fontSize: 12, color: c.text3)),
+          Text('No hay referencias de página guardadas para los elementos seleccionados.', style: TextStyle(fontSize: Fs.sm, color: c.text3)),
       ])),
     ]);
   }
@@ -298,16 +301,16 @@ class _InformeScreenState extends State<InformeScreen> {
       decoration: BoxDecoration(color: c.surface2, border: Border.all(color: c.border), borderRadius: BorderRadius.circular(11)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [Icon(info.icon, size: 17, color: info.color), const SizedBox(width: 7),
-          Expanded(child: Text('${registro['titulo']}', maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5))),
-          Text('${v['etiqueta'] ?? info.label}', style: TextStyle(color: info.color, fontSize: 11, fontWeight: FontWeight.w700)),
+          Expanded(child: Text('${registro['titulo']}', maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.md))),
+          Text('${v['etiqueta'] ?? info.label}', style: TextStyle(color: info.color, fontSize: Fs.xs, fontWeight: FontWeight.w700)),
         ]),
         if ('${v['resumen'] ?? ''}'.isNotEmpty) ...[
           const SizedBox(height: 6),
-          Text('${v['resumen']}', style: TextStyle(fontSize: 12, color: c.text2, height: 1.35)),
+          Text('${v['resumen']}', style: TextStyle(fontSize: Fs.sm, color: c.text2, height: 1.35)),
         ],
         if (afirmaciones.isNotEmpty) ...[
           const SizedBox(height: 6),
-          Text('${afirmaciones.length} afirmaciones revisadas', style: TextStyle(fontSize: 11, color: c.text3)),
+          Text('${afirmaciones.length} afirmaciones revisadas', style: TextStyle(fontSize: Fs.xs, color: c.text3)),
           for (final a in afirmaciones.take(2)) ...[
             const SizedBox(height: 6),
             Builder(builder: (context) {
@@ -317,19 +320,19 @@ class _InformeScreenState extends State<InformeScreen> {
                 const SizedBox(width: 6),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text('${a['texto'] ?? 'Afirmación revisada'}', maxLines: 2, overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 11.5, color: c.text2)),
+                      style: TextStyle(fontSize: Fs.sm, color: c.text2)),
                   Text('${estado.label}${a['pagina'] != null ? ' · pág. ${a['pagina']}' : ''}',
-                      style: TextStyle(fontSize: 10.5, color: estado.color)),
+                      style: TextStyle(fontSize: Fs.xs, color: estado.color)),
                   if ('${a['cita'] ?? ''}'.isNotEmpty)
                     Text('«${a['cita']}»', maxLines: 2, overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 10.5, color: c.text3, fontStyle: FontStyle.italic)),
+                        style: TextStyle(fontSize: Fs.xs, color: c.text3, fontStyle: FontStyle.italic)),
                 ])),
               ]);
             }),
           ],
         ],
         const SizedBox(height: 5),
-        Text('Toca para ver el detalle completo', style: TextStyle(fontSize: 10, color: c.text3)),
+        Text('Toca para ver el detalle completo', style: TextStyle(fontSize: Fs.xs, color: c.text3)),
       ]),
       ),
       ),
@@ -343,9 +346,9 @@ class _InformeScreenState extends State<InformeScreen> {
     final resumen = _resumen(st, activos);
     final nombre = nombreDoc(doc).isEmpty ? 'Documento de trabajo' : nombreDoc(doc);
     return Column(key: const ValueKey('vista'), crossAxisAlignment: CrossAxisAlignment.start, children: [
-      GgCard(padding: const EdgeInsets.all(12), child: Container(
+      GgCard(padding: const EdgeInsets.all(8), child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: c.border)),
         child: DefaultTextStyle(
           style: const TextStyle(color: Color(0xFF23354A)),
@@ -353,16 +356,16 @@ class _InformeScreenState extends State<InformeScreen> {
             Row(children: [
               Container(width: 9, height: 26, decoration: BoxDecoration(color: Brand.accent, borderRadius: BorderRadius.circular(5))),
               const SizedBox(width: 8),
-              const Text('DIRECTA', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 1.2)),
+              const Text('DIRECTA', style: TextStyle(fontSize: Fs.sm, fontWeight: FontWeight.w800, letterSpacing: 1.2)),
               const Spacer(),
-              const Text('GERENCIA GENERAL', style: TextStyle(fontSize: 8, letterSpacing: 0.8)),
+              const Text('GERENCIA GENERAL', style: TextStyle(fontSize: Fs.xxs, letterSpacing: 0.8)),
             ]),
             const SizedBox(height: 18),
-            const Text('INFORME EJECUTIVO', style: TextStyle(fontSize: 9, color: Color(0xFF23869A), fontWeight: FontWeight.w700, letterSpacing: 1)),
+            const Text('INFORME EJECUTIVO', style: TextStyle(fontSize: Fs.xxs, color: Color(0xFF23869A), fontWeight: FontWeight.w700, letterSpacing: 1)),
             const SizedBox(height: 5),
-            const Text('Informe de Preparación\nPre-Directorio', style: TextStyle(fontSize: 21, height: 1.12, fontWeight: FontWeight.w700)),
+            const Text('Informe de Preparación\nPre-Directorio', style: TextStyle(fontSize: Fs.xxl, height: 1.12, fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
-            Text(nombre, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, color: Color(0xFF687586))),
+            Text(nombre, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: Fs.xs, color: Color(0xFF687586))),
             const Divider(height: 20),
             if (analisisIncl.isNotEmpty) ...[
               Row(children: [
@@ -372,30 +375,30 @@ class _InformeScreenState extends State<InformeScreen> {
               ]),
               const SizedBox(height: 12),
             ],
-            const Text('RESUMEN EJECUTIVO', style: TextStyle(fontSize: 9, color: Color(0xFF23869A), fontWeight: FontWeight.w700, letterSpacing: 0.8)),
+            const Text('RESUMEN EJECUTIVO', style: TextStyle(fontSize: Fs.xxs, color: Color(0xFF23869A), fontWeight: FontWeight.w700, letterSpacing: 0.8)),
             const SizedBox(height: 5),
             Text(resumen.isEmpty ? 'El informe incluirá las conversaciones seleccionadas y sus fuentes.' : resumen.first,
-                maxLines: 5, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, height: 1.4)),
+                maxLines: 6, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: Fs.reading, height: Fs.alturaLectura)),
             const SizedBox(height: 13),
-            const Text('CONTENIDO', style: TextStyle(fontSize: 9, color: Color(0xFF23869A), fontWeight: FontWeight.w700, letterSpacing: 0.8)),
+            const Text('CONTENIDO', style: TextStyle(fontSize: Fs.xxs, color: Color(0xFF23869A), fontWeight: FontWeight.w700, letterSpacing: 0.8)),
             const SizedBox(height: 5),
             for (final seccion in _secciones(activos))
-              Padding(padding: const EdgeInsets.only(bottom: 4), child: Text('• $seccion', style: const TextStyle(fontSize: 10))),
+              Padding(padding: const EdgeInsets.only(bottom: 4), child: Text('• $seccion', style: const TextStyle(fontSize: Fs.body, height: 1.5))),
             const SizedBox(height: 10),
             Text('$registrosVerif verificaciones registradas · Las fuentes y páginas se incluyen cuando están disponibles.',
-                style: const TextStyle(fontSize: 8.5, color: Color(0xFF687586), height: 1.35)),
+                style: const TextStyle(fontSize: Fs.xxs, color: Color(0xFF687586), height: 1.35)),
           ]),
         ),
       )),
       GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Antes de descargar', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+        const Text('Antes de descargar', style: TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.lg)),
         const SizedBox(height: 7),
         _ChecklistInforme(texto: '${activos.length} contenidos seleccionados', ok: activos.isNotEmpty),
         _ChecklistInforme(texto: 'Verificación de afirmaciones revisada', ok: registrosVerif > 0),
         _ChecklistInforme(texto: 'Fuente: $nombre', ok: doc != null),
         const SizedBox(height: 4),
         Text('Esta vista resume la estructura. El PDF se genera con el contenido completo y puede tener más páginas.',
-            style: TextStyle(fontSize: 11.5, color: c.text3, height: 1.35)),
+            style: TextStyle(fontSize: Fs.sm, color: c.text3, height: 1.35)),
       ])),
     ]);
   }
@@ -442,9 +445,9 @@ class _PasoInforme extends StatelessWidget {
         if (i > 0) Expanded(child: Container(height: 2, color: i <= paso ? Brand.accent : c.border)),
         Expanded(child: Column(mainAxisSize: MainAxisSize.min, children: [
           CircleAvatar(radius: 13, backgroundColor: i <= paso ? Brand.accent : c.surface3,
-            child: Text(i < paso ? '✓' : '${i + 1}', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: i <= paso ? Brand.onAccent : c.text3))),
+            child: Text(i < paso ? '✓' : '${i + 1}', style: TextStyle(fontSize: Fs.xs, fontWeight: FontWeight.w700, color: i <= paso ? Brand.onAccent : c.text3))),
           const SizedBox(height: 5),
-          Text(labels[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10.5, fontWeight: i == paso ? FontWeight.w700 : FontWeight.w500,
+          Text(labels[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: Fs.xs, fontWeight: i == paso ? FontWeight.w700 : FontWeight.w500,
             color: i == paso ? c.accentText : c.text3)),
         ])),
       ],
@@ -464,8 +467,8 @@ class _AvisoInforme extends StatelessWidget {
     child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Icon(icon, color: color, size: 19), const SizedBox(width: 8),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title, style: TextStyle(color: color, fontSize: 12.5, fontWeight: FontWeight.w700)),
-        const SizedBox(height: 3), Text(text, style: TextStyle(color: context.c.text2, fontSize: 11.5, height: 1.4)),
+        Text(title, style: TextStyle(color: color, fontSize: Fs.md, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 3), Text(text, style: TextStyle(color: context.c.text2, fontSize: Fs.sm, height: 1.4)),
       ])),
     ]),
   );
@@ -480,8 +483,8 @@ class _ResumenVerif extends StatelessWidget {
     padding: const EdgeInsets.all(10),
     decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(valor, style: TextStyle(color: color, fontSize: 20, fontWeight: FontWeight.w700)),
-      Text(titulo, style: TextStyle(color: context.c.text2, fontSize: 10.5, height: 1.25)),
+      Text(valor, style: TextStyle(color: color, fontSize: Fs.xxl, fontWeight: FontWeight.w700)),
+      Text(titulo, style: TextStyle(color: context.c.text2, fontSize: Fs.xs, height: 1.25)),
     ]),
   );
 }
@@ -494,9 +497,9 @@ class _DatoVista extends StatelessWidget {
     padding: const EdgeInsets.all(9),
     decoration: BoxDecoration(color: const Color(0xFFF1F5F8), borderRadius: BorderRadius.circular(6)),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(valor, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF23354A))),
-      Text(titulo, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 8.5, color: Color(0xFF405266))),
-      Text(detalle, style: const TextStyle(fontSize: 8, color: Color(0xFF687586))),
+      Text(valor, style: const TextStyle(fontSize: Fs.reading, fontWeight: FontWeight.w800, color: Color(0xFF23354A))),
+      Text(titulo, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: Fs.xxs, color: Color(0xFF405266))),
+      Text(detalle, style: const TextStyle(fontSize: Fs.xxs, color: Color(0xFF687586))),
     ]),
   );
 }
@@ -510,7 +513,7 @@ class _ChecklistInforme extends StatelessWidget {
     padding: const EdgeInsets.symmetric(vertical: 4),
     child: Row(children: [
       Icon(ok ? Icons.check_circle_outline : Icons.info_outline, size: 17, color: ok ? context.c.low : context.c.med),
-      const SizedBox(width: 7), Expanded(child: Text(texto, style: TextStyle(fontSize: 12, color: context.c.text2))),
+      const SizedBox(width: 7), Expanded(child: Text(texto, style: TextStyle(fontSize: Fs.sm, color: context.c.text2))),
     ]),
   );
 }

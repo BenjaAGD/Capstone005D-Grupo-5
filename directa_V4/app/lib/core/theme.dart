@@ -12,6 +12,27 @@ class Brand {
   static const purple = Color(0xFFC77DFF);
 }
 
+/// Escala tipográfica única de la app (pensada para celular, 360–430 dp de ancho).
+/// Las pantallas usan estos tamaños en vez de números sueltos.
+class Fs {
+  Fs._();
+  static const double xxs = 10; // etiquetas mínimas de gráficos
+  static const double xs = 11; // pills, leyendas, menú inferior
+  static const double sm = 12; // texto secundario
+  static const double md = 13; // texto de apoyo y etiquetas
+  static const double body = 14; // cuerpo
+  static const double lg = 15; // títulos de tarjeta
+  static const double reading = 16; // lectura de documentos y memoria
+  static const double xl = 18; // títulos de sección
+  static const double xxl = 21; // título de página
+  static const double display = 24; // cifras destacadas
+  static const double hero = 28; // cifras grandes
+  static const double giant = 44; // puntaje principal
+
+  /// Interlineado de lectura cómoda.
+  static const double alturaLectura = 1.55;
+}
+
 /// Tokens del MVP (index.html / dashboard.html): cambian con el tema claro u oscuro.
 @immutable
 class GgColors extends ThemeExtension<GgColors> {
@@ -75,7 +96,19 @@ class AppTheme {
     final dark = b == Brightness.dark;
     final c = dark ? GgColors.dark : GgColors.light;
     final base = ThemeData(brightness: b, useMaterial3: true);
-    final text = GoogleFonts.interTextTheme(base.textTheme).apply(bodyColor: c.text, displayColor: c.text);
+    final text = GoogleFonts.interTextTheme(base.textTheme.copyWith(
+      headlineSmall: const TextStyle(fontSize: Fs.display, fontWeight: FontWeight.w700, height: 1.2),
+      titleLarge: const TextStyle(fontSize: Fs.xxl, fontWeight: FontWeight.w700, letterSpacing: -0.3, height: 1.25),
+      titleMedium: const TextStyle(fontSize: Fs.lg, fontWeight: FontWeight.w700, height: 1.3),
+      titleSmall: const TextStyle(fontSize: Fs.md, fontWeight: FontWeight.w600, height: 1.3),
+      bodyLarge: const TextStyle(fontSize: Fs.reading, height: Fs.alturaLectura),
+      bodyMedium: const TextStyle(fontSize: Fs.body, height: 1.45),
+      bodySmall: const TextStyle(fontSize: Fs.sm, height: 1.4),
+      labelLarge: const TextStyle(fontSize: Fs.body, fontWeight: FontWeight.w600),
+      labelMedium: const TextStyle(fontSize: Fs.sm, fontWeight: FontWeight.w600),
+      labelSmall: const TextStyle(fontSize: Fs.xs, fontWeight: FontWeight.w600),
+    )).apply(bodyColor: c.text, displayColor: c.text);
+    const botonMin = Size(48, 48);
     OutlineInputBorder borde(Color col) =>
         OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: col));
     return base.copyWith(
@@ -93,7 +126,7 @@ class AppTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: c.bg2, surfaceTintColor: Colors.transparent, indicatorColor: c.accentSoft, height: 66,
-        labelTextStyle: WidgetStatePropertyAll(TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: c.text2)),
+        labelTextStyle: WidgetStatePropertyAll(TextStyle(fontSize: Fs.xs, fontWeight: FontWeight.w600, color: c.text2)),
         iconTheme: WidgetStateProperty.resolveWith((s) =>
             IconThemeData(color: s.contains(WidgetState.selected) ? c.accentText : c.text2)),
       ),
@@ -101,14 +134,21 @@ class AppTheme {
         isDense: true,
         filled: true,
         fillColor: c.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14), // campo de 48 dp
         border: borde(c.border2),
         enabledBorder: borde(c.border2),
         focusedBorder: borde(Brand.accent),
-        labelStyle: TextStyle(color: c.text3, fontSize: 13),
-        hintStyle: TextStyle(color: c.text3, fontSize: 13),
+        labelStyle: TextStyle(color: c.text3, fontSize: Fs.md),
+        hintStyle: TextStyle(color: c.text3, fontSize: Fs.md),
       ),
-      bottomSheetTheme: BottomSheetThemeData(backgroundColor: c.surface, surfaceTintColor: Colors.transparent),
+      filledButtonTheme: FilledButtonThemeData(style: FilledButton.styleFrom(minimumSize: botonMin)),
+      outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(minimumSize: botonMin)),
+      textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(minimumSize: botonMin)),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: c.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      ),
       dialogTheme: DialogThemeData(backgroundColor: c.surface, surfaceTintColor: Colors.transparent),
       popupMenuTheme: PopupMenuThemeData(color: c.surface2, surfaceTintColor: Colors.transparent),
       checkboxTheme: CheckboxThemeData(
@@ -125,6 +165,10 @@ class AppTheme {
     );
   }
 
-  static TextStyle mono(BuildContext context, {double size = 12, Color? color, FontWeight? weight}) =>
+  /// Estilo de lectura (documentos, memoria, informe): cuerpo de 16 sp con interlineado ~1.5.
+  static TextStyle lectura(BuildContext context, {Color? color}) =>
+      Theme.of(context).textTheme.bodyLarge!.copyWith(color: color ?? context.c.text);
+
+  static TextStyle mono(BuildContext context, {double size = Fs.sm, Color? color, FontWeight? weight}) =>
       GoogleFonts.jetBrainsMono(fontSize: size, color: color ?? context.c.text, fontWeight: weight);
 }

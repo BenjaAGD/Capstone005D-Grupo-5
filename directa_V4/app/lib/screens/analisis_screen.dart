@@ -28,19 +28,21 @@ class AnalisisScreen extends StatelessWidget {
           style: TextButton.styleFrom(
             foregroundColor: seleccion == indice ? c.accentText : c.text2,
             backgroundColor: seleccion == indice ? c.accentSoft : Colors.transparent,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+            minimumSize: const Size(48, 48),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         ),
       ),
     );
 
-    return Column(children: [
-      Padding(
-        padding: EdgeInsets.fromLTRB(16, consultando ? 8 : 14, 16, consultando ? 6 : 10),
-        child: Center(child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 820),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    // En el chat con el teclado abierto se oculta el selector de sección para dejar sitio al campo de texto.
+    return LayoutBuilder(builder: (context, box) {
+      final ocultarSelector = consultando && box.maxHeight < 420;
+      return Column(children: [
+      if (!ocultarSelector) Padding(
+        padding: EdgeInsets.fromLTRB(16, consultando ? 8 : 16, 16, 8),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             if (!consultando)
               const PageHead(title: 'Análisis', subtitle: 'Revisa hallazgos y trabaja cinco temas clave con la guía de DIRECTA.'),
             Container(
@@ -52,22 +54,22 @@ class AnalisisScreen extends StatelessWidget {
               ]),
             ),
           ]),
-        )),
       ),
       Expanded(child: IndexedStack(
         index: seleccion,
         children: [
-          SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
-            child: Center(child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 820),
-              child: const ResultadosScreen(),
-            )),
+          const SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.fromLTRB(16, 8, 16, 96),
+              child: ResultadosScreen(),
+            ),
           ),
           const ChatScreen(),
         ],
       )),
     ]);
+    });
   }
 }

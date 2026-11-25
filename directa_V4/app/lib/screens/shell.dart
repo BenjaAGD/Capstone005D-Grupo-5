@@ -8,6 +8,7 @@ import '../core/servidor_estado.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/asistente.dart';
+import '../widgets/common.dart';
 import 'ajustes_screen.dart';
 import 'archivos_screen.dart';
 import 'competencia_screen.dart';
@@ -24,17 +25,22 @@ import 'mas_screen.dart';
 import 'memoria_screen.dart';
 import 'preparar_screen.dart';
 
-/// Contenedor con desplazamiento y ancho máximo, para las pantallas de contenido.
+/// Contenedor con desplazamiento para las pantallas de contenido (celular en vertical):
+/// márgenes de 16 dp, a todo el ancho y respetando la barra de gestos.
 class Pagina extends StatelessWidget {
   const Pagina({super.key, required this.child, this.onRefresh});
   final Widget child;
   final Future<void> Function()? onRefresh;
   @override
   Widget build(BuildContext context) {
-    final scroll = SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 96), // espacio para el botón del asistente
-      child: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 820), child: child)),
+    final scroll = SafeArea(
+      top: false,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 96), // espacio para el botón del asistente
+        child: child,
+      ),
     );
     return onRefresh == null ? scroll : RefreshIndicator(onRefresh: onRefresh!, child: scroll);
   }
@@ -134,7 +140,6 @@ class _ShellState extends State<Shell> {
   Widget build(BuildContext context) {
     final st = context.watch<AppState>();
     final c = context.c;
-    final wide = MediaQuery.sizeOf(context).width >= 900;
     final nInf = st.itemsInforme.length;
     Widget icono(int i, bool on) {
       final ic = Icon(on ? _dest[i].$3 : _dest[i].$2);
@@ -150,35 +155,18 @@ class _ShellState extends State<Shell> {
       body: AsistenteOverlay(
         pantalla: pantalla,
         visible: pantalla != 'analisis',
-        child: wide
-          ? Row(children: [
-              NavigationRail(
-                backgroundColor: c.bg2,
-                selectedIndex: st.tab,
-                onDestinationSelected: (i) => st.go(AppState.tabs[i]),
-                labelType: NavigationRailLabelType.all,
-                indicatorColor: c.accentSoft,
-                destinations: [
-                  for (var i = 0; i < _dest.length; i++)
-                    NavigationRailDestination(icon: icono(i, false), selectedIcon: icono(i, true), label: Text(_dest[i].$1)),
-                ],
-              ),
-              VerticalDivider(width: 1, color: c.border),
-              Expanded(child: cuerpo),
-            ])
-          : cuerpo,
+        child: cuerpo,
       ),
-      bottomNavigationBar: wide
-          ? null
-          : NavigationBar(
-              selectedIndex: st.tab,
-              onDestinationSelected: (i) => st.go(AppState.tabs[i]),
-              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-              destinations: [
-                for (var i = 0; i < _dest.length; i++)
-                  NavigationDestination(icon: icono(i, false), selectedIcon: icono(i, true), label: _dest[i].$1),
-              ],
-            ),
+      // Navegación de celular: 5 destinos abajo; el resto vive en "Más".
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: st.tab,
+        onDestinationSelected: (i) => st.go(AppState.tabs[i]),
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        destinations: [
+          for (var i = 0; i < _dest.length; i++)
+            NavigationDestination(icon: icono(i, false), selectedIcon: icono(i, true), label: _dest[i].$1),
+        ],
+      ),
     );
   }
 }
@@ -221,6 +209,37 @@ class BarraDirecta extends StatelessWidget implements PreferredSizeWidget {
   final String? titulo;
   final bool mostrarDoc;
 
+  /// Selector del documento activo como hoja inferior (en vez de un menú desplegable).
+  Future<void> _elegirDocumento(BuildContext context, AppState st) async {
+    final c = context.c;
+    final id = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(ctx).height * 0.7),
+          child: ListView(shrinkWrap: true, padding: const EdgeInsets.only(bottom: 8), children: [
+            const Padding(padding: EdgeInsets.fromLTRB(16, 0, 16, 8), child: SecTitle('Documento activo', bottom: 0)),
+            for (final d in st.documentos)
+              ListTile(
+                minTileHeight: 56,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                leading: Icon(st.docActivo == '${d['id']}' ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                    color: st.docActivo == '${d['id']}' ? c.accentText : c.text3),
+                title: Text(nombreDoc(d), maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: Fs.body)),
+                subtitle: estadosProcesando.contains(d['estado'])
+                    ? Text('Procesando…', style: TextStyle(fontSize: Fs.sm, color: c.text3))
+                    : null,
+                onTap: () => Navigator.of(ctx).pop('${d['id']}'),
+              ),
+          ]),
+        ),
+      ),
+    );
+    if (id != null && id != st.docActivo && await st.cambiarDocumento(id)) st.toast('Documento activado');
+  }
+
   @override
   Size get preferredSize => const Size.fromHeight(64);
 
@@ -244,31 +263,24 @@ class BarraDirecta extends StatelessWidget implements PreferredSizeWidget {
         ],
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Text(titulo ?? 'DIRECTA', style: TextStyle(fontSize: titulo == null ? 15 : 16, fontWeight: FontWeight.w700, letterSpacing: titulo == null ? 2.5 : 0)),
+            Text(titulo ?? 'DIRECTA', style: TextStyle(fontSize: titulo == null ? Fs.lg : Fs.reading, fontWeight: FontWeight.w700, letterSpacing: titulo == null ? 2.5 : 0)),
             if (mostrarDoc && docs.isNotEmpty)
-              PopupMenuButton<String>(
-                tooltip: 'Cambiar documento activo',
-                initialValue: st.docActivo,
-                onSelected: (id) async {
-                  if (await st.cambiarDocumento(id)) st.toast('Documento activado');
-                },
-                itemBuilder: (_) => [
-                  for (final d in docs)
-                    PopupMenuItem(
-                      value: '${d['id']}',
-                      child: Text('${nombreDoc(d)}${estadosProcesando.contains(d['estado']) ? ' (procesando…)' : ''}', style: const TextStyle(fontSize: 13)),
-                    ),
-                ],
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(Icons.description_outlined, size: 13, color: c.text3),
-                  const SizedBox(width: 4),
-                  Flexible(child: Text(nombreDoc(st.docActivoMap).isEmpty ? 'Elegir documento' : nombreDoc(st.docActivoMap),
-                      maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, color: c.text2))),
-                  Icon(Icons.arrow_drop_down, size: 18, color: c.text3),
-                ]),
+              InkWell(
+                onTap: () => _elegirDocumento(context, st),
+                borderRadius: BorderRadius.circular(6),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 24),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.description_outlined, size: 14, color: c.text3),
+                    const SizedBox(width: 4),
+                    Flexible(child: Text(nombreDoc(st.docActivoMap).isEmpty ? 'Elegir documento' : nombreDoc(st.docActivoMap),
+                        maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: Fs.sm, color: c.text2))),
+                    Icon(Icons.arrow_drop_down, size: 18, color: c.text3),
+                  ]),
+                ),
               )
             else if (titulo == null)
-              Text('GERENCIA GENERAL', style: TextStyle(fontSize: 9.5, letterSpacing: 1.2, color: c.text3)),
+              Text('GERENCIA GENERAL', style: TextStyle(fontSize: Fs.xxs, letterSpacing: 1.2, color: c.text3)),
           ]),
         ),
       ]),

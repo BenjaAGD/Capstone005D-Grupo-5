@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../core/theme.dart';
+
 import 'auth_location_stub.dart'
     if (dart.library.js_interop) 'auth_location_web.dart';
 
@@ -396,7 +398,15 @@ class _CuentaScreenState extends State<_CuentaScreen> {
         enableSuggestions: !secret,
         keyboardType: c == _correo
             ? TextInputType.emailAddress
-            : TextInputType.text,
+            : secret
+                ? TextInputType.visiblePassword
+                : c == _nombre
+                    ? TextInputType.name
+                    : TextInputType.text,
+        textCapitalization: c == _nombre || c == _empresa || c == _cargo
+            ? TextCapitalization.words
+            : TextCapitalization.none,
+        scrollPadding: const EdgeInsets.only(bottom: 120), // deja ver el botón con el teclado abierto
         autofillHints: c == _correo
             ? const [AutofillHints.email]
             : secret
@@ -446,16 +456,19 @@ class _CuentaScreenState extends State<_CuentaScreen> {
       width: double.infinity,
       child: FilledButton(
         onPressed: action,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          child: Text(text),
-        ),
+        style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+        child: Text(text),
       ),
     );
   }
 
   Widget _content() {
-    final session = Supabase.instance.client.auth.currentSession;
+    Session? session;
+    try {
+      session = Supabase.instance.client.auth.currentSession;
+    } catch (_) {
+      session = null; // Supabase aún no está listo
+    }
     final expired = _reset &&
         !_sent &&
         (session == null || session.isExpired);
@@ -506,7 +519,7 @@ class _CuentaScreenState extends State<_CuentaScreen> {
         Text(
           _signup ? 'BIENVENIDO A DIRECTA' : 'TU CUENTA DIRECTA',
           style: const TextStyle(
-            fontSize: 10,
+            fontSize: Fs.xs,
             fontWeight: FontWeight.w700,
             letterSpacing: 1.6,
             color: Color(0xFF718394),
@@ -516,7 +529,7 @@ class _CuentaScreenState extends State<_CuentaScreen> {
         Text(
           title,
           style: const TextStyle(
-            fontSize: 27,
+            fontSize: Fs.hero,
             height: 1.15,
             fontWeight: FontWeight.w700,
             color: Color(0xFF12324B),
@@ -526,7 +539,7 @@ class _CuentaScreenState extends State<_CuentaScreen> {
         Text(
           subtitle,
           style: const TextStyle(
-            fontSize: 14,
+            fontSize: Fs.body,
             height: 1.5,
             color: Color(0xFF647789),
           ),
@@ -549,35 +562,17 @@ class _CuentaScreenState extends State<_CuentaScreen> {
                               ? 'Escribe tu nombre.'
                               : null,
                     ),
-                    LayoutBuilder(
-                      builder: (context, box) {
-                        final fields = [
-                          _field(
-                            _empresa,
-                            'Empresa (opcional)',
-                            Icons.business_outlined,
-                            limit: 120,
-                          ),
-                          _field(
-                            _cargo,
-                            'Cargo (opcional)',
-                            Icons.work_outline,
-                            limit: 100,
-                          ),
-                        ];
-
-                        return box.maxWidth < 440
-                            ? Column(children: fields)
-                            : Row(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(child: fields[0]),
-                                  const SizedBox(width: 12),
-                                  Expanded(child: fields[1]),
-                                ],
-                              );
-                      },
+                    _field(
+                      _empresa,
+                      'Empresa (opcional)',
+                      Icons.business_outlined,
+                      limit: 120,
+                    ),
+                    _field(
+                      _cargo,
+                      'Cargo (opcional)',
+                      Icons.work_outline,
+                      limit: 100,
                     ),
                     const Divider(height: 24),
                   ],
@@ -665,7 +660,7 @@ class _CuentaScreenState extends State<_CuentaScreen> {
             'Revisa también la carpeta de spam.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: Fs.sm,
               color: Color(0xFF647789),
             ),
           ),
@@ -703,7 +698,7 @@ class _CuentaScreenState extends State<_CuentaScreen> {
             'Tu perfil se podrá completar después del registro.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: Fs.xs,
               color: Color(0xFF7D8B98),
             ),
           ),
@@ -747,7 +742,7 @@ class AuthFrame extends StatelessWidget {
           textStyle: const TextStyle(
             fontFamily: 'Roboto',
             fontWeight: FontWeight.w700,
-            fontSize: 14,
+            fontSize: Fs.body,
           ),
         ),
       ),
@@ -760,7 +755,7 @@ class AuthFrame extends StatelessWidget {
         ),
         labelStyle: const TextStyle(
           color: Color(0xFF647789),
-          fontSize: 13,
+          fontSize: Fs.md,
         ),
         prefixIconColor: const Color(0xFF7A8F9F),
         border: OutlineInputBorder(
@@ -791,175 +786,78 @@ class AuthFrame extends StatelessWidget {
             ),
           ),
           child: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, box) {
-                final wide = box.maxWidth >= 920;
-
-                final panel = Container(
-                  padding: EdgeInsets.all(wide ? 34 : 24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x33000000),
-                        blurRadius: 36,
-                        offset: Offset(0, 16),
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(
+                        Icons.grid_view_rounded,
+                        color: cyan,
+                        size: 28,
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'DIRECTA',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: Fs.display,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 3,
+                              ),
+                            ),
+                            Text(
+                              'INTELIGENCIA DIRECTIVA',
+                              maxLines: 2,
+                              style: TextStyle(
+                                color: Color(0xFFA8BFCE),
+                                fontSize: Fs.xs,
+                                letterSpacing: 2,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                  child: child,
-                );
-
-                return SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: wide ? 40 : 20,
-                    vertical: wide ? 40 : 24,
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x33000000),
+                          blurRadius: 36,
+                          offset: Offset(0, 16),
+                        ),
+                      ],
+                    ),
+                    child: child,
                   ),
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints:
-                          const BoxConstraints(maxWidth: 1080),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Row(
-                            children: [
-                              Icon(
-                                Icons.grid_view_rounded,
-                                color: cyan,
-                                size: 28,
-                              ),
-                              SizedBox(width: 12),
-                              Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'DIRECTA',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 23,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 3,
-                                    ),
-                                  ),
-                                  Text(
-                                    'INTELIGENCIA DIRECTIVA',
-                                    style: TextStyle(
-                                      color: Color(0xFFA8BFCE),
-                                      fontSize: 8,
-                                      letterSpacing: 2,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 32),
-                          if (wide)
-                            Row(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.center,
-                              children: [
-                                const Expanded(
-                                  flex: 4,
-                                  child: Padding(
-                                    padding: EdgeInsets.only(right: 56),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Más claridad.\nMejores decisiones.',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 42,
-                                            height: 1.12,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                        SizedBox(height: 22),
-                                        Text(
-                                          'Tu información corporativa, '
-                                          'organizada para preparar cada '
-                                          'sesión con confianza.',
-                                          style: TextStyle(
-                                            color: Color(0xFFB8CBD7),
-                                            fontSize: 16,
-                                            height: 1.6,
-                                          ),
-                                        ),
-                                        SizedBox(height: 34),
-                                        _Benefit(
-                                          Icons.folder_open_outlined,
-                                          'Documentos en un solo lugar',
-                                        ),
-                                        _Benefit(
-                                          Icons.manage_search_outlined,
-                                          'Hallazgos y preguntas relevantes',
-                                        ),
-                                        _Benefit(
-                                          Icons.insights_outlined,
-                                          'Preparación para el directorio',
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                Expanded(flex: 6, child: panel),
-                              ],
-                            )
-                          else
-                            panel,
-                          const SizedBox(height: 24),
-                          const Center(
-                            child: Text(
-                              'DIRECTA · Gerencia General',
-                              style: TextStyle(
-                                color: Color(0xFF9CB5C5),
-                                fontSize: 11,
-                              ),
-                            ),
-                          ),
-                        ],
+                  const SizedBox(height: 24),
+                  const Center(
+                    child: Text(
+                      'DIRECTA · Gerencia General',
+                      style: TextStyle(
+                        color: Color(0xFF9CB5C5),
+                        fontSize: Fs.xs,
                       ),
                     ),
                   ),
-                );
-              },
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Benefit extends StatelessWidget {
-  const _Benefit(this.icon, this.text);
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
-      child: Row(
-        children: [
-          Icon(icon, color: const Color(0xFF5BD2DF), size: 21),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                color: Color(0xFFCDDBE4),
-                fontSize: 14,
+                ],
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

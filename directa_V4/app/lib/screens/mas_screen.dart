@@ -23,9 +23,9 @@ class MasScreen extends StatelessWidget {
         ),
         const SizedBox(width: 13),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(t, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+          Text(t, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.body)),
           const SizedBox(height: 2),
-          Text(d, style: TextStyle(fontSize: 12.3, color: c.text2)),
+          Text(d, style: TextStyle(fontSize: Fs.sm, color: c.text2)),
         ])),
         Icon(Icons.chevron_right, color: c.text3),
       ]),

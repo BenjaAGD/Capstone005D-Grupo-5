@@ -108,7 +108,6 @@ class _ChatScreenState extends State<ChatScreen> {
       context: context,
       useSafeArea: true,
       isScrollControlled: true,
-      constraints: const BoxConstraints(maxWidth: 640),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
       builder: (ctx) {
         Widget fila(IconData icono, String titulo, String detalle, String q, {bool hecho = false}) => Padding(
@@ -129,9 +128,9 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       const SizedBox(width: 11),
                       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(titulo, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                        Text(titulo, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.md)),
                         const SizedBox(height: 2),
-                        Text(detalle, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, color: c.text2)),
+                        Text(detalle, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: Fs.sm, color: c.text2)),
                       ])),
                       Icon(Icons.north_east_rounded, size: 17, color: c.accentText),
                     ]),
@@ -146,9 +145,9 @@ class _ChatScreenState extends State<ChatScreen> {
           builder: (_, sc) => ListView(controller: sc, padding: const EdgeInsets.fromLTRB(16, 8, 16, 20), children: [
             Center(child: Container(width: 38, height: 4, margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(color: c.border2, borderRadius: BorderRadius.circular(3)))),
-            const Text('Sugerencias', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            const Text('Sugerencias', style: TextStyle(fontSize: Fs.xl, fontWeight: FontWeight.w800)),
             const SizedBox(height: 2),
-            Text('Toca una y se envía al tiro.', style: TextStyle(fontSize: 12, color: c.text2)),
+            Text('Toca una y se envía al tiro.', style: TextStyle(fontSize: Fs.sm, color: c.text2)),
             const SizedBox(height: 14),
             SecTitle('Guía de análisis · ${st.guiaTemasCompletados.length}/5', bottom: 8),
             for (var i = 0; i < _temasGuia.length; i++)
@@ -223,8 +222,8 @@ class _ChatScreenState extends State<ChatScreen> {
     final prod = st.agentes.where((a) => a.tipo == 'productor').toList();
     Widget op(String key, String badge, String name, String desc) => ListTile(
           leading: AgentBadge(badge),
-          title: Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-          subtitle: Text(desc, style: TextStyle(fontSize: 12, color: c.text2)),
+          title: Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: Fs.body)),
+          subtitle: Text(desc, style: TextStyle(fontSize: Fs.sm, color: c.text2)),
           trailing: st.agenteActual == key ? Icon(Icons.check, color: c.accentText) : null,
           selected: st.agenteActual == key,
           onTap: () => Navigator.pop(context, key),
@@ -234,7 +233,6 @@ class _ChatScreenState extends State<ChatScreen> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      constraints: const BoxConstraints(maxWidth: 640),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (_) => DraggableScrollableSheet(
         expand: false,
@@ -299,8 +297,8 @@ class _ChatScreenState extends State<ChatScreen> {
             Icon(Icons.route_outlined, size: 17, color: c.accentText),
             const SizedBox(width: 8),
             Expanded(child: Text('Tema ${seleccion + 1}/5 · ${paso.tema}', maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: c.accentText))),
-            Text('${completados.length}/5', style: TextStyle(fontSize: 11.5, color: c.text3)),
+                style: TextStyle(fontSize: Fs.md, fontWeight: FontWeight.w700, color: c.accentText))),
+            Text('${completados.length}/5', style: TextStyle(fontSize: Fs.sm, color: c.text3)),
             Icon(Icons.expand_more, size: 18, color: c.text3),
           ]),
         ),
@@ -319,8 +317,8 @@ class _ChatScreenState extends State<ChatScreen> {
           Icon(Icons.route_outlined, size: 17, color: c.accentText),
           const SizedBox(width: 7),
           Expanded(child: Text('Guía de análisis · Tema ${seleccion + 1} de 5',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: c.accentText))),
-          Text('${completados.length}/5', style: TextStyle(fontSize: 11, color: c.text3)),
+              style: TextStyle(fontSize: Fs.sm, fontWeight: FontWeight.w700, color: c.accentText))),
+          Text('${completados.length}/5', style: TextStyle(fontSize: Fs.xs, color: c.text3)),
         ]),
         const SizedBox(height: 7),
         Row(children: [
@@ -335,8 +333,9 @@ class _ChatScreenState extends State<ChatScreen> {
             )),
         ]),
         const SizedBox(height: 12),
+        // Carrusel horizontal a propósito: los cinco temas de la guía.
         SizedBox(
-          height: 36,
+          height: 48,
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: [
@@ -359,7 +358,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           const SizedBox(width: 4),
                         ],
                         Text(_temasGuia[i].tema, style: TextStyle(
-                          fontSize: 12.5, fontWeight: seleccion == i ? FontWeight.w800 : FontWeight.w500,
+                          fontSize: Fs.md, fontWeight: seleccion == i ? FontWeight.w800 : FontWeight.w500,
                           color: seleccion == i ? Brand.onAccent : c.text2)),
                       ]),
                     ),
@@ -381,13 +380,13 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('TEMA ${seleccion + 1} DE 5 · ${paso.tema.toUpperCase()}',
-                style: TextStyle(fontSize: 10.5, letterSpacing: .8, fontWeight: FontWeight.w800, color: c.accentText)),
+                style: TextStyle(fontSize: Fs.xs, letterSpacing: .8, fontWeight: FontWeight.w800, color: c.accentText)),
             const SizedBox(height: 6),
-            Text(paso.pregunta, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.35)),
+            Text(paso.pregunta, style: const TextStyle(fontSize: Fs.body, fontWeight: FontWeight.w600, height: 1.35)),
             if (respuestas[seleccion] != null) ...[
               const SizedBox(height: 6),
               Text('Tu respuesta: ${respuestas[seleccion]}',
-                  maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, color: c.text3)),
+                  maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: Fs.sm, color: c.text3)),
             ],
             const SizedBox(height: 12),
             SizedBox(
@@ -416,7 +415,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             if (st.docActivo == null) ...[
               const SizedBox(height: 6),
-              Text('Selecciona un documento para analizar este tema.', style: TextStyle(fontSize: 11, color: c.text3)),
+              Text('Selecciona un documento para analizar este tema.', style: TextStyle(fontSize: Fs.xs, color: c.text3)),
             ],
           ]),
         ),
@@ -451,9 +450,13 @@ class _ChatScreenState extends State<ChatScreen> {
       _alFondo();
     }
 
-    return Column(children: [
-      Container(
-        padding: const EdgeInsets.fromLTRB(12, 5, 8, 5),
+    // Con el teclado abierto queda poca altura: se ocultan las barras superiores y quedan
+    // solo la conversación y el campo de texto, que sube con el teclado.
+    return LayoutBuilder(builder: (context, box) {
+      final compacto = box.maxHeight < 360;
+      return Column(children: [
+      if (!compacto) Container(
+        padding: const EdgeInsets.fromLTRB(16, 4, 8, 4),
         decoration: BoxDecoration(color: c.bg2, border: Border(bottom: BorderSide(color: c.border))),
         child: Row(children: [
           Material(
@@ -463,14 +466,14 @@ class _ChatScreenState extends State<ChatScreen> {
             child: InkWell(
               onTap: () => _elegirAgente(st),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
                   AgentBadge(st.badgeAgente(st.agenteActual)),
                   const SizedBox(width: 6),
                   ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 180),
+                    constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.45),
                     child: Text(st.nombreAgente(st.agenteActual), maxLines: 1, overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: Fs.sm)),
                   ),
                   Icon(Icons.expand_more, size: 17, color: c.text2),
                 ]),
@@ -480,9 +483,6 @@ class _ChatScreenState extends State<ChatScreen> {
           const Spacer(),
           IconButton(
             tooltip: 'Nueva conversación',
-            visualDensity: VisualDensity.compact,
-            constraints: const BoxConstraints.tightFor(width: 38, height: 38),
-            padding: EdgeInsets.zero,
             onPressed: st.mensajes.isEmpty || st.consultando
                 ? null
                 : () async {
@@ -494,15 +494,15 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ]),
       ),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+      if (!compacto) Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
         child: _selectorModo(st),
       ),
       Expanded(
         child: ListView(
           controller: _scroll,
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           children: [
             if (doc == null) ...[
               GgCard(
@@ -523,12 +523,12 @@ class _ChatScreenState extends State<ChatScreen> {
                   const SizedBox(width: 10),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(_modoGuia ? 'Revisa cinco temas clave' : 'Consulta el documento',
-                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.md)),
                     const SizedBox(height: 4),
                     Text(_modoGuia
                         ? 'Responde cada pregunta de la gerencia. DIRECTA contrastará tus respuestas con la evidencia disponible.'
                         : 'Escribe una pregunta. La respuesta mostrará fuentes y páginas cuando estén disponibles.',
-                        style: TextStyle(fontSize: 12, height: 1.4, color: c.text2)),
+                        style: TextStyle(fontSize: Fs.sm, height: 1.4, color: c.text2)),
                   ])),
                 ]),
               ),
@@ -541,10 +541,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: Icon(Icons.auto_awesome, color: c.accentText, size: 25),
                 ),
                 const SizedBox(height: 10),
-                const Text('Pregúntale al documento', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800)),
+                const Text('Pregúntale al documento', style: TextStyle(fontSize: Fs.xl, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 4),
                 Text('Respuestas con página y fuente. Toca una sugerencia para enviarla.',
-                    textAlign: TextAlign.center, style: TextStyle(fontSize: 12.5, color: c.text2, height: 1.4)),
+                    textAlign: TextAlign.center, style: TextStyle(fontSize: Fs.md, color: c.text2, height: 1.4)),
                 const SizedBox(height: 14),
               ])),
               for (final q in _sugerencias)
@@ -566,9 +566,9 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                           const SizedBox(width: 12),
                           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text(q.titulo, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
+                            Text(q.titulo, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.body)),
                             const SizedBox(height: 2),
-                            Text(q.detalle, style: TextStyle(fontSize: 12, color: c.text2, height: 1.3)),
+                            Text(q.detalle, style: TextStyle(fontSize: Fs.sm, color: c.text2, height: 1.3)),
                           ])),
                           Icon(Icons.north_east_rounded, size: 18, color: c.accentText),
                         ]),
@@ -583,7 +583,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       Container(
         decoration: BoxDecoration(color: c.bg2, border: Border(top: BorderSide(color: c.border))),
-        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+        padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
         child: SafeArea(
           top: false,
           child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
@@ -611,7 +611,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   textCapitalization: TextCapitalization.sentences,
                   keyboardType: TextInputType.multiline,
                   textInputAction: TextInputAction.newline,
-                  style: const TextStyle(fontSize: 14.5),
+                  style: const TextStyle(fontSize: Fs.lg),
                   decoration: InputDecoration(
                     filled: false,
                     border: InputBorder.none,
@@ -640,6 +640,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     ]);
+    });
   }
 
   Widget _burbujaIA(BuildContext context, AppState st, ChatMsg m) {
@@ -658,9 +659,9 @@ class _ChatScreenState extends State<ChatScreen> {
             decoration: BoxDecoration(color: c.surface3, borderRadius: BorderRadius.circular(8)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('[${i + 1}] Página ${m.fuentes[i]['pagina'] ?? '?'}',
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.sm)),
               const SizedBox(height: 3),
-              Text('${m.fuentes[i]['preview'] ?? ''}', style: TextStyle(fontSize: 12, color: c.text2)),
+              Text('${m.fuentes[i]['preview'] ?? ''}', style: TextStyle(fontSize: Fs.sm, color: c.text2)),
             ]),
           ),
       ]);
@@ -671,7 +672,7 @@ class _ChatScreenState extends State<ChatScreen> {
               const SizedBox(width: 8),
               Text('Analizando el documento…', style: TextStyle(color: c.text3)),
             ])
-          : Text('${m.texto}▍', style: const TextStyle(fontSize: 13.5, height: 1.5));
+          : Text('${m.texto}▍', style: const TextStyle(fontSize: Fs.body, height: 1.5));
     } else if (m.error) {
       cuerpo = Text(m.texto, style: TextStyle(color: c.high));
     } else {
@@ -680,8 +681,9 @@ class _ChatScreenState extends State<ChatScreen> {
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 640),
-        margin: const EdgeInsets.only(bottom: 14, right: 14),
+        // Burbuja de hasta ~80 % del ancho de la pantalla.
+        constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.8),
+        margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
         decoration: BoxDecoration(
           color: c.surface,
@@ -698,7 +700,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             const SizedBox(width: 7),
             Flexible(child: Text(m.agente.isEmpty ? 'Asistente' : m.agente, maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: c.accentText))),
+                style: TextStyle(fontSize: Fs.sm, fontWeight: FontWeight.w700, color: c.accentText))),
           ]),
           if (tieneFuentes) ...[
             const SizedBox(height: 8),
@@ -726,13 +728,13 @@ class _ChatScreenState extends State<ChatScreen> {
                     'Fuente del documento · pág. $paginas',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 11.5, color: c.text2),
+                    style: TextStyle(fontSize: Fs.sm, color: c.text2),
                   ),
                 ),
                 TextButton(
                   onPressed: () => setState(() => _tab[m.id] = 'fuentes'),
-                  style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 6), visualDensity: VisualDensity.compact),
-                  child: const Text('Ver citas', style: TextStyle(fontSize: 11.5)),
+                  style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
+                  child: const Text('Ver citas', style: TextStyle(fontSize: Fs.sm)),
                 ),
               ]),
             ),
@@ -748,11 +750,10 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               Valoracion(msg: m),
               TextButton.icon(
-                style: TextButton.styleFrom(foregroundColor: enInforme ? c.low : c.text2, padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact),
+                style: TextButton.styleFrom(foregroundColor: enInforme ? c.low : c.text2, padding: const EdgeInsets.symmetric(horizontal: 4)),
                 onPressed: () => st.toggleChatEnInforme(m.id),
                 icon: Icon(enInforme ? Icons.check : Icons.add, size: 16),
-                label: Text(enInforme ? 'En el informe' : 'Agregar al informe', style: const TextStyle(fontSize: 12.5)),
+                label: Text(enInforme ? 'En el informe' : 'Agregar al informe', style: const TextStyle(fontSize: Fs.md)),
               ),
             ]),
           ],
@@ -769,15 +770,15 @@ class _Mio extends StatelessWidget {
   Widget build(BuildContext context) => Align(
         alignment: Alignment.centerRight,
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 520),
-          margin: const EdgeInsets.only(bottom: 14, left: 48),
+          constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.8),
+          margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: const BoxDecoration(
             color: Brand.accent,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(18), topRight: Radius.circular(18), bottomLeft: Radius.circular(18), bottomRight: Radius.circular(4)),
           ),
-          child: Text(texto, style: const TextStyle(fontSize: 14, height: 1.4, color: Brand.onAccent, fontWeight: FontWeight.w500)),
+          child: Text(texto, style: const TextStyle(fontSize: Fs.body, height: 1.4, color: Brand.onAccent, fontWeight: FontWeight.w500)),
         ),
       );
 }
@@ -823,17 +824,20 @@ class _GuiaSintesisScreenState extends State<GuiaSintesisScreen> {
     final respuestas = st.respuestasGuia;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(title: const Text('Síntesis y seguimiento')),
       body: SafeArea(
+        top: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 28),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           children: [
             const PageHead(title: 'Cinco temas revisados', subtitle: 'Separa la evidencia del documento del contexto que aportó gerencia.'),
             GgCard(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 const SecTitle('Evidencia del documento'),
                 if (fuentes.isEmpty)
-                  Text('La conversación todavía no tiene referencias de página.', style: TextStyle(color: c.text2, fontSize: 12.5))
+                  Text('La conversación todavía no tiene referencias de página.', style: TextStyle(color: c.text2, fontSize: Fs.md))
                 else
                   for (final f in fuentes.take(8))
                     _InfoFila(
@@ -855,16 +859,20 @@ class _GuiaSintesisScreenState extends State<GuiaSintesisScreen> {
             for (var i = 0; i < _temasGuia.length; i++)
               GgCard(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(_temasGuia[i].tema, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                  Text(_temasGuia[i].tema, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.md)),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _responsables[i],
+                    textInputAction: TextInputAction.next,
+                    textCapitalization: TextCapitalization.words,
                     decoration: const InputDecoration(labelText: 'Responsable o área'),
                     onChanged: (v) => st.guardarAcuerdoGuia(i, responsable: v, fecha: _fechas[i].text),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   TextField(
                     controller: _fechas[i],
+                    keyboardType: TextInputType.datetime,
+                    textInputAction: i == _temasGuia.length - 1 ? TextInputAction.done : TextInputAction.next,
                     decoration: const InputDecoration(labelText: 'Fecha de seguimiento', hintText: 'dd/mm/aaaa'),
                     onChanged: (v) => st.guardarAcuerdoGuia(i, responsable: _responsables[i].text, fecha: v),
                   ),
@@ -892,9 +900,9 @@ class _InfoFila extends StatelessWidget {
         Icon(icon, size: 17, color: c.accentText),
         const SizedBox(width: 8),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(titulo, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+          Text(titulo, style: const TextStyle(fontSize: Fs.sm, fontWeight: FontWeight.w700)),
           const SizedBox(height: 3),
-          Text(detalle, style: TextStyle(fontSize: 12, height: 1.4, color: c.text2)),
+          Text(detalle, style: TextStyle(fontSize: Fs.sm, height: 1.4, color: c.text2)),
         ])),
       ]),
     );

@@ -5,7 +5,7 @@ DIRECTA — Lectura del documento dentro de la app.
 Arregla tres problemas del lector anterior (/vista-previa):
   1. Los fragmentos se pedían ordenados solo por página, así que dentro de una misma página podían
      llegar desordenados. Ahora se ordena por (página, orden); la columna `orden` es opcional (ver
-     migracion_v5_orden_chunks.sql). Sin ella, el orden dentro de la página queda como antes.
+     base_de_datos.sql). Sin ella, el orden dentro de la página queda como antes.
   2. Los fragmentos se cortan con 150 caracteres de traslape; al pegarlos, ese texto salía repetido.
      Aquí se detecta y se quita el traslape.
   3. El contador "página X de N+" contaba solo las páginas ya cargadas. Ahora se entrega la lista real

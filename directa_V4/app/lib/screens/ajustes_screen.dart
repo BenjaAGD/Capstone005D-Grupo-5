@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/config.dart';
-import '../core/demo_modo.dart';
 import '../core/servidor_estado.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
@@ -79,11 +78,16 @@ class _AjustesScreenState extends State<AjustesScreen> {
     _estadoServidor();
   }
 
-  Future<void> _cerrarSesion() async {
-    if (DemoModo.instance.activo) {
-      DemoModo.instance.salir();
-      return;
+  /// Correo de la sesión actual (null si Supabase aún no está listo).
+  String? _correoActual() {
+    try {
+      return Supabase.instance.client.auth.currentUser?.email;
+    } catch (_) {
+      return null;
     }
+  }
+
+  Future<void> _cerrarSesion() async {
     try {
       await Supabase.instance.client.auth.signOut();
     } catch (_) {
@@ -125,9 +129,9 @@ class _AjustesScreenState extends State<AjustesScreen> {
         const SizedBox(width: 12),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(titulo, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
+            Text(titulo, style: const TextStyle(fontSize: Fs.body, fontWeight: FontWeight.w600)),
             const SizedBox(height: 1),
-            Text(detalle, style: TextStyle(fontSize: 11.5, color: c.text3)),
+            Text(detalle, style: TextStyle(fontSize: Fs.sm, color: c.text3)),
           ]),
         ),
         const SizedBox(width: 8),
@@ -140,7 +144,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
   Widget build(BuildContext context) {
     final c = context.c;
     final st = context.watch<AppState>();
-    final correo = Supabase.instance.client.auth.currentUser?.email;
+    final correo = _correoActual();
     final enLinea = servidor != null;
     final proveedores = servidor?['proveedores'];
     final persistencia = (servidor?['persistencia'] as Map?) ?? const {};
@@ -152,29 +156,34 @@ class _AjustesScreenState extends State<AjustesScreen> {
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       GgCard(
-        child: Row(children: [
-          CircleAvatar(radius: 22, backgroundColor: c.accentSoft, child: Icon(Icons.person_outline_rounded, color: c.accentText)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Gerencia General', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)),
-              const SizedBox(height: 2),
-              Text(DemoModo.instance.activo ? 'Acceso demo · sin cuenta' : (correo ?? 'Sesión iniciada'), maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12, color: c.text2)),
-            ]),
-          ),
-          const SizedBox(width: 8),
-          GgButton(DemoModo.instance.activo ? 'Salir de la demo' : 'Cerrar sesión', ghost: true, small: true, icon: Icons.logout, onTap: _cerrarSesion),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(children: [
+            CircleAvatar(radius: 22, backgroundColor: c.accentSoft, child: Icon(Icons.person_outline_rounded, color: c.accentText)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('Gerencia General', style: TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.lg)),
+                const SizedBox(height: 2),
+                Text(correo ?? 'Sesión iniciada', maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: Fs.sm, color: c.text2)),
+              ]),
+            ),
+          ]),
+          const SizedBox(height: 16),
+          GgButton('Cerrar sesión', ghost: true, expand: true, icon: Icons.logout, onTap: _cerrarSesion),
         ]),
       ),
       GgCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            const Expanded(child: SecTitle('Estado del sistema', bottom: 0)),
-            if (revisado != null) Text('Actualizado ${_hora(revisado!)}', style: TextStyle(fontSize: 10.5, color: c.text3)),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const SecTitle('Estado del sistema', bottom: 0),
+                if (revisado != null) Text('Actualizado ${_hora(revisado!)}', style: TextStyle(fontSize: Fs.xs, color: c.text3)),
+              ]),
+            ),
             IconButton(
               tooltip: 'Revisar de nuevo',
-              visualDensity: VisualDensity.compact,
               onPressed: revisando ? null : _estadoServidor,
               icon: revisando
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
@@ -196,7 +205,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
             Padding(
               padding: const EdgeInsets.only(top: 10, bottom: 2),
               child: Text('INTELIGENCIA ARTIFICIAL',
-                  style: TextStyle(fontSize: 10.5, letterSpacing: 1.2, fontWeight: FontWeight.w600, color: c.text3)),
+                  style: TextStyle(fontSize: Fs.xs, letterSpacing: 1.2, fontWeight: FontWeight.w600, color: c.text3)),
             ),
             for (final (clave, nombre) in const [('gemini', 'Gemini'), ('groq', 'Groq'), ('nvidia', 'NVIDIA')])
               _fila(
@@ -229,7 +238,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
             ),
           if (aviso.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Text(aviso, style: TextStyle(fontSize: 12, color: c.med)),
+            Text(aviso, style: TextStyle(fontSize: Fs.sm, color: c.med)),
           ],
         ]),
       ),
@@ -256,19 +265,22 @@ class _AjustesScreenState extends State<AjustesScreen> {
             shape: const Border(),
             collapsedShape: const Border(),
             leading: Icon(Icons.tune, color: c.text2, size: 20),
-            title: Text('Avanzado · dirección del servidor', style: TextStyle(fontSize: 13, color: c.text2)),
+            title: Text('Avanzado · dirección del servidor', style: TextStyle(fontSize: Fs.md, color: c.text2)),
             expandedCrossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextField(
                 controller: _url,
                 keyboardType: TextInputType.url,
+                textInputAction: TextInputAction.done,
+                autocorrect: false,
+                onSubmitted: (_) => probando ? null : _guardar(),
+                scrollPadding: const EdgeInsets.only(bottom: 160), // deja ver los botones con el teclado abierto
                 decoration: const InputDecoration(labelText: 'URL del servidor', hintText: 'https://mi-servidor.onrender.com'),
               ),
-              const SizedBox(height: 10),
-              Wrap(spacing: 8, runSpacing: 8, children: [
-                GgButton('Guardar y probar', icon: Icons.wifi_tethering, loading: probando, onTap: _guardar),
-                GgButton('Valor por defecto', ghost: true, onTap: () => _url.text = Config.apiPorDefecto()),
-              ]),
+              const SizedBox(height: 16),
+              GgButton('Guardar y probar', icon: Icons.wifi_tethering, expand: true, loading: probando, onTap: _guardar),
+              const SizedBox(height: 8),
+              GgButton('Valor por defecto', ghost: true, expand: true, onTap: () => _url.text = Config.apiPorDefecto()),
               if (estado != null) ...[
                 const SizedBox(height: 10),
                 Text(estado!, style: TextStyle(color: estado!.startsWith('✓') ? c.low : c.crit, fontWeight: FontWeight.w600)),
@@ -279,7 +291,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
                   '- Emulador de Android con Docker en el mismo computador: `http://10.0.2.2:8000`\n'
                   '- Teléfono real en la misma red WiFi: `http://IP-DEL-COMPUTADOR:8000` (por ejemplo 192.168.1.10)\n'
                   '- Servidor publicado en internet: su dirección `https://…`',
-                  size: 12.5, color: c.text2),
+                  size: Fs.md, color: c.text2),
             ],
           ),
         ),

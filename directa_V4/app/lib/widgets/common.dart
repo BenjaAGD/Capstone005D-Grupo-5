@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../core/demo_modo.dart';
 import '../core/servidor_estado.dart';
 import '../core/sev.dart';
 import '../core/theme.dart';
@@ -45,7 +44,7 @@ class SecTitle extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: EdgeInsets.only(bottom: bottom),
         child: Text(text.toUpperCase(),
-            style: TextStyle(fontSize: 11, letterSpacing: 1.4, fontWeight: FontWeight.w600, color: color ?? context.c.text3)),
+            style: TextStyle(fontSize: Fs.xs, letterSpacing: 1.4, fontWeight: FontWeight.w600, color: color ?? context.c.text3)),
       );
 }
 
@@ -58,10 +57,10 @@ class PageHead extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(bottom: 14),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w700, letterSpacing: -0.3)),
+          Text(title, style: const TextStyle(fontSize: Fs.xxl, fontWeight: FontWeight.w700, letterSpacing: -0.3)),
           if (subtitle != null) ...[
             const SizedBox(height: 4),
-            Text(subtitle!, style: TextStyle(fontSize: 13.5, color: context.c.text2, height: 1.4)),
+            Text(subtitle!, style: TextStyle(fontSize: Fs.body, color: context.c.text2, height: 1.4)),
           ],
           if (actions.isNotEmpty) ...[const SizedBox(height: 12), Wrap(spacing: 8, runSpacing: 8, children: actions)],
         ]),
@@ -84,7 +83,7 @@ class Pill extends StatelessWidget {
             const SizedBox(width: 5),
           ],
           Flexible(child: Text(text, overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: fg, letterSpacing: 0.3))),
+              style: TextStyle(fontSize: Fs.xs, fontWeight: FontWeight.w700, color: fg, letterSpacing: 0.3))),
         ]),
       );
 }
@@ -106,7 +105,7 @@ class AgentBadge extends StatelessWidget {
       constraints: const BoxConstraints(minWidth: 36),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(color: c.surface3, borderRadius: BorderRadius.circular(6), border: Border.all(color: c.border2)),
-      child: Text(text, textAlign: TextAlign.center, style: AppTheme.mono(context, size: 9.5, color: c.accentText, weight: FontWeight.w700)),
+      child: Text(text, textAlign: TextAlign.center, style: AppTheme.mono(context, size: Fs.xxs, color: c.accentText, weight: FontWeight.w700)),
     );
   }
 }
@@ -125,49 +124,61 @@ class KpiTile extends StatelessWidget {
       onTap: onTap,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, height: 1, color: color ?? c.text)),
+        Text(value, style: TextStyle(fontSize: Fs.display, fontWeight: FontWeight.w600, height: 1, color: color ?? c.text)),
         const SizedBox(height: 6),
         Row(children: [
           if (leading != null) ...[leading!, const SizedBox(width: 6)],
-          Expanded(child: Text(label, style: TextStyle(fontSize: 12, color: c.text2))),
+          Expanded(child: Text(label, style: TextStyle(fontSize: Fs.sm, color: c.text2))),
         ]),
       ]),
     );
   }
 }
 
-/// Franja compacta de cifras clave (regla de diseño del Frente E2: indicadores arriba, en una sola línea).
+/// Cifras clave arriba de la pantalla, en filas de dos columnas (celular en vertical).
 class KpiStrip extends StatelessWidget {
   const KpiStrip({super.key, required this.items});
   final List<({String valor, String etiqueta, Color? color, VoidCallback? onTap})> items;
   @override
   Widget build(BuildContext context) {
     final c = context.c;
+    final filas = [for (var i = 0; i < items.length; i += 2) items.sublist(i, math.min(i + 2, items.length))];
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(color: c.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: c.border)),
-      child: IntrinsicHeight(
-        child: Row(children: [
-          for (var i = 0; i < items.length; i++) ...[
-            if (i > 0) VerticalDivider(width: 1, color: c.border),
-            Expanded(
-              child: InkWell(
-                onTap: items[i].onTap,
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    Text(items[i].valor, maxLines: 1, overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, height: 1.1, color: items[i].color ?? c.text)),
-                    const SizedBox(height: 4),
-                    Text(items[i].etiqueta, maxLines: 2, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 10.5, color: c.text3, height: 1.2)),
-                  ]),
-                ),
-              ),
-            ),
-          ],
-        ]),
+      child: Column(children: [
+        for (var f = 0; f < filas.length; f++) ...[
+          if (f > 0) Divider(height: 1, color: c.border),
+          IntrinsicHeight(child: Row(children: [
+            for (var j = 0; j < filas[f].length; j++) ...[
+              if (j > 0) VerticalDivider(width: 1, color: c.border),
+              _celdaKpi(context, filas[f][j]),
+            ],
+          ])),
+        ],
+      ]),
+    );
+  }
+
+  Widget _celdaKpi(BuildContext context, ({String valor, String etiqueta, Color? color, VoidCallback? onTap}) it) {
+    final c = context.c;
+    return Expanded(
+      child: InkWell(
+        onTap: it.onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text(it.valor, maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: Fs.xl, fontWeight: FontWeight.w700, height: 1.1, color: it.color ?? c.text)),
+              const SizedBox(height: 4),
+              Text(it.etiqueta, maxLines: 2, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: Fs.xs, color: c.text3, height: 1.2)),
+            ]),
+          ),
+        ),
       ),
     );
   }
@@ -206,7 +217,7 @@ class ScoreRing extends StatelessWidget {
         CustomPaint(size: Size(size, size), painter: _Ring(value / 100, color, c.surface3)),
         Column(mainAxisSize: MainAxisSize.min, children: [
           Text('$value', style: TextStyle(fontSize: size * 0.24, fontWeight: FontWeight.w700, height: 1.05)),
-          Text(caption, style: TextStyle(fontSize: 10, color: c.text3, fontWeight: FontWeight.w600)),
+          Text(caption, style: TextStyle(fontSize: Fs.xs, color: c.text3, fontWeight: FontWeight.w600)),
         ]),
       ]),
     );
@@ -273,17 +284,21 @@ class GgButton extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: loading ? null : onTap,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: small ? 11 : 15, vertical: small ? 7 : 10),
-            child: Row(mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
-              if (loading)
-                SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: fg))
-              else if (icon != null)
-                Icon(icon, size: small ? 15 : 17, color: fg),
-              if (loading || icon != null) const SizedBox(width: 7),
-              Flexible(child: Text(label, textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: small ? 12 : 13, fontWeight: FontWeight.w600, color: fg))),
-            ]),
+          // Zona táctil mínima de 48 × 48 dp.
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: small ? 12 : 16, vertical: 8),
+              child: Row(mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
+                if (loading)
+                  SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: fg))
+                else if (icon != null)
+                  Icon(icon, size: small ? 16 : 18, color: fg),
+                if (loading || icon != null) const SizedBox(width: 8),
+                Flexible(child: Text(label, textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: small ? Fs.md : Fs.body, fontWeight: FontWeight.w600, color: fg))),
+              ]),
+            ),
           ),
         ),
       ),
@@ -301,24 +316,35 @@ class ChipBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.c;
-    return Material(
-      color: on ? c.accentSoft : c.surface2,
-      shape: StadiumBorder(side: BorderSide(color: on ? Brand.accent : c.border)),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            if (leading != null) ...[leading!, const SizedBox(width: 6)],
-            Flexible(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
-                child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: on ? c.accentText : c.text2)),
+    // El chip se ve compacto, pero la zona táctil completa mide al menos 48 dp de alto.
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 48),
+        child: Align(
+          widthFactor: 1,
+          child: Material(
+            color: on ? c.accentSoft : c.surface2,
+            shape: StadiumBorder(side: BorderSide(color: on ? Brand.accent : c.border)),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  if (leading != null) ...[leading!, const SizedBox(width: 6)],
+                  Flexible(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
+                      child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: Fs.md, fontWeight: FontWeight.w600, color: on ? c.accentText : c.text2)),
+                    ),
+                  ),
+                ]),
               ),
             ),
-          ]),
+          ),
         ),
       ),
     );
@@ -337,8 +363,8 @@ class KvRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(border: last ? null : Border(bottom: BorderSide(color: c.border))),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        SizedBox(width: 110, child: Text(k, style: TextStyle(fontSize: 12.5, color: c.text3))),
-        Expanded(child: Text(v, style: TextStyle(fontSize: 12.5, color: vColor ?? c.text))),
+        SizedBox(width: 110, child: Text(k, style: TextStyle(fontSize: Fs.md, color: c.text3))),
+        Expanded(child: Text(v, style: TextStyle(fontSize: Fs.md, color: vColor ?? c.text))),
       ]),
     );
   }
@@ -371,10 +397,10 @@ class SigRow extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(28, 11, 13, 11),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, height: 1.35)),
+                Text(title, style: const TextStyle(fontSize: Fs.md, fontWeight: FontWeight.w700, height: 1.35)),
                 if (body != null && body!.isNotEmpty) ...[
                   const SizedBox(height: 3),
-                  Text(body!, style: TextStyle(fontSize: 12.3, color: c.text2, height: 1.45)),
+                  Text(body!, style: TextStyle(fontSize: Fs.sm, color: c.text2, height: 1.45)),
                 ],
                 if (footer != null) ...[const SizedBox(height: 8), footer!],
               ]),
@@ -403,10 +429,10 @@ class EmptyState extends StatelessWidget {
             ? const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 3))
             : Icon(icon, size: 34, color: c.text3),
         const SizedBox(height: 10),
-        Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+        Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: Fs.lg, fontWeight: FontWeight.w700)),
         if (text != null) ...[
           const SizedBox(height: 6),
-          Text(text!, textAlign: TextAlign.center, style: TextStyle(fontSize: 12.8, color: c.text2, height: 1.45)),
+          Text(text!, textAlign: TextAlign.center, style: TextStyle(fontSize: Fs.md, color: c.text2, height: 1.45)),
         ],
         if (action != null) ...[const SizedBox(height: 12), action!],
       ]),
@@ -419,31 +445,7 @@ class EmptyState extends StatelessWidget {
 class BackendAviso extends StatelessWidget {
   const BackendAviso({super.key});
   @override
-  Widget build(BuildContext context) {
-    if (!DemoModo.instance.activo) return const _AvisoServidor();
-    final c = context.c;
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      GgCard(
-        borderColor: c.info.withValues(alpha: 0.45),
-        color: c.info.withValues(alpha: 0.09),
-        child: Row(children: [
-          Icon(Icons.science_outlined, color: c.info),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Acceso demo', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-              const SizedBox(height: 2),
-              Text('Entraste sin cuenta. Todo funciona con el servidor igual que en la app normal.',
-                  style: TextStyle(fontSize: 12, height: 1.35, color: c.text2)),
-            ]),
-          ),
-          const SizedBox(width: 8),
-          GgButton('Salir', ghost: true, small: true, onTap: DemoModo.instance.salir),
-        ]),
-      ),
-      const _AvisoServidor(),
-    ]);
-  }
+  Widget build(BuildContext context) => const _AvisoServidor();
 }
 
 /// Aviso cuando el servidor está despertando o no responde.
@@ -469,7 +471,7 @@ class _AvisoServidor extends StatelessWidget {
                   const Text('El servidor está desactualizado', style: TextStyle(fontWeight: FontWeight.w700)),
                   const SizedBox(height: 2),
                   Text('Los PDF nuevos, la lectura de documentos y la memoria por tipos necesitan la última versión del backend en Render. Pide que lo desplieguen.',
-                      style: TextStyle(fontSize: 12, height: 1.35, color: c.text2)),
+                      style: TextStyle(fontSize: Fs.sm, height: 1.35, color: c.text2)),
                 ]),
               ),
             ]),
@@ -490,10 +492,10 @@ class _AvisoServidor extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Text('Despertando el servidor…', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                    const Text('Despertando el servidor…', style: TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.body)),
                     const SizedBox(height: 2),
                     Text('Puede tardar hasta un minuto la primera vez. Tus datos aparecerán solos.',
-                        style: TextStyle(fontSize: 12, height: 1.35, color: c.text2)),
+                        style: TextStyle(fontSize: Fs.sm, height: 1.35, color: c.text2)),
                   ]),
                 ),
               ]),
@@ -508,33 +510,31 @@ class _AvisoServidor extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 6),
-              Text('Intento ${sv.intento} de ${ServidorEstado.maxIntentos}', style: TextStyle(fontSize: 11, color: c.text3)),
+              Text('Intento ${sv.intento} de ${ServidorEstado.maxIntentos}', style: TextStyle(fontSize: Fs.xs, color: c.text3)),
             ]),
           );
         }
         return GgCard(
           borderColor: c.crit,
           color: c.crit.withValues(alpha: 0.08),
-          child: Row(children: [
-            Icon(Icons.cloud_off, color: c.crit),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text('No se pudo conectar con el servidor', style: TextStyle(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 2),
-                Text('Dirección usada: ${st.apiUrl}. Revisa que esté encendido o cámbiala en Más → Ajustes y estado.',
-                    style: TextStyle(fontSize: 12, color: c.text2)),
-              ]),
-            ),
-            const SizedBox(width: 8),
-            IconButton(
-              tooltip: 'Reintentar',
-              onPressed: () {
-                ServidorEstado.instance.reintentarAhora();
-                st.recargarTodo();
-              },
-              icon: const Icon(Icons.refresh),
-            ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Icon(Icons.cloud_off, color: c.crit),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Text(mensajeSinConexion, style: TextStyle(fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 4),
+                  Text('Dirección usada: ${st.apiUrl}. Puedes cambiarla en Más → Ajustes y estado.',
+                      style: TextStyle(fontSize: Fs.sm, color: c.text2)),
+                ]),
+              ),
+            ]),
+            const SizedBox(height: 12),
+            GgButton('Reintentar', icon: Icons.refresh, expand: true, onTap: () {
+              ServidorEstado.instance.reintentarAhora();
+              st.recargarTodo();
+            }),
           ]),
         );
       },
@@ -544,7 +544,7 @@ class _AvisoServidor extends StatelessWidget {
 
 /// Markdown mínimo, igual que renderMarkdownLigero() del MVP: párrafos, listas "-" y "1.", **negrita** y *cursiva*.
 class MarkdownLite extends StatelessWidget {
-  const MarkdownLite(this.texto, {super.key, this.size = 13.5, this.color});
+  const MarkdownLite(this.texto, {super.key, this.size = Fs.body, this.color});
   final String texto;
   final double size;
   final Color? color;
@@ -608,7 +608,7 @@ class GgSelect<T> extends StatelessWidget {
         isExpanded: true,
         decoration: InputDecoration(labelText: label),
         dropdownColor: context.c.surface2,
-        style: TextStyle(fontSize: 13.5, color: context.c.text),
+        style: TextStyle(fontSize: Fs.body, color: context.c.text),
         items: [for (final (v, l) in items) DropdownMenuItem(value: v, child: Text(l, overflow: TextOverflow.ellipsis))],
         onChanged: (v) {
           if (v != null) onChanged(v);
@@ -617,14 +617,20 @@ class GgSelect<T> extends StatelessWidget {
 }
 
 Future<bool> confirmar(BuildContext context, String texto, {String ok = 'Aceptar'}) async {
-  final r = await showDialog<bool>(
+  final r = await showModalBottomSheet<bool>(
     context: context,
-    builder: (ctx) => AlertDialog(
-      content: Text(texto),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
-        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(ok)),
-      ],
+    showDragHandle: true,
+    builder: (ctx) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Text(texto, style: const TextStyle(fontSize: Fs.body, height: 1.45)),
+          const SizedBox(height: 24),
+          GgButton(ok, expand: true, onTap: () => Navigator.pop(ctx, true)),
+          const SizedBox(height: 8),
+          GgButton('Cancelar', ghost: true, expand: true, onTap: () => Navigator.pop(ctx, false)),
+        ]),
+      ),
     ),
   );
   return r == true;

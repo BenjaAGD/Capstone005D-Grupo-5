@@ -146,7 +146,7 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
         return Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Ajustes de lectura', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+            const Text('Ajustes de lectura', style: TextStyle(fontSize: Fs.xl, fontWeight: FontWeight.w800)),
             const SizedBox(height: 16),
             const Text('Tamaño de letra', style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
@@ -155,7 +155,7 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
                 Expanded(child: Padding(
                   padding: const EdgeInsets.only(right: 6),
                   child: ChoiceChip(
-                    label: Center(child: Text('Aa', style: TextStyle(fontSize: 12 + i * 3.0, fontFamily: 'serif'))),
+                    label: Center(child: Text('Aa', style: TextStyle(fontSize: Fs.sm + i * 3.0, fontFamily: 'serif'))),
                     selected: _escala == i,
                     onSelected: (_) => cambiar(() => _escala = i),
                   ),
@@ -191,23 +191,31 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
   }
 
   Future<void> _irAPagina() async {
-    final c = context.c;
     final campo = TextEditingController();
-    final texto = await showDialog<String>(
+    final texto = await showModalBottomSheet<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Ir a la página'),
-        content: TextField(
-          controller: campo,
-          autofocus: true,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(hintText: 'Entre ${_paginas.first} y ${_paginas.last}'),
-          onSubmitted: (v) => Navigator.pop(ctx, v),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancelar', style: TextStyle(color: c.text2))),
-          TextButton(onPressed: () => Navigator.pop(ctx, campo.text), child: const Text('Ir')),
-        ],
+      isScrollControlled: true,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (ctx) => Padding(
+        // Sube con el teclado para que el campo y el botón queden a la vista.
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          const Text('Ir a la página', style: TextStyle(fontSize: Fs.xl, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 16),
+          TextField(
+            controller: campo,
+            autofocus: true,
+            keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.go,
+            decoration: InputDecoration(hintText: 'Entre ${_paginas.first} y ${_paginas.last}'),
+            onSubmitted: (v) => Navigator.pop(ctx, v),
+          ),
+          const SizedBox(height: 16),
+          GgButton('Ir', expand: true, onTap: () => Navigator.pop(ctx, campo.text)),
+          const SizedBox(height: 8),
+          GgButton('Cancelar', ghost: true, expand: true, onTap: () => Navigator.pop(ctx)),
+        ]),
       ),
     );
     campo.dispose();
@@ -308,9 +316,9 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
                 ),
               )
             : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text('Leer documento', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                const Text('Leer documento', style: TextStyle(fontSize: Fs.reading, fontWeight: FontWeight.w700)),
                 if (titulo.isNotEmpty)
-                  Text(titulo, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, color: c.text2)),
+                  Text(titulo, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: Fs.sm, color: c.text2)),
               ]),
         actions: _buscando
             ? const []
@@ -322,21 +330,20 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
                 ),
                 TextButton(
                   onPressed: _ajustesLectura,
-                  child: Text('Aa', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: c.text)),
+                  child: Text('Aa', style: TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.lg, color: c.text)),
                 ),
               ],
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 820),
-          child: _buscando ? _vistaBusqueda(context) : _vistaLectura(context),
-        ),
+      body: SafeArea(
+        top: false,
+        bottom: _buscando || _paginas.isEmpty, // con la barra inferior, ella ya respeta la barra de gestos
+        child: _buscando ? _vistaBusqueda(context) : _vistaLectura(context),
       ),
       bottomNavigationBar: (_buscando || _paginas.isEmpty)
           ? null
           : Container(
               decoration: BoxDecoration(color: c.bg2, border: Border(top: BorderSide(color: c.border))),
-              padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               child: SafeArea(
                 top: false,
                 child: Row(children: [
@@ -372,7 +379,7 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
             Text(_error!, style: TextStyle(color: c.text2)),
             const SizedBox(height: 4),
             Text('Si el servidor se actualizó hace poco, espera a que termine de reiniciar y reintenta.',
-                style: TextStyle(fontSize: 12, color: c.text3)),
+                style: TextStyle(fontSize: Fs.sm, color: c.text3)),
             Align(
               alignment: Alignment.centerRight,
               child: TextButton.icon(onPressed: _cargarInfo, icon: const Icon(Icons.refresh), label: const Text('Reintentar')),
@@ -417,7 +424,7 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
               child: SelectableText(
                 _limpiarTexto(parrafo),
                 textAlign: TextAlign.start, // justificado dejaba huecos enormes en pantallas angostas
-                style: TextStyle(fontFamily: 'serif', fontSize: 16.5 * escala, height: 1.65, color: tinta, letterSpacing: .1),
+                style: TextStyle(fontFamily: 'serif', fontSize: Fs.reading * escala, height: 1.65, color: tinta, letterSpacing: .1),
               ),
             ),
       ]);
@@ -429,7 +436,7 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(18, 10, 10, 4),
           child: Row(children: [
-            Text('Página $numero de $totalReal', style: TextStyle(fontSize: 12.5, color: suave, fontWeight: FontWeight.w600)),
+            Text('Página $numero de $totalReal', style: TextStyle(fontSize: Fs.md, color: suave, fontWeight: FontWeight.w600)),
             const Spacer(),
             TextButton(onPressed: _irAPagina, child: Text('Ir a página', style: TextStyle(color: suave))),
           ]),
@@ -458,13 +465,13 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
                   boxShadow: const [BoxShadow(color: Color(0x22000000), blurRadius: 14, offset: Offset(0, 4))],
                 ),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Center(child: Text('— $numero —', style: TextStyle(fontFamily: 'serif', fontSize: 12, color: suave, letterSpacing: 1))),
+                  Center(child: Text('— $numero —', style: TextStyle(fontFamily: 'serif', fontSize: Fs.sm, color: suave, letterSpacing: 1))),
                   const SizedBox(height: 18),
                   cuerpo,
                 ]),
               ),
               const SizedBox(height: 10),
-              Center(child: Text('Desliza para cambiar de página', style: TextStyle(fontSize: 11, color: suave))),
+              Center(child: Text('Desliza para cambiar de página', style: TextStyle(fontSize: Fs.xs, color: suave))),
             ]),
           ),
         ),
@@ -490,7 +497,7 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
       if (_cargandoBusqueda) const Padding(padding: EdgeInsets.all(30), child: Center(child: CircularProgressIndicator())),
       if (_errorBusqueda != null) Text(_errorBusqueda!, style: TextStyle(color: c.crit)),
       if (!_cargandoBusqueda && _busquedaHecha.isEmpty && _errorBusqueda == null)
-        Text('Escribe lo que buscas y presiona buscar. Se muestran las páginas donde aparece.', style: TextStyle(color: c.text2, fontSize: 13)),
+        Text('Escribe lo que buscas y presiona buscar. Se muestran las páginas donde aparece.', style: TextStyle(color: c.text2, fontSize: Fs.md)),
       if (!_cargandoBusqueda && _busquedaHecha.isNotEmpty) ...[
         Padding(
           padding: const EdgeInsets.only(bottom: 10),
@@ -498,7 +505,7 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
             _resultados.isEmpty
                 ? 'Sin coincidencias para «$_busquedaHecha».'
                 : '${_resultados.length} coincidencia${_resultados.length == 1 ? '' : 's'} en $_paginasConCoincidencia página${_paginasConCoincidencia == 1 ? '' : 's'}',
-            style: TextStyle(fontSize: 12.5, color: c.text2),
+            style: TextStyle(fontSize: Fs.md, color: c.text2),
           ),
         ),
         for (final r in _resultados)
@@ -512,7 +519,7 @@ class _DocumentoLecturaScreenState extends State<DocumentoLecturaScreen> {
                 Icon(Icons.chevron_right, size: 18, color: c.text3),
               ]),
               const SizedBox(height: 8),
-              Text.rich(TextSpan(style: TextStyle(fontSize: 13, height: 1.5, color: c.text), children: [
+              Text.rich(TextSpan(style: TextStyle(fontSize: Fs.md, height: 1.5, color: c.text), children: [
                 TextSpan(text: '${r['antes'] ?? ''}'),
                 TextSpan(
                   text: '${r['coincide'] ?? ''}',
