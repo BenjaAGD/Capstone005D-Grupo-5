@@ -6,6 +6,9 @@ import '../core/config.dart';
 import '../core/demo_modo.dart';
 import '../core/servidor_estado.dart';
 import '../core/theme.dart';
+import '../core/bloqueo.dart';
+import '../core/usuario.dart';
+import 'bloqueo_screen.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
 
@@ -29,6 +32,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
     super.initState();
     _url = TextEditingController(text: context.read<AppState>().apiUrl);
     WidgetsBinding.instance.addPostFrameCallback((_) => _estadoServidor());
+    _cargarBloqueo();
   }
 
   Future<void> _estadoServidor() async {
@@ -136,6 +140,169 @@ class _AjustesScreenState extends State<AjustesScreen> {
     );
   }
 
+  /// Cambiar contraseña: se manda un enlace al correo para confirmar que es la persona.
+  Future<void> _cambiarClave() async {
+    final ok = await showModalBottomSheet<bool>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(22, 0, 22, 18),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            const Text('Cambiar contraseña', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            Text.rich(TextSpan(style: TextStyle(fontSize: 13.5, height: 1.5, color: context.c.text2), children: [
+              const TextSpan(text: 'Por seguridad te enviaremos un enlace a '),
+              TextSpan(text: UsuarioActual.correoOculto, style: const TextStyle(fontWeight: FontWeight.w700)),
+              const TextSpan(text: '. Ábrelo desde este celular y elige tu nueva contraseña.'),
+            ])),
+            const SizedBox(height: 16),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12), child: Text('Enviar enlace a mi correo'))),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          ]),
+        ),
+      ),
+    );
+    if (ok != true || !mounted) return;
+    final st = context.read<AppState>();
+    try {
+      await UsuarioActual.enviarEnlaceClave();
+      st.toast('Enlace enviado. Revisa tu correo (y la carpeta spam).');
+    } on AuthException catch (e) {
+      st.toast(e.statusCode == '429' || (e.code ?? '').startsWith('over_')
+          ? 'Ya enviamos un enlace hace poco. Espera un minuto y vuelve a intentar.'
+          : 'No se pudo enviar el enlace: ${e.message}', err: true);
+    } catch (_) {
+      st.toast('No se pudo enviar el enlace. Revisa tu conexión.', err: true);
+    }
+  }
+
+  // ---------- Bloqueo con PIN y huella ----------
+  bool? _tienePin;
+  bool _usaBio = false;
+  bool _bioDisponible = false;
+
+  Future<void> _cargarBloqueo() async {
+    final uid = UsuarioActual.id;
+    if (uid == null) return;
+    final pin = await Bloqueo.tienePin(uid);
+    final bio = await Bloqueo.usaBiometria(uid);
+    final disp = await Bloqueo.biometriaDisponible();
+    if (mounted) setState(() {
+      _tienePin = pin;
+      _usaBio = bio;
+      _bioDisponible = disp;
+    });
+  }
+
+  Future<void> _cambiarPin(bool activar) async {
+    final uid = UsuarioActual.id;
+    if (uid == null) return;
+    final st = context.read<AppState>();
+    if (activar) {
+      final pin = await Navigator.of(context).push<String>(MaterialPageRoute(builder: (_) => const CrearPinScreen()));
+      if (pin == null) return;
+      await Bloqueo.definirPin(uid, pin);
+      st.toast('PIN activado. Lo pediremos al abrir DIRECTA.');
+    } else {
+      final ok = await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => ConfirmarPinScreen(uid: uid)));
+      if (ok != true) return;
+      await Bloqueo.quitar(uid);
+      st.toast('Bloqueo desactivado');
+    }
+    await _cargarBloqueo();
+  }
+
+  Future<void> _cambiarBio(bool activar) async {
+    final uid = UsuarioActual.id;
+    if (uid == null) return;
+    if (activar) {
+      final ok = await Bloqueo.pedirBiometria(motivo: 'Confirma tu huella o rostro para activarlo');
+      if (!ok) return;
+    }
+    await Bloqueo.setBiometria(uid, activar);
+    await _cargarBloqueo();
+  }
+
+  Widget _seguridad(BuildContext context) {
+    final c = context.c;
+    final pin = _tienePin ?? false;
+    Widget opcion({required IconData icon, required String titulo, required String detalle, required bool valor, ValueChanged<bool>? cambiar}) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Row(children: [
+            Container(
+              width: 38, height: 38,
+              decoration: BoxDecoration(color: c.accentSoft, borderRadius: BorderRadius.circular(11)),
+              child: Icon(icon, size: 21, color: c.accentText),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(titulo, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
+              const SizedBox(height: 1),
+              Text(detalle, style: TextStyle(fontSize: 11.5, color: c.text3)),
+            ])),
+            Switch(value: valor, onChanged: cambiar),
+          ]),
+        );
+    return GgCard(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const SecTitle('Seguridad de la app'),
+        opcion(
+          icon: Icons.pin_outlined,
+          titulo: 'PIN de acceso',
+          detalle: 'Pide un PIN de 4 dígitos al abrir la app',
+          valor: pin,
+          cambiar: _tienePin == null ? null : _cambiarPin,
+        ),
+        opcion(
+          icon: Icons.fingerprint_rounded,
+          titulo: 'Huella o rostro',
+          detalle: !_bioDisponible
+              ? 'Este celular no tiene huella o rostro registrado'
+              : pin ? 'Entrar con tu huella en vez del PIN' : 'Primero activa el PIN',
+          valor: pin && _usaBio,
+          cambiar: pin && _bioDisponible ? _cambiarBio : null,
+        ),
+      ]),
+    );
+  }
+
+  Future<void> _editarPerfil() async {
+    final nombre = TextEditingController(text: UsuarioActual.tieneNombre ? UsuarioActual.nombre : '');
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Tu nombre'),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          TextField(controller: nombre, textCapitalization: TextCapitalization.words, decoration: const InputDecoration(labelText: 'Nombre y apellido')),
+        ]),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Guardar')),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    final st = context.read<AppState>();
+    if (nombre.text.trim().isEmpty) {
+      st.toast('Escribe tu nombre', err: true);
+      return;
+    }
+    try {
+      await UsuarioActual.guardar(nombre: nombre.text);
+      if (mounted) setState(() {});
+      st.toast('Perfil actualizado');
+    } catch (_) {
+      st.toast('No se pudo guardar el perfil. Revisa tu conexión.', err: true);
+    }
+  }
+
+  Widget _dato(BuildContext context, String k, String v) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(k, style: TextStyle(fontSize: 10.5, color: context.c.text3)),
+        Text(v, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+      ]);
+
   @override
   Widget build(BuildContext context) {
     final c = context.c;
@@ -152,21 +319,49 @@ class _AjustesScreenState extends State<AjustesScreen> {
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       GgCard(
-        child: Row(children: [
-          CircleAvatar(radius: 22, backgroundColor: c.accentSoft, child: Icon(Icons.person_outline_rounded, color: c.accentText)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Gerencia General', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)),
-              const SizedBox(height: 2),
-              Text(DemoModo.instance.activo ? 'Acceso demo · sin cuenta' : (correo ?? 'Sesión iniciada'), maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12, color: c.text2)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            CircleAvatar(
+              radius: 24,
+              backgroundColor: c.accentSoft,
+              child: DemoModo.instance.activo || UsuarioActual.iniciales.isEmpty
+                  ? Icon(Icons.person_outline_rounded, color: c.accentText)
+                  : Text(UsuarioActual.iniciales, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: c.accentText)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(DemoModo.instance.activo ? 'Modo demo' : UsuarioActual.nombre,
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15.5)),
+                if (!DemoModo.instance.activo && (UsuarioActual.cargo.isNotEmpty || UsuarioActual.empresa.isNotEmpty)) ...[
+                  const SizedBox(height: 2),
+                  Text([UsuarioActual.cargo, UsuarioActual.empresa].where((x) => x.isNotEmpty).join(' · '),
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12.5, color: c.text2, fontWeight: FontWeight.w600)),
+                ],
+                const SizedBox(height: 2),
+                Text(DemoModo.instance.activo ? 'Acceso demo · sin cuenta' : (correo ?? 'Sesión iniciada'), maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: c.text3)),
+              ]),
+            ),
+          ]),
+          if (!DemoModo.instance.activo && (UsuarioActual.rut.isNotEmpty || UsuarioActual.rutEmpresa.isNotEmpty)) ...[
+            const SizedBox(height: 12),
+            Wrap(spacing: 18, runSpacing: 6, children: [
+              if (UsuarioActual.rut.isNotEmpty) _dato(context, 'RUT', UsuarioActual.rut),
+              if (UsuarioActual.rutEmpresa.isNotEmpty) _dato(context, 'RUT empresa', UsuarioActual.rutEmpresa),
             ]),
-          ),
-          const SizedBox(width: 8),
-          GgButton(DemoModo.instance.activo ? 'Salir de la demo' : 'Cerrar sesión', ghost: true, small: true, icon: Icons.logout, onTap: _cerrarSesion),
+          ],
+          const SizedBox(height: 12),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            if (!DemoModo.instance.activo)
+              GgButton(UsuarioActual.tieneNombre ? 'Editar nombre' : 'Agregar mi nombre', ghost: true, small: true, icon: Icons.edit_outlined, onTap: _editarPerfil),
+            if (!DemoModo.instance.activo)
+              GgButton('Cambiar contraseña', ghost: true, small: true, icon: Icons.lock_outline_rounded, onTap: _cambiarClave),
+            GgButton(DemoModo.instance.activo ? 'Salir de la demo' : 'Cerrar sesión', ghost: true, small: true, icon: Icons.logout, onTap: _cerrarSesion),
+          ]),
         ]),
       ),
+      if (!DemoModo.instance.activo && UsuarioActual.id != null) _seguridad(context),
       GgCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [

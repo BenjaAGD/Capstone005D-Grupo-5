@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../core/rut.dart';
 import 'auth_location_stub.dart'
     if (dart.library.js_interop) 'auth_location_web.dart';
 
@@ -20,6 +21,11 @@ bool isRecoveryLocation(Uri uri) {
 }
 
 String authErrorMessage(AuthException e, {String? fallback}) {
+  // Mensajes del control de registro en Supabase (empresas autorizadas / RUT).
+  final m = e.message;
+  final i = m.indexOf('DIRECTA:');
+  if (i >= 0) return m.substring(i + 8).trim();
+
   if (e.statusCode == '429' || (e.code ?? '').startsWith('over_')) {
     return 'Se alcanzó el límite de solicitudes. '
         'Espera antes de volver a intentarlo.';
@@ -199,7 +205,8 @@ class _CuentaScreenState extends State<_CuentaScreen> {
   final _form = GlobalKey<FormState>();
   final _nombre = TextEditingController();
   final _empresa = TextEditingController();
-  final _cargo = TextEditingController();
+  final _rut = TextEditingController();
+  final _rutEmpresa = TextEditingController();
   final _correo = TextEditingController();
   final _clave = TextEditingController();
   final _confirmacion = TextEditingController();
@@ -256,7 +263,8 @@ class _CuentaScreenState extends State<_CuentaScreen> {
     for (final c in [
       _nombre,
       _empresa,
-      _cargo,
+      _rut,
+      _rutEmpresa,
       _correo,
       _clave,
       _confirmacion,
@@ -343,8 +351,10 @@ class _CuentaScreenState extends State<_CuentaScreen> {
             emailRedirectTo: redirect,
             data: {
               'nombre': _nombre.text.trim(),
+              'rut': Rut.normalizar(_rut.text),
               'empresa_solicitada': _empresa.text.trim(),
-              'cargo': _cargo.text.trim(),
+              'rut_empresa': Rut.normalizar(_rutEmpresa.text),
+              'cargo': 'Gerente General',
             },
           );
 
@@ -397,6 +407,15 @@ class _CuentaScreenState extends State<_CuentaScreen> {
         keyboardType: c == _correo
             ? TextInputType.emailAddress
             : TextInputType.text,
+        onChanged: c == _rut || c == _rutEmpresa
+            ? (v) {
+                // Pone puntos y guion mientras escribe: 123456785 → 12.345.678-5
+                final f = Rut.normalizar(v).isEmpty ? v : Rut.formatear(v);
+                if (f != v && v.length >= 8) {
+                  c.value = TextEditingValue(text: f, selection: TextSelection.collapsed(offset: f.length));
+                }
+              }
+            : null,
         autofillHints: c == _correo
             ? const [AutofillHints.email]
             : secret
@@ -549,35 +568,30 @@ class _CuentaScreenState extends State<_CuentaScreen> {
                               ? 'Escribe tu nombre.'
                               : null,
                     ),
-                    LayoutBuilder(
-                      builder: (context, box) {
-                        final fields = [
-                          _field(
-                            _empresa,
-                            'Empresa (opcional)',
-                            Icons.business_outlined,
-                            limit: 120,
-                          ),
-                          _field(
-                            _cargo,
-                            'Cargo (opcional)',
-                            Icons.work_outline,
-                            limit: 100,
-                          ),
-                        ];
-
-                        return box.maxWidth < 440
-                            ? Column(children: fields)
-                            : Row(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(child: fields[0]),
-                                  const SizedBox(width: 12),
-                                  Expanded(child: fields[1]),
-                                ],
-                              );
-                      },
+                    _field(
+                      _rut,
+                      'Tu RUT',
+                      Icons.badge_outlined,
+                      limit: 12,
+                      validate: (v) => Rut.validar(v),
+                    ),
+                    _field(
+                      _empresa,
+                      'Empresa',
+                      Icons.business_outlined,
+                      limit: 120,
+                      validate: (v) => (v ?? '').trim().isEmpty ? 'Escribe el nombre de tu empresa.' : null,
+                    ),
+                    _field(
+                      _rutEmpresa,
+                      'RUT de la empresa',
+                      Icons.domain_verification_outlined,
+                      limit: 12,
+                      validate: (v) => Rut.validar(v, que: 'RUT de la empresa'),
+                    ),
+                    const Text(
+                      'Solo pueden crear cuenta las personas de empresas habilitadas en DIRECTA.',
+                      style: TextStyle(fontSize: 11.5, color: Color(0xFF7D8B98)),
                     ),
                     const Divider(height: 24),
                   ],
@@ -700,7 +714,7 @@ class _CuentaScreenState extends State<_CuentaScreen> {
         ),
         if (_signup && !_sent)
           const Text(
-            'Tu perfil se podrá completar después del registro.',
+            'Al crear tu cuenta te enviaremos un correo para confirmarla.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 11,

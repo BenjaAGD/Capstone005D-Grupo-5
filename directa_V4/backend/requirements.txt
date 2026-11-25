@@ -14,3 +14,4 @@ xhtml2pdf>=0.2.16
 matplotlib>=3.8          # gráficos de los PDF (memoria e informe)
 
 reportlab>=4.0
+pypdfium2>=4.30          # páginas originales del PDF para el lector

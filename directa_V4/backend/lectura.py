@@ -19,7 +19,7 @@ Endpoints (todos GET, sin efectos secundarios):
 Conexión en main.py: agregar "lectura" a la lista de módulos que se cargan con crear_router.
 """
 from fastapi import APIRouter
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 _TRASLAPE_MAX = 160   # el splitter usa 150; no se sube más para no borrar texto legítimamente repetido
 _TRASLAPE_MIN = 25    # menos que esto podría ser una coincidencia casual
@@ -144,4 +144,71 @@ def crear_router(get_supabase):
             print("[LECTURA] Error buscando:", e, flush=True)
             return err(e)
 
+    # ------------------------------------------------------------------ página original (imagen)
+    # El PDF original se guarda en Supabase Storage (bucket "documentos") al subirlo. Así el lector muestra
+    # la página tal cual es, con su orden real, en vez del texto extraído (que pierde columnas y tablas).
+    _cache_pdf = {}
+
+    def _pdf_original(document_id):
+        import time
+        hit = _cache_pdf.get(document_id)
+        if hit and time.time() - hit[0] < 900:
+            return hit[1]
+        datos = get_supabase().storage.from_(BUCKET).download(ruta_original(document_id))
+        if len(_cache_pdf) >= 3:
+            _cache_pdf.pop(next(iter(_cache_pdf)))
+        _cache_pdf[document_id] = (time.time(), datos)
+        return datos
+
+    @router.get("/api/documentos/{document_id}/original")
+    def lectura_original(document_id: str):
+        try:
+            import pypdfium2 as pdfium
+            pdf = pdfium.PdfDocument(_pdf_original(document_id))
+            return {"ok": True, "paginas": len(pdf)}
+        except Exception as e:  # noqa: BLE001 — documento subido antes del cambio o bucket sin crear
+            return {"ok": False, "error": f"No hay copia original de este documento ({str(e)[:120]})."}
+
+    @router.get("/api/documentos/{document_id}/pagina/{numero}/imagen")
+    def lectura_pagina_imagen(document_id: str, numero: int, ancho: int = 1100):
+        try:
+            import io
+            import pypdfium2 as pdfium
+            pdf = pdfium.PdfDocument(_pdf_original(document_id))
+            if numero < 1 or numero > len(pdf):
+                return err("Esa página no existe.", 404)
+            pagina = pdf[numero - 1]
+            escala = max(0.5, min(3.0, max(400, min(ancho, 1800)) / float(pagina.get_width())))
+            imagen = pagina.render(scale=escala).to_pil().convert("RGB")
+            buf = io.BytesIO()
+            imagen.save(buf, format="JPEG", quality=82, optimize=True)
+            return Response(content=buf.getvalue(), media_type="image/jpeg",
+                            headers={"Cache-Control": "private, max-age=3600"})
+        except Exception as e:  # noqa: BLE001
+            return err(f"No se pudo mostrar la página: {e}", 500)
+
     return router
+
+
+BUCKET = "documentos"
+
+
+def ruta_original(document_id: str) -> str:
+    import re
+    return re.sub(r"[^A-Za-z0-9_.-]", "_", document_id)[:80] + ".pdf"
+
+
+def guardar_original(sb, document_id: str, datos: bytes):
+    """Guarda el PDF original en Storage. Si el bucket no existe, avisa en el log y sigue (no rompe la subida)."""
+    try:
+        sb.storage.from_(BUCKET).upload(ruta_original(document_id), datos,
+                                        {"content-type": "application/pdf", "upsert": "true"})
+    except Exception as e:  # noqa: BLE001
+        print(f"[LECTURA] No se guardó el original de {document_id} (¿existe el bucket '{BUCKET}'?): {e}", flush=True)
+
+
+def borrar_original(sb, document_id: str):
+    try:
+        sb.storage.from_(BUCKET).remove([ruta_original(document_id)])
+    except Exception:  # noqa: BLE001
+        pass

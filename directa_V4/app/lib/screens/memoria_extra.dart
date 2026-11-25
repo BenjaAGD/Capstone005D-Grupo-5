@@ -14,6 +14,7 @@ import '../state/app_state.dart';
 import '../state/trabajo_memoria.dart';
 import '../widgets/common.dart';
 import '../widgets/demo_offline.dart';
+import 'visor_pdf_screen.dart';
 
 const _kMarca = 'directa_marca_memoria_v1';
 const _coloresMarca = ['#1B2F4B', '#0E5A8A', '#0E7490', '#12AFC6', '#237AA8', '#4664A8'];
@@ -536,7 +537,12 @@ class _BorradorMemoriaState extends State<BorradorMemoria> {
         const SizedBox(height: 10),
         Wrap(spacing: 8, runSpacing: 8, children: [
           GgButton('Abrir PDF', icon: Icons.picture_as_pdf_outlined, small: true, onTap: () async {
-            if (!await abrirUltimoArchivo()) st.go('archivos');
+            final a = ultimoArchivoGuardado();
+            if (a == null) {
+              st.go('archivos');
+            } else {
+              await VisorPdfScreen.abrir(context, a);
+            }
           }),
           GgButton('Ver mis archivos', icon: Icons.folder_open_outlined, ghost: true, small: true, onTap: () => st.go('archivos')),
         ]),

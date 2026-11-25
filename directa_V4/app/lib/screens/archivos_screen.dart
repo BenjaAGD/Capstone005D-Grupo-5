@@ -7,6 +7,7 @@ import '../core/saver.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
+import 'visor_pdf_screen.dart';
 
 class ArchivosScreen extends StatefulWidget {
   const ArchivosScreen({super.key});
@@ -52,7 +53,7 @@ class _ArchivosScreenState extends State<ArchivosScreen> {
 
   Future<void> _abrir(ArchivoGuardado archivo) async {
     try {
-      await abrirArchivoGuardado(archivo);
+      await VisorPdfScreen.abrir(context, archivo); // PDF dentro de la app; Excel con la app del teléfono
     } catch (e) {
       if (mounted) context.read<AppState>().toast('No hay una app para abrir este archivo. Prueba con Compartir.', err: true);
     }

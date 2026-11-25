@@ -1584,6 +1584,11 @@ def diagnostico(document_id: str):
 @app.delete("/api/documentos/{document_id}")
 def eliminar_documento(document_id: str):
     try:
+        import lectura as _lect
+        _lect.borrar_original(supabase, document_id)
+    except Exception:  # noqa: BLE001
+        pass
+    try:
         supabase.table("document_chunks").delete().eq("document_id", document_id).execute()
         supabase.table("analisis").delete().eq("document_id", document_id).execute()
         try:
@@ -1612,6 +1617,12 @@ async def subir_informe(document_id: str = Form(...), archivo: UploadFile = File
         }
         with open(ruta_temporal, "wb") as buffer:
             shutil.copyfileobj(archivo.file, buffer)
+        if (archivo.filename or "").lower().endswith(".pdf"):
+            # Copia del PDF original para que el lector muestre las páginas tal cual (en segundo plano).
+            import lectura as _lect
+            with open(ruta_temporal, "rb") as f_orig:
+                datos_orig = f_orig.read()
+            threading.Thread(target=_lect.guardar_original, args=(supabase, document_id, datos_orig), daemon=True).start()
         thread = threading.Thread(
             target=_procesar_documento_bg,
             args=(document_id, ruta_temporal, archivo.filename),

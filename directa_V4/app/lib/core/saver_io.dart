@@ -145,3 +145,15 @@ Future<void> eliminarArchivosGuardados(List<ArchivoGuardado> archivos) async {
     }
   }
 }
+
+/// Bytes de un archivo guardado (para verlo dentro de la app).
+Future<Uint8List> leerArchivoGuardado(ArchivoGuardado archivo) async {
+  if (Platform.isAndroid && archivo.ruta.startsWith('content://')) {
+    final b = await _downloads.invokeMethod<Uint8List>('read', {'uri': archivo.ruta});
+    if (b == null) throw Exception('No se pudo leer el archivo');
+    return b;
+  }
+  return File(archivo.ruta).readAsBytes();
+}
+
+ArchivoGuardado? ultimoArchivoGuardado() => _ultimo;

@@ -16,7 +16,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
@@ -25,7 +25,8 @@ import io.flutter.plugin.common.MethodChannel
  *   Documentos/Directa Gerente General/<Memorias | Informes | Indicadores | ...>
  * También lista, comparte y elimina esos archivos, y mueve los antiguos de Descargas/DIRECTA.
  */
-class MainActivity : FlutterActivity() {
+// FlutterFragmentActivity: la necesita local_auth (huella / rostro).
+class MainActivity : FlutterFragmentActivity() {
     private val channelName = "directa/downloads"
     private val raiz = "Documents/Directa Gerente General"
     private val legado = "Download/DIRECTA"
@@ -323,6 +324,13 @@ class MainActivity : FlutterActivity() {
                         result.success(null)
                     } catch (e: Exception) {
                         result.error("OPEN_FAILED", e.message ?: "No se pudo abrir el archivo", null)
+                    }
+                }
+                "read" -> {
+                    val uri = Uri.parse(call.argument<String>("uri") ?: "")
+                    segundoPlano(result, "READ_FAILED") {
+                        contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                            ?: throw IllegalStateException("No se pudo leer el archivo")
                     }
                 }
                 "delete", "deleteMany" -> {

@@ -31,3 +31,7 @@ Future<void> abrirArchivoGuardado(ArchivoGuardado archivo) async {}
 Future<bool> abrirUltimoArchivo() async => false;
 
 Future<void> eliminarArchivosGuardados(List<ArchivoGuardado> archivos) async {}
+
+Future<Uint8List> leerArchivoGuardado(ArchivoGuardado archivo) async => throw UnsupportedError('Solo en el teléfono');
+
+ArchivoGuardado? ultimoArchivoGuardado() => null;

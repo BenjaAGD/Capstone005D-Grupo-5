@@ -8,6 +8,7 @@ import 'core/demo_modo.dart';
 import 'core/servidor_estado.dart';
 import 'core/store.dart';
 import 'core/theme.dart';
+import 'screens/bloqueo_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/shell.dart';
 import 'state/app_state.dart';
@@ -93,13 +94,13 @@ class DirectaApp extends StatelessWidget {
           key: ValueKey(user!.id),
           create: (_) =>
               AppState(store.forUser(user.id), client: client)..init(),
-          child: _materialApp(),
+          child: _materialApp(uid: user.id),
         );
       },
     );
   }
 
-  Widget _materialApp() => Consumer<AppState>(
+  Widget _materialApp({String? uid}) => Consumer<AppState>(
         builder: (context, st, _) => MaterialApp(
           title: 'DIRECTA · Gerencia General',
           debugShowCheckedModeBanner: false,
@@ -110,7 +111,8 @@ class DirectaApp extends StatelessWidget {
             data: MediaQuery.of(context).copyWith(
               textScaler: TextScaler.linear(st.textScale),
             ),
-            child: child!,
+            // PIN / huella: solo con cuenta real (en demo no hay usuario).
+            child: BloqueoGate(uid: uid, child: child!),
           ),
           home: st.iniciado ? const Shell() : const _Cargando(),
         ),
