@@ -27,7 +27,6 @@ class _ChatScreenState extends State<ChatScreen> {
   final _inputFocus = FocusNode();
   final _scroll = ScrollController();
   final Map<String, String> _tab = {};
-  bool _modoGuia = true;
   int _ultimo = -1;
   String _ultimoTexto = '';
   bool _guiaAbierta = true;
@@ -92,8 +91,8 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
     _inputFocus.unfocus();
+    st.modoGuia = false;
     setState(() {
-      _modoGuia = false;
       _guiaAbierta = false; // la guía queda en una línea; se reabre con el botón de sugerencias
     });
     _alFondo(animar: true, forzar: true);
@@ -178,14 +177,14 @@ class _ChatScreenState extends State<ChatScreen> {
     if (respuesta.isEmpty || st.consultando) return;
     _inputFocus.unfocus(); // el teclado se cierra al enviar y no vuelve a abrirse solo
     final documento = st.docActivoMap;
-    if (documento == null && !_modoGuia) {
+    if (documento == null && !context.read<AppState>().modoGuia) {
       st.toast('Selecciona un documento activo para consultar la IA', err: true);
       return;
     }
 
     _input.clear();
     _alFondo(animar: true, forzar: true);
-    if (!_modoGuia) {
+    if (!context.read<AppState>().modoGuia) {
       await st.enviarPregunta(respuesta);
       return;
     }
@@ -215,67 +214,6 @@ class _ChatScreenState extends State<ChatScreen> {
     if (!mounted) return;
     st.completarTemaGuia(indice, respuesta);
     if (!ok) st.toast('Respuesta guardada; la consulta de IA no se completó.', err: true);
-  }
-
-  Future<void> _elegirAgente(AppState st) async {
-    final c = context.c;
-    final integ = st.agentes.where((a) => a.tipo == 'integrador').toList();
-    final prod = st.agentes.where((a) => a.tipo == 'productor').toList();
-    Widget op(String key, String badge, String name, String desc) => ListTile(
-          leading: AgentBadge(badge),
-          title: Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-          subtitle: Text(desc, style: TextStyle(fontSize: 12, color: c.text2)),
-          trailing: st.agenteActual == key ? Icon(Icons.check, color: c.accentText) : null,
-          selected: st.agenteActual == key,
-          onTap: () => Navigator.pop(context, key),
-        );
-    Widget grp(String t) => Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 4), child: SecTitle(t, bottom: 0));
-    final r = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      constraints: const BoxConstraints(maxWidth: 640),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.75,
-        builder: (_, sc) => ListView(controller: sc, children: [
-          grp('General'),
-          op('general', 'GEN', 'Asistente general', 'Consultas generales sobre cualquier documento.'),
-          grp('Integradores'),
-          for (final a in integ) op(a.key, a.badge, a.name, a.desc),
-          grp('Especialistas'),
-          for (final a in prod) op(a.key, a.badge, a.name, a.desc),
-          const SizedBox(height: 16),
-        ]),
-      ),
-    );
-    if (r != null) st.cambiarAgente(r);
-  }
-
-  Widget _selectorModo(AppState st) {
-    final c = context.c;
-    Widget item(String texto, bool guia, IconData icono) => Expanded(
-          child: TextButton.icon(
-            onPressed: () => setState(() => _modoGuia = guia),
-            icon: Icon(icono, size: 16),
-            label: Text(texto, maxLines: 1, overflow: TextOverflow.ellipsis),
-            style: TextButton.styleFrom(
-              foregroundColor: _modoGuia == guia ? c.accentText : c.text2,
-              backgroundColor: _modoGuia == guia ? c.accentSoft : Colors.transparent,
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-            ),
-          ),
-        );
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(color: c.surface2, border: Border.all(color: c.border), borderRadius: BorderRadius.circular(12)),
-      child: Row(children: [
-        item('Guía de análisis', true, Icons.route_outlined),
-        item('Chat libre', false, Icons.chat_bubble_outline),
-      ]),
-    );
   }
 
   Widget _panelGuia(AppState st) {
@@ -452,52 +390,6 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     return Column(children: [
-      Container(
-        padding: const EdgeInsets.fromLTRB(12, 5, 8, 5),
-        decoration: BoxDecoration(color: c.bg2, border: Border(bottom: BorderSide(color: c.border))),
-        child: Row(children: [
-          Material(
-            color: c.surface2,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: c.border2)),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: () => _elegirAgente(st),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  AgentBadge(st.badgeAgente(st.agenteActual)),
-                  const SizedBox(width: 6),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 180),
-                    child: Text(st.nombreAgente(st.agenteActual), maxLines: 1, overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
-                  ),
-                  Icon(Icons.expand_more, size: 17, color: c.text2),
-                ]),
-              ),
-            ),
-          ),
-          const Spacer(),
-          IconButton(
-            tooltip: 'Nueva conversación',
-            visualDensity: VisualDensity.compact,
-            constraints: const BoxConstraints.tightFor(width: 38, height: 38),
-            padding: EdgeInsets.zero,
-            onPressed: st.mensajes.isEmpty || st.consultando
-                ? null
-                : () async {
-                    if (await confirmar(context, '¿Borrar la conversación de este documento? Lo ya agregado al informe se conserva.', ok: 'Borrar')) {
-                      st.nuevaConversacion();
-                    }
-                  },
-            icon: const Icon(Icons.add_comment_outlined, size: 19),
-          ),
-        ]),
-      ),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-        child: _selectorModo(st),
-      ),
       Expanded(
         child: ListView(
           controller: _scroll,
@@ -515,25 +407,25 @@ class _ChatScreenState extends State<ChatScreen> {
                 ]),
               ),
             ],
-            if (st.mensajes.isEmpty && (_modoGuia || doc == null))
+            if (st.mensajes.isEmpty && (context.read<AppState>().modoGuia || doc == null))
               GgCard(
                 borderColor: c.accentText.withValues(alpha: .35),
                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Icon(Icons.auto_awesome_outlined, color: c.accentText, size: 21),
                   const SizedBox(width: 10),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(_modoGuia ? 'Revisa cinco temas clave' : 'Consulta el documento',
+                    Text(context.read<AppState>().modoGuia ? 'Revisa cinco temas clave' : 'Consulta el documento',
                         style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
                     const SizedBox(height: 4),
-                    Text(_modoGuia
+                    Text(context.read<AppState>().modoGuia
                         ? 'Responde cada pregunta de la gerencia. DIRECTA contrastará tus respuestas con la evidencia disponible.'
                         : 'Escribe una pregunta. La respuesta mostrará fuentes y páginas cuando estén disponibles.',
                         style: TextStyle(fontSize: 12, height: 1.4, color: c.text2)),
                   ])),
                 ]),
               ),
-            if (_modoGuia) _panelGuia(st),
-            if (!_modoGuia && doc != null && st.mensajes.isEmpty) ...[
+            if (context.read<AppState>().modoGuia) _panelGuia(st),
+            if (!context.read<AppState>().modoGuia && doc != null && st.mensajes.isEmpty) ...[
               Center(child: Column(children: [
                 Container(
                   width: 54, height: 54, alignment: Alignment.center,
@@ -605,7 +497,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   controller: _input,
                   focusNode: _inputFocus,
                   // No se deshabilita mientras la IA responde: así el teclado no se cierra solo.
-                  enabled: doc != null || _modoGuia,
+                  enabled: doc != null || context.read<AppState>().modoGuia,
                   minLines: 1,
                   maxLines: 5,
                   textCapitalization: TextCapitalization.sentences,
@@ -621,16 +513,16 @@ class _ChatScreenState extends State<ChatScreen> {
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     hintText: doc == null
-                        ? (_modoGuia ? 'Escribe tu respuesta; se guardará en este teléfono' : 'Selecciona un documento para consultar')
-                        : (_modoGuia ? 'Responde este tema…' : 'Pregunta sobre el documento…'),
+                        ? (context.read<AppState>().modoGuia ? 'Escribe tu respuesta; se guardará en este teléfono' : 'Selecciona un documento para consultar')
+                        : (context.read<AppState>().modoGuia ? 'Responde este tema…' : 'Pregunta sobre el documento…'),
                   ),
                 ),
               ),
             ),
             const SizedBox(width: 8),
             IconButton.filled(
-              tooltip: _modoGuia ? 'Enviar respuesta del tema' : 'Enviar pregunta',
-              onPressed: st.consultando || (doc == null && !_modoGuia) ? null : () => _enviar(st),
+              tooltip: context.read<AppState>().modoGuia ? 'Enviar respuesta del tema' : 'Enviar pregunta',
+              onPressed: st.consultando || (doc == null && !context.read<AppState>().modoGuia) ? null : () => _enviar(st),
               style: IconButton.styleFrom(backgroundColor: Brand.accent, foregroundColor: Brand.onAccent, minimumSize: const Size(48, 48)),
               icon: st.consultando
                   ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Brand.onAccent))
@@ -900,3 +792,40 @@ class _InfoFila extends StatelessWidget {
     );
   }
 }
+
+/// Hoja para elegir el asistente (se abre desde la barra de Análisis).
+Future<void> elegirAgente(BuildContext context, AppState st) async {
+    final c = context.c;
+    final integ = st.agentes.where((a) => a.tipo == 'integrador').toList();
+    final prod = st.agentes.where((a) => a.tipo == 'productor').toList();
+    Widget op(String key, String badge, String name, String desc) => ListTile(
+          leading: AgentBadge(badge),
+          title: Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          subtitle: Text(desc, style: TextStyle(fontSize: 12, color: c.text2)),
+          trailing: st.agenteActual == key ? Icon(Icons.check, color: c.accentText) : null,
+          selected: st.agenteActual == key,
+          onTap: () => Navigator.pop(context, key),
+        );
+    Widget grp(String t) => Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 4), child: SecTitle(t, bottom: 0));
+    final r = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      constraints: const BoxConstraints(maxWidth: 640),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.75,
+        builder: (_, sc) => ListView(controller: sc, children: [
+          grp('General'),
+          op('general', 'GEN', 'Asistente general', 'Consultas generales sobre cualquier documento.'),
+          grp('Integradores'),
+          for (final a in integ) op(a.key, a.badge, a.name, a.desc),
+          grp('Especialistas'),
+          for (final a in prod) op(a.key, a.badge, a.name, a.desc),
+          const SizedBox(height: 16),
+        ]),
+      ),
+    );
+    if (r != null) st.cambiarAgente(r);
+  }

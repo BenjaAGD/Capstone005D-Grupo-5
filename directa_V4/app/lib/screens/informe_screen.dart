@@ -151,21 +151,24 @@ class _InformeScreenState extends State<InformeScreen> {
       GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           const Expanded(child: Text('Contenido del informe', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16))),
-          Text('$cantidad seleccionados', style: TextStyle(fontSize: 12, color: c.accentText, fontWeight: FontWeight.w700)),
+          if (items.isNotEmpty)
+            Text('$cantidad de ${items.length} seleccionados', style: TextStyle(fontSize: 12, color: c.accentText, fontWeight: FontWeight.w700)),
         ]),
         const SizedBox(height: 4),
         Text('Elige qué análisis y conversaciones se incluirán en el PDF.', style: TextStyle(fontSize: 12.5, color: c.text2)),
         const SizedBox(height: 12),
-        Wrap(spacing: 8, runSpacing: 8, children: [
-          GgButton('Seleccionar todos', ghost: true, small: true, onTap: () => st.setTodosExcluidos(false)),
-          GgButton('Quitar selección', ghost: true, small: true, onTap: () => st.setTodosExcluidos(true)),
-        ]),
-        const SizedBox(height: 10),
+        if (items.isNotEmpty) ...[
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            GgButton('Seleccionar todos', ghost: true, small: true, onTap: () => st.setTodosExcluidos(false)),
+            GgButton('Quitar selección', ghost: true, small: true, onTap: () => st.setTodosExcluidos(true)),
+          ]),
+          const SizedBox(height: 10),
+        ],
         if (items.isEmpty)
           EmptyState(
             icon: Icons.description_outlined,
             title: 'Aún no hay contenido',
-            text: 'Agrega análisis desde Resultados o respuestas desde el chat para comenzar el informe.',
+            text: 'En Resultados o en el chat, toca "Agregar al informe" en lo que quieras incluir. Luego vuelve aquí para generar el PDF.',
             action: Wrap(spacing: 8, children: [
               GgButton('Ir a Resultados', icon: Icons.insights_outlined, ghost: true, onTap: () => st.go('resultados')),
               GgButton('Ir al chat', icon: Icons.chat_bubble_outline, ghost: true, onTap: () => st.go('chat')),

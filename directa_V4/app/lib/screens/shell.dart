@@ -105,6 +105,10 @@ class _ShellState extends State<Shell> {
   }
 
   void _abrir(String id) {
+    if (id == AppState.volverAlInicio) {
+      Navigator.of(context).popUntil((r) => r.isFirst);
+      return;
+    }
     if (id == 'guia') {
       abrirAyuda(context, AppState.tabs[context.read<AppState>().tab]);
       return;
