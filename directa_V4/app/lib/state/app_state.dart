@@ -12,13 +12,14 @@ import '../core/models.dart';
 import '../core/notificaciones.dart';
 import '../core/sev.dart';
 import '../core/store.dart';
+import '../core/usuario.dart';
 
 const estadosProcesando = ['Procesando', 'Analizando', 'Iniciando'];
 
 /// Estado principal de la app: equivale al objeto `state` del index.html del MVP.
 class AppState extends ChangeNotifier {
   AppState(this.store, {http.Client? client})
-      : api = Api(_apiInicial(store), client: client) {
+      : api = Api(_apiInicial(store), client: client, token: UsuarioActual.tokenAcceso) {
     themeMode = store.getString(Store.kTheme) == 'dark' ? ThemeMode.dark : ThemeMode.light; // claro por defecto
     textScale = store.getDouble(Store.kFont) ?? 0.9;
     docActivo = store.getString(Store.kDoc);

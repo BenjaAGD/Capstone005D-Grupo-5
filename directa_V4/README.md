@@ -100,6 +100,19 @@ Si esas tablas no existen, la app funciona igual, pero valoraciones, lecciones y
 `backend/datos_locales/` (un archivo del servidor). En Render ese archivo se borra en cada reinicio o despliegue.
 **Más → Servidor y apariencia** muestra dónde se está guardando.
 
+### 3.1b Seguridad de sesión y datos (migración v8)
+- **Sesión obligatoria:** todas las rutas `/api/*` exigen el token de Supabase (`Authorization: Bearer`). Sin él responden 401. Solo `/` (el ping de la app) queda abierta.
+- **Documentos con dueño:** cada documento guarda la empresa que lo subió (`documentos.empresa_rut`). Una persona solo ve, consulta y borra los de su empresa; si pide uno ajeno, el servidor responde "no encontrado".
+- **La empresa de la cuenta** sale de `app_metadata.rut_empresa`, que la persona no puede editar (la copia un trigger al crear la cuenta).
+- **Tablas cerradas:** `migracion_v8_seguridad.sql` quita las políticas abiertas. La app no lee tablas directo; solo el backend, con la clave de servicio.
+
+**Orden para desplegar (importante):**
+1. En Render → Environment agrega `SUPABASE_SERVICE_ROLE_KEY` (Supabase → Project Settings → API → `service_role`). Nunca la pongas en la app ni en GitHub.
+2. Despliega el backend nuevo.
+3. Recién entonces pega `backend/migracion_v8_seguridad.sql` en el SQL Editor de Supabase y revisa los 3 resultados finales (0 políticas abiertas; todas las cuentas y documentos con empresa).
+
+Pruebas del backend (sin llaves): `cd backend && python -m unittest test_seguridad -v`.
+
 ### 3.2 Verificación de respuestas
 Cada respuesta del chat y cada señal alta o crítica del análisis pasa por tres capas:
 1. **Código** (sin IA): cada cifra, porcentaje, variación, página, cita y plazo se busca en el documento.

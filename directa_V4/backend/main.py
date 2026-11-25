@@ -47,13 +47,23 @@ from starlette.concurrency import run_in_threadpool
 
 load_dotenv()
 
+import seguridad
+
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+# Clave de servicio: solo vive en el servidor (Render). Con ella el backend lee las tablas cerradas por
+# migracion_v8. Si falta, se usa SUPABASE_KEY (anon) y el servidor avisa: sin la clave de servicio no puede
+# validar sesiones ni leer empresas_autorizadas.
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_KEY")
 
 if not SUPABASE_URL: raise Exception("Falta SUPABASE_URL")
-if not SUPABASE_KEY: raise Exception("Falta SUPABASE_KEY")
+if not SUPABASE_KEY: raise Exception("Falta SUPABASE_SERVICE_ROLE_KEY")
+if not os.getenv("SUPABASE_SERVICE_ROLE_KEY"):
+    print("[SEGURIDAD] Falta SUPABASE_SERVICE_ROLE_KEY: se usa SUPABASE_KEY. "
+          "Las rutas /api/ no podrán validar sesiones hasta que la configures.", flush=True)
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+seguridad.propagar_contexto_en_hilos()
+# `supabase` filtra la tabla documentos por la empresa de la petición (ver seguridad.py).
+supabase = seguridad.ClienteEmpresa(create_client(SUPABASE_URL, SUPABASE_KEY))
 
 
 def _es_error_conexion(e):
@@ -64,9 +74,8 @@ def _es_error_conexion(e):
 
 def _reconectar_supabase():
     """Crea un cliente nuevo. Todo el código usa la variable global `supabase`, así que toma el nuevo solo."""
-    global supabase
     try:
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        supabase.reemplazar(create_client(SUPABASE_URL, SUPABASE_KEY))
     except Exception as e:
         print(f"[DB] No se pudo reconectar: {e}", flush=True)
 
@@ -88,6 +97,10 @@ def _reintentar_db(fn, intentos=3):
     return envoltura
 
 app = FastAPI(title="Directa MVP", version="3.0")
+
+# Sesión obligatoria en /api/*. Se agrega ANTES que CORS para que CORS quede por fuera
+# y los errores 401/403 también lleguen con sus cabeceras CORS.
+app.add_middleware(seguridad.AutenticacionDirecta, obtener_cliente=lambda: supabase.real)
 
 app.add_middleware(
     CORSMiddleware,
@@ -212,6 +225,7 @@ KEYWORDS_AGENTE = {
 
 
 def guardar_documento(document_id, nombre_archivo, total_paginas):
+    # `supabase` ya limita `documentos` a la empresa de la petición y marca el documento nuevo con ella.
     existe = supabase.table("documentos").select("id").eq("id", document_id).execute()
     if len(existe.data) == 0:
         supabase.table("documentos").insert({

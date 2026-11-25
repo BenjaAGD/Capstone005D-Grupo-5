@@ -81,6 +81,31 @@ void main() {
     expect((partes[iVerif]['verificacion'] as Map)['estado'], 'verificada');
   });
 
+  test('cada llamada al backend lleva el token de la sesión', () async {
+    final vistos = <String, String?>{};
+    final cliente = MockClient((req) async {
+      vistos['${req.method} ${req.url.path}'] = req.headers['authorization'];
+      return http.Response('{"ok":true}', 200, headers: {'content-type': 'application/json'});
+    });
+    final api = Api('http://x', client: cliente, token: () async => 'abc123');
+    await api.getJson('/api/documentos');
+    await api.postJson('/api/memoria/pdf', {'docs': 'd'});
+    await api.postForm('/api/sugerencias/', {'document_id': 'd'});
+    await api.delete('/api/documentos/d');
+    await api.sse('/api/consultar-stream/', {'document_id': 'd'}).toList();
+    expect(vistos.length, 5);
+    expect(vistos.values.toSet(), {'Bearer abc123'});
+    // Sin sesión (token null) no se envía la cabecera.
+    final sin = Api('http://x', client: cliente, token: () async => null);
+    await sin.getJson('/api/agentes');
+    expect(vistos['GET /api/agentes'], isNull);
+  });
+
+  test('si el servidor responde 401 la app pide volver a entrar', () async {
+    final api = Api('http://x', client: MockClient((_) async => http.Response('{"ok":false}', 401)));
+    expect(() => api.getJson('/api/documentos'), throwsA(predicate((e) => '$e'.contains('vuelve a entrar'))));
+  });
+
   test('las 14 rutas de preguntas guía tienen 6 preguntas en tres niveles', () {
     final d = jsonDecode(fx('agentes.json')) as Map;
     final agentes = [for (final a in d['agentes'] as List) if (a['tipo'] != 'general') a];
