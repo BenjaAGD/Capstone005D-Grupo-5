@@ -195,10 +195,10 @@ class _AsistenteOverlayState extends State<AsistenteOverlay> {
           Row(children: [
             Icon(Icons.open_with, size: 15, color: c.accentText),
             const SizedBox(width: 6),
-            Flexible(child: Text('Muévelo donde quieras', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: c.accentText))),
+            Flexible(child: Text('Muévelo donde quieras', style: TextStyle(fontWeight: FontWeight.w600, fontSize: Fs.sm, color: c.accentText))),
           ]),
           const SizedBox(height: 3),
-          Text('Mantén presionado y arrastra. Se acomoda sola en el borde.', style: TextStyle(fontSize: 11.5, height: 1.35, color: c.text2)),
+          Text('Mantén presionado y arrastra. Se acomoda sola en el borde.', style: TextStyle(fontSize: Fs.sm, height: 1.35, color: c.text2)),
         ]),
       ),
     );
@@ -212,11 +212,14 @@ Future<void> abrirAsistente(BuildContext context, {required String pantalla, int
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    constraints: const BoxConstraints(maxWidth: 720),
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-    builder: (_) => ChangeNotifierProvider.value(
-      value: st,
-      child: FractionallySizedBox(heightFactor: 0.86, child: _Asistente(pantalla: pantalla, pestana: pestana)),
+    // El relleno inferior sube la hoja (y su campo de texto) junto con el teclado.
+    builder: (ctx) => Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(ctx).bottom),
+      child: ChangeNotifierProvider.value(
+        value: st,
+        child: FractionallySizedBox(heightFactor: 0.86, child: _Asistente(pantalla: pantalla, pestana: pestana)),
+      ),
     ),
   );
 }
@@ -278,11 +281,11 @@ class _AsistenteState extends State<_Asistente> {
           const SizedBox(width: 10),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Asistente', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              const Text('Asistente', style: TextStyle(fontSize: Fs.reading, fontWeight: FontWeight.w700)),
               Text(
                 nombre.isEmpty ? 'Sin documento activo' : '$nombre${paginas != null ? ' · $paginas páginas' : ''}',
                 maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 11.5, color: c.text3),
+                style: TextStyle(fontSize: Fs.sm, color: c.text3),
               ),
             ]),
           ),
@@ -299,13 +302,14 @@ class _AsistenteState extends State<_Asistente> {
       Expanded(child: _modo == 0 ? _documento(context, st) : _ayuda(context, st)),
       Container(
         decoration: BoxDecoration(color: c.bg2, border: Border(top: BorderSide(color: c.border))),
-        padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+        padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
         child: SafeArea(
           top: false,
           child: Row(children: [
             Expanded(
               child: TextField(
                 controller: _input,
+                textCapitalization: TextCapitalization.sentences,
                 minLines: 1,
                 maxLines: 4,
                 textInputAction: TextInputAction.send,
@@ -323,7 +327,7 @@ class _AsistenteState extends State<_Asistente> {
             IconButton.filled(
               tooltip: 'Enviar',
               onPressed: (st.asistenteConsultando || st.ayudaBuscando) ? null : () => _enviar(_input.text),
-              style: IconButton.styleFrom(backgroundColor: Brand.accent, foregroundColor: Brand.onAccent, fixedSize: const Size(46, 46)),
+              style: IconButton.styleFrom(backgroundColor: Brand.accent, foregroundColor: Brand.onAccent, fixedSize: const Size(48, 48)),
               icon: const Icon(Icons.send_rounded),
             ),
           ]),
@@ -350,7 +354,7 @@ class _AsistenteState extends State<_Asistente> {
                 child: Row(children: [
                   Icon(Icons.auto_awesome_outlined, size: 17, color: c.accentText),
                   const SizedBox(width: 10),
-                  Expanded(child: Text(s, style: const TextStyle(fontSize: 13))),
+                  Expanded(child: Text(s, style: const TextStyle(fontSize: Fs.md))),
                   Icon(Icons.chevron_right, size: 17, color: c.text3),
                 ]),
               ),
@@ -376,7 +380,7 @@ class _AsistenteState extends State<_Asistente> {
                 st.docActivo == null
                     ? 'Selecciona un documento para preguntarle.'
                     : 'Responde el Asistente General con el documento activo, y cada respuesta pasa por el verificador. Te muestro la página de donde salió.',
-                style: TextStyle(fontSize: 12.5, height: 1.45, color: c.text2),
+                style: TextStyle(fontSize: Fs.md, height: 1.45, color: c.text2),
               ),
             ),
           ]),
@@ -399,7 +403,7 @@ class _AsistenteState extends State<_Asistente> {
                         SelloVerificacion(verificacion: m.verificacion, textoOriginal: m.textoOriginal),
                         Valoracion(msg: m, documentId: st.docActivo),
                         TextButton.icon(
-                          style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact, foregroundColor: c.accentText),
+                          style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 4), foregroundColor: c.accentText),
                           onPressed: () {
                             // Cierra el asistente y cualquier pantalla abierta encima, y lleva al chat.
                             final nav = Navigator.of(context);
@@ -407,7 +411,7 @@ class _AsistenteState extends State<_Asistente> {
                             st.asistenteAlChat(m);
                           },
                           icon: const Icon(Icons.forum_outlined, size: 15),
-                          label: const Text('Llevar al chat', style: TextStyle(fontSize: 12)),
+                          label: const Text('Llevar al chat', style: TextStyle(fontSize: Fs.sm)),
                         ),
                       ]),
               ),
@@ -458,10 +462,10 @@ class _AsistenteState extends State<_Asistente> {
               ])
             : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 propia
-                    ? Text(texto, style: const TextStyle(fontSize: 13.5, height: 1.4, fontWeight: FontWeight.w500, color: Brand.onAccent))
+                    ? Text(texto, style: const TextStyle(fontSize: Fs.body, height: 1.4, fontWeight: FontWeight.w500, color: Brand.onAccent))
                     : (error
-                        ? Text(texto, style: TextStyle(color: c.high, fontSize: 13))
-                        : MarkdownLite(texto, size: 13.4)),
+                        ? Text(texto, style: TextStyle(color: c.high, fontSize: Fs.md))
+                        : MarkdownLite(texto, size: Fs.md)),
                 if (!propia && !error && paginas.isNotEmpty) ...[
                   const SizedBox(height: 10),
                   Wrap(spacing: 6, runSpacing: 6, children: [
@@ -472,7 +476,7 @@ class _AsistenteState extends State<_Asistente> {
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
                           Icon(Icons.description_outlined, size: 12, color: c.text2),
                           const SizedBox(width: 5),
-                          Text('pág. ${paginas[i]}', style: TextStyle(fontSize: 11.5, color: c.text2)),
+                          Text('pág. ${paginas[i]}', style: TextStyle(fontSize: Fs.sm, color: c.text2)),
                         ]),
                       ),
                   ]),

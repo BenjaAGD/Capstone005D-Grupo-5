@@ -7,7 +7,6 @@ import '../core/theme.dart';
 import '../core/saver.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
-import '../widgets/demo_offline.dart';
 
 /// Preguntas probables del directorio y respuestas sugeridas para el Gerente General.
 class PrepararScreen extends StatefulWidget {
@@ -45,16 +44,7 @@ class _PrepararScreenState extends State<PrepararScreen> {
     final sugeridas = items.where((x) => x['sugerida'] is Map).toList();
     final sinSugerir = items.length - sugeridas.length;
 
-    if (st.docActivo == null) {
-      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const PageHead(title: 'Preparar mi reunión', subtitle: 'Revisa las preguntas clave antes de una sesión.'),
-        const DemoAviso(text: 'Las preguntas se basarán en los hallazgos de tus documentos cuando cargues uno.'),
-        const DemoFila(titulo: 'Rentabilidad', detalle: '¿Qué explica la diferencia entre los resultados y el margen?', icon: Icons.trending_down),
-        const DemoFila(titulo: 'Inversión', detalle: '¿Qué hitos y retorno se esperan del CAPEX planificado?', icon: Icons.account_balance),
-        const DemoFila(titulo: 'Seguridad operacional', detalle: '¿Qué controles críticos siguen abiertos?', icon: Icons.health_and_safety_outlined),
-      ]);
-    }
-    if (st.analisis == null && !st.cargandoAnalisis) {
+    if (st.docActivo == null || (st.analisis == null && !st.cargandoAnalisis)) {
       return Column(children: [
         const PageHead(title: 'Preparar mi reunión'),
         GgCard(child: EmptyState(
@@ -115,7 +105,7 @@ class _PrepararScreenState extends State<PrepararScreen> {
         Icon(Icons.description_outlined, size: 18, color: c.accentText),
         const SizedBox(width: 8),
         Expanded(child: Text(nombre.isEmpty ? 'Documento activo' : nombre,
-            maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12.5, color: c.text2))),
+            maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: Fs.md, color: c.text2))),
       ]),
     );
   }
@@ -134,9 +124,12 @@ class _PrepararScreenState extends State<PrepararScreen> {
             child: InkWell(
               borderRadius: BorderRadius.circular(9),
               onTap: () => setState(() => _tab = i),
-              child: Padding(padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                child: Text(labels[i], textAlign: TextAlign.center, maxLines: 1,
-                  style: TextStyle(fontSize: 12.5, fontWeight: _tab == i ? FontWeight.w700 : FontWeight.w500,
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 48),
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                child: Text(labels[i], textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: Fs.md, fontWeight: _tab == i ? FontWeight.w700 : FontWeight.w500,
                     color: _tab == i ? c.accentText : c.text2))),
             ),
           )),
@@ -164,7 +157,7 @@ class _PrepararScreenState extends State<PrepararScreen> {
             SevPill(normSev(senales[i]['severidad'])),
             const SizedBox(width: 9),
             Expanded(child: Text('${senales[i]['titulo'] ?? 'Tema por revisar'}',
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, height: 1.35))),
+              style: const TextStyle(fontSize: Fs.md, fontWeight: FontWeight.w600, height: 1.35))),
           ]),
         ],
       ])),
@@ -175,9 +168,9 @@ class _PrepararScreenState extends State<PrepararScreen> {
   Widget _datoResumen(String valor, String etiqueta) {
     final c = context.c;
     return Column(children: [
-      Text(valor, style: TextStyle(fontSize: 23, fontWeight: FontWeight.w700, color: c.text)),
+      Text(valor, style: TextStyle(fontSize: Fs.display, fontWeight: FontWeight.w700, color: c.text)),
       const SizedBox(height: 3),
-      Text(etiqueta, textAlign: TextAlign.center, style: TextStyle(fontSize: 11.5, color: c.text3)),
+      Text(etiqueta, textAlign: TextAlign.center, style: TextStyle(fontSize: Fs.sm, color: c.text3)),
     ]);
   }
 
@@ -186,8 +179,8 @@ class _PrepararScreenState extends State<PrepararScreen> {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
         Expanded(child: Text('${items.length} preguntas · ordenadas por prioridad',
-          style: TextStyle(fontSize: 12, color: c.text3))),
-        IconButton(tooltip: 'Actualizar preguntas', visualDensity: VisualDensity.compact,
+          style: TextStyle(fontSize: Fs.sm, color: c.text3))),
+        IconButton(tooltip: 'Actualizar preguntas',
           onPressed: st.cargandoPrep ? null : () => st.cargarPreparacion(forzar: true),
           icon: Icon(Icons.refresh, size: 20, color: c.text2)),
       ]),
@@ -204,7 +197,7 @@ class _PrepararScreenState extends State<PrepararScreen> {
   Widget _listaRespuestas(AppState st, List<Map<String, dynamic>> sugeridas) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       if (sugeridas.isNotEmpty) ...[
-        Text('${sugeridas.length} respuestas disponibles', style: TextStyle(fontSize: 12, color: context.c.text3)),
+        Text('${sugeridas.length} respuestas disponibles', style: TextStyle(fontSize: Fs.sm, color: context.c.text3)),
         const SizedBox(height: 10),
         for (final it in sugeridas) _tarjetaLista(it, st),
         const SizedBox(height: 2),
@@ -231,14 +224,14 @@ class _PrepararScreenState extends State<PrepararScreen> {
         SevPill(normSev(it['severidad'])),
         const SizedBox(width: 9),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(st.nombreAgente('${it['agente']}'), style: TextStyle(fontSize: 11.5, color: c.text3)),
+          Text(st.nombreAgente('${it['agente']}'), style: TextStyle(fontSize: Fs.sm, color: c.text3)),
           const SizedBox(height: 4),
           Text('${it['pregunta'] ?? ''}', maxLines: 3, overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.35)),
+            style: const TextStyle(fontSize: Fs.body, fontWeight: FontWeight.w600, height: 1.35)),
           if (respuesta.isNotEmpty) ...[
             const SizedBox(height: 6),
             Text(respuesta, maxLines: 2, overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 12, color: c.text2, height: 1.35)),
+              style: TextStyle(fontSize: Fs.sm, color: c.text2, height: 1.35)),
           ],
         ])),
         const SizedBox(width: 5),
@@ -260,10 +253,10 @@ class _PrepararScreenState extends State<PrepararScreen> {
         style: TextButton.styleFrom(foregroundColor: c.accentText, padding: EdgeInsets.zero)),
       const PageHead(title: 'Respuesta sugerida', subtitle: 'Revisa la fuente y confirma los datos antes de usarla.'),
       Row(children: [SevPill(normSev(it['severidad'])), const SizedBox(width: 8),
-        Expanded(child: Text(st.nombreAgente('${it['agente']}'), style: TextStyle(fontSize: 12, color: c.text3)))]),
+        Expanded(child: Text(st.nombreAgente('${it['agente']}'), style: TextStyle(fontSize: Fs.sm, color: c.text3)))]),
       const SizedBox(height: 10),
       GgCard(padding: const EdgeInsets.all(13), child: Text('${it['pregunta'] ?? ''}',
-        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, height: 1.4))),
+        style: const TextStyle(fontSize: Fs.lg, fontWeight: FontWeight.w700, height: 1.4))),
       if (sug == null)
         GgCard(child: EmptyState(icon: Icons.auto_awesome_outlined, title: 'Aún no hay respuesta sugerida',
           text: 'Puedes generar una respuesta a partir del documento y revisarla aquí.',
@@ -272,10 +265,10 @@ class _PrepararScreenState extends State<PrepararScreen> {
       else ...[
         GgCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const SecTitle('Respuesta sugerida', bottom: 8),
-          MarkdownLite('${sug['respuesta'] ?? ''}', size: 13.5),
+          MarkdownLite('${sug['respuesta'] ?? ''}', size: Fs.body),
           if ('${sug['falta'] ?? ''}'.trim().isNotEmpty) ...[
             const SizedBox(height: 10),
-            Text('Pendiente: ${sug['falta']}', style: TextStyle(fontSize: 12, color: c.med, height: 1.4)),
+            Text('Pendiente: ${sug['falta']}', style: TextStyle(fontSize: Fs.sm, color: c.med, height: 1.4)),
           ],
         ])),
         GgCard(padding: const EdgeInsets.all(13), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -287,15 +280,15 @@ class _PrepararScreenState extends State<PrepararScreen> {
           ]),
           if ('${verif?['resumen'] ?? ''}'.trim().isNotEmpty) ...[
             const SizedBox(height: 6),
-            Text('${verif?['resumen']}', style: TextStyle(fontSize: 12.5, color: c.text2, height: 1.4)),
+            Text('${verif?['resumen']}', style: TextStyle(fontSize: Fs.md, color: c.text2, height: 1.4)),
           ] else if (verif == null) ...[
             const SizedBox(height: 6),
             Text('Confirma la respuesta y sus cifras directamente en el documento antes de usarla.',
-              style: TextStyle(fontSize: 12.5, color: c.text2, height: 1.4)),
+              style: TextStyle(fontSize: Fs.md, color: c.text2, height: 1.4)),
           ],
         ])),
         for (final alerta in (sug['alertas'] as List? ?? const []))
-          Padding(padding: const EdgeInsets.only(bottom: 8), child: Text('• $alerta', style: TextStyle(fontSize: 12, color: c.med))),
+          Padding(padding: const EdgeInsets.only(bottom: 8), child: Text('• $alerta', style: TextStyle(fontSize: Fs.sm, color: c.med))),
       ],
       const SizedBox(height: 4),
       Wrap(spacing: 8, runSpacing: 8, children: [

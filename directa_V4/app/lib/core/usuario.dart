@@ -1,9 +1,10 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'empresa.dart';
 import 'rut.dart';
 
 /// Datos de la persona con sesión iniciada (nombre, cargo y empresa vienen del registro).
-/// Nunca lanza errores: en modo demo o en pruebas sin Supabase devuelve valores vacíos.
+/// Nunca lanza errores: en pruebas sin Supabase devuelve valores vacíos.
 class UsuarioActual {
   UsuarioActual._();
 
@@ -37,6 +38,19 @@ class UsuarioActual {
 
   static String? get id => _user?.id;
 
+  /// Token de acceso de la sesión actual (se renueva si ya venció). null si no hay sesión
+  /// o Supabase no está inicializado (pruebas). El backend lo exige en cada llamada /api/.
+  static Future<String?> tokenAcceso() async {
+    try {
+      final auth = Supabase.instance.client.auth;
+      var s = auth.currentSession;
+      if (s != null && s.isExpired) s = (await auth.refreshSession()).session;
+      return s?.accessToken;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Envía al correo de la cuenta un enlace para elegir una contraseña nueva.
   /// El enlace abre la app y muestra la pantalla "Elige una nueva contraseña".
   static Future<void> enviarEnlaceClave() async {
@@ -55,8 +69,8 @@ class UsuarioActual {
   }
 
   static bool get tieneNombre => _meta('nombre').isNotEmpty;
-  /// DIRECTA es para la gerencia general: el cargo es fijo.
-  static String get cargo => 'Gerente General';
+  /// Cargo guardado en el perfil; DIRECTA es para la gerencia general, así que si falta es "Gerente General".
+  static String get cargo => _meta('cargo').isEmpty ? EmpresaDirecta.cargo : _meta('cargo');
   static String get rut => _meta('rut').isEmpty ? '' : Rut.formatear(_meta('rut'));
   static String get rutEmpresa => _meta('rut_empresa').isEmpty ? '' : Rut.formatear(_meta('rut_empresa'));
   static String get empresa => _meta('empresa_solicitada');

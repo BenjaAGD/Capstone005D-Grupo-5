@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 /// Dirección del backend por defecto. Se puede cambiar dentro de la app (Más → Servidor)
 /// o al compilar:  flutter build apk --dart-define=API_BASE_URL=https://mi-servidor
 class Config {
@@ -9,7 +7,6 @@ class Config {
 
   static String apiPorDefecto() {
     if (_definida.isNotEmpty) return _definida;
-
-    return 'https://capstone005d-grupo-5.onrender.com';
+    return _servidorDirecta;
   }
 }

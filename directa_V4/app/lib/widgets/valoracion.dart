@@ -16,21 +16,21 @@ class Valoracion extends StatelessWidget {
     final motivo = await showModalBottomSheet<String>(
       context: context,
       useSafeArea: true,
-      constraints: const BoxConstraints(maxWidth: 560),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => Padding(
         padding: const EdgeInsets.fromLTRB(16, 18, 16, 20),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('¿Qué falló en esta respuesta?', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          const Text('¿Qué falló en esta respuesta?', style: TextStyle(fontSize: Fs.reading, fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
           Text('Se guarda para mejorar al agente. Nada se aplica sin que una persona apruebe la lección.',
-              style: TextStyle(fontSize: 12.3, color: c.text2)),
+              style: TextStyle(fontSize: Fs.sm, color: c.text2)),
           const SizedBox(height: 12),
           for (final e in AppState.motivosValoracion.entries)
             ListTile(
               contentPadding: EdgeInsets.zero,
+              minTileHeight: 48,
               leading: Icon(Icons.radio_button_unchecked, color: c.text3),
-              title: Text(e.value, style: const TextStyle(fontSize: 14)),
+              title: Text(e.value, style: const TextStyle(fontSize: Fs.body)),
               onTap: () => Navigator.pop(context, e.key),
             ),
         ]),
@@ -46,10 +46,9 @@ class Valoracion extends StatelessWidget {
     final v = st.valoraciones[msg.id];
     Widget boton(IconData icono, IconData lleno, bool activo, Color color, String tip, VoidCallback onTap) => IconButton(
           tooltip: tip,
-          visualDensity: VisualDensity.compact,
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
           padding: EdgeInsets.zero,
-          iconSize: 17,
+          iconSize: 20,
           onPressed: onTap,
           icon: Icon(activo ? lleno : icono, color: activo ? color : c.text3),
         );

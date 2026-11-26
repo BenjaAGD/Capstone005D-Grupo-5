@@ -58,9 +58,12 @@ venv/
 # FLUTTER / DART
 # =========================
 .dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
+.flutter-plugins*
 .packages
+local.properties
+**/ios/Flutter/ephemeral/
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
 
 # =========================
 # EDITORES

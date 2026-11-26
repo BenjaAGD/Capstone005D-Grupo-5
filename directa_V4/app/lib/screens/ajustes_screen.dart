@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/config.dart';
-import '../core/demo_modo.dart';
 import '../core/servidor_estado.dart';
 import '../core/theme.dart';
 import '../core/bloqueo.dart';
@@ -84,11 +83,16 @@ class _AjustesScreenState extends State<AjustesScreen> {
     _estadoServidor();
   }
 
-  Future<void> _cerrarSesion() async {
-    if (DemoModo.instance.activo) {
-      DemoModo.instance.salir();
-      return;
+  /// Correo de la sesión actual (null si Supabase aún no está listo).
+  String? _correoActual() {
+    try {
+      return Supabase.instance.client.auth.currentUser?.email;
+    } catch (_) {
+      return null;
     }
+  }
+
+  Future<void> _cerrarSesion() async {
     try {
       await Supabase.instance.client.auth.signOut();
     } catch (_) {
@@ -130,9 +134,9 @@ class _AjustesScreenState extends State<AjustesScreen> {
         const SizedBox(width: 12),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(titulo, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
+            Text(titulo, style: const TextStyle(fontSize: Fs.body, fontWeight: FontWeight.w600)),
             const SizedBox(height: 1),
-            Text(detalle, style: TextStyle(fontSize: 11.5, color: c.text3)),
+            Text(detalle, style: TextStyle(fontSize: Fs.sm, color: c.text3)),
           ]),
         ),
         const SizedBox(width: 8),
@@ -150,9 +154,9 @@ class _AjustesScreenState extends State<AjustesScreen> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(22, 0, 22, 18),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            const Text('Cambiar contraseña', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            const Text('Cambiar contraseña', style: TextStyle(fontSize: Fs.xl, fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
-            Text.rich(TextSpan(style: TextStyle(fontSize: 13.5, height: 1.5, color: context.c.text2), children: [
+            Text.rich(TextSpan(style: TextStyle(fontSize: Fs.md, height: 1.5, color: context.c.text2), children: [
               const TextSpan(text: 'Por seguridad te enviaremos un enlace a '),
               TextSpan(text: UsuarioActual.correoOculto, style: const TextStyle(fontWeight: FontWeight.w700)),
               const TextSpan(text: '. Ábrelo desde este celular y elige tu nueva contraseña.'),
@@ -276,9 +280,9 @@ class _AjustesScreenState extends State<AjustesScreen> {
                 Icon(icon, size: 24, color: activa ? c.accentText : c.text3),
                 const SizedBox(width: 12),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(titulo, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: activa ? null : c.text3)),
+                  Text(titulo, style: TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.md, color: activa ? null : c.text3)),
                   const SizedBox(height: 1),
-                  Text(detalle, style: TextStyle(fontSize: 11.5, color: c.text3)),
+                  Text(detalle, style: TextStyle(fontSize: Fs.sm, color: c.text3)),
                 ])),
                 Icon(sel ? Icons.radio_button_checked : Icons.radio_button_unchecked, color: sel ? c.accentText : c.text3, size: 20),
               ]),
@@ -290,7 +294,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
     return GgCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const SecTitle('Seguridad de la app', bottom: 2),
-        Text('Elige cómo desbloquear DIRECTA al abrirla.', style: TextStyle(fontSize: 12, color: c.text3)),
+        Text('Elige cómo desbloquear DIRECTA al abrirla.', style: TextStyle(fontSize: Fs.sm, color: c.text3)),
         opcion(ModoBloqueo.huella, Icons.fingerprint_rounded, 'Huella o rostro',
             _bioDisponible ? 'Principal, con tu PIN de respaldo si no te reconoce' : 'Este celular no tiene huella registrada',
             activa: _bioDisponible),
@@ -302,17 +306,33 @@ class _AjustesScreenState extends State<AjustesScreen> {
 
   Future<void> _editarPerfil() async {
     final nombre = TextEditingController(text: UsuarioActual.tieneNombre ? UsuarioActual.nombre : '');
-    final ok = await showDialog<bool>(
+    final ok = await showModalBottomSheet<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Tu nombre'),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(controller: nombre, textCapitalization: TextCapitalization.words, decoration: const InputDecoration(labelText: 'Nombre y apellido')),
-        ]),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Guardar')),
-        ],
+      isScrollControlled: true,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(22, 0, 22, 18 + MediaQuery.viewInsetsOf(ctx).bottom),
+        child: SingleChildScrollView(
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            const Text('Tu nombre', style: TextStyle(fontSize: Fs.xl, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: nombre,
+              textCapitalization: TextCapitalization.words,
+              keyboardType: TextInputType.name,
+              textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.name],
+              scrollPadding: const EdgeInsets.only(bottom: 120),
+              onSubmitted: (_) => Navigator.pop(ctx, true),
+              decoration: const InputDecoration(labelText: 'Nombre y apellido'),
+            ),
+            const SizedBox(height: 16),
+            GgButton('Guardar', expand: true, onTap: () => Navigator.pop(ctx, true)),
+            const SizedBox(height: 8),
+            GgButton('Cancelar', ghost: true, expand: true, onTap: () => Navigator.pop(ctx, false)),
+          ]),
+        ),
       ),
     );
     if (ok != true || !mounted) return;
@@ -334,7 +354,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
   Widget build(BuildContext context) {
     final c = context.c;
     final st = context.watch<AppState>();
-    final correo = Supabase.instance.client.auth.currentUser?.email;
+    final correo = _correoActual();
     final enLinea = servidor != null;
     final proveedores = servidor?['proveedores'];
     final persistencia = (servidor?['persistencia'] as Map?) ?? const {};
@@ -346,38 +366,39 @@ class _AjustesScreenState extends State<AjustesScreen> {
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       GgCard(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Row(children: [
             CircleAvatar(
               radius: 24,
               backgroundColor: c.accentSoft,
-              child: DemoModo.instance.activo || UsuarioActual.iniciales.isEmpty
+              child: UsuarioActual.iniciales.isEmpty
                   ? Icon(Icons.person_outline_rounded, color: c.accentText)
-                  : Text(UsuarioActual.iniciales, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: c.accentText)),
+                  : Text(UsuarioActual.iniciales, style: TextStyle(fontWeight: FontWeight.w800, fontSize: Fs.reading, color: c.accentText)),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(DemoModo.instance.activo ? 'Modo demo' : UsuarioActual.nombre,
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15.5)),
-                if (!DemoModo.instance.activo && (UsuarioActual.cargo.isNotEmpty || UsuarioActual.empresa.isNotEmpty)) ...[
+                Text(UsuarioActual.nombre,
+                    maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: Fs.lg)),
+                if (UsuarioActual.cargo.isNotEmpty || UsuarioActual.empresa.isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text([UsuarioActual.cargo, UsuarioActual.empresa].where((x) => x.isNotEmpty).join(' · '),
-                      maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12.5, color: c.text2, fontWeight: FontWeight.w600)),
+                      maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: Fs.md, color: c.text2, fontWeight: FontWeight.w600)),
                 ],
                 const SizedBox(height: 2),
-                Text(DemoModo.instance.activo ? 'Acceso demo · sin cuenta' : (correo ?? 'Sesión iniciada'), maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12, color: c.text3)),
+                Text(correo ?? 'Sesión iniciada', maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: Fs.sm, color: c.text3)),
               ]),
             ),
           ]),
-          if (!DemoModo.instance.activo && UsuarioActual.rut.isNotEmpty) ...[
+          if (UsuarioActual.rut.isNotEmpty) ...[
             const SizedBox(height: 12),
-            Row(children: [
-              Icon(Icons.badge_outlined, size: 18, color: c.text3),
-              const SizedBox(width: 8),
-              Text('RUT ${UsuarioActual.rut}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-              const SizedBox(width: 8),
+            Wrap(spacing: 8, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(Icons.badge_outlined, size: 18, color: c.text3),
+                const SizedBox(width: 8),
+                Text('RUT ${UsuarioActual.rut}', style: const TextStyle(fontSize: Fs.md, fontWeight: FontWeight.w600)),
+              ]),
               if (Rut.esValido(UsuarioActual.rut))
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -386,9 +407,10 @@ class _AjustesScreenState extends State<AjustesScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(Icons.verified_rounded, size: 14, color: Color(0xFF2E9E5B)),
+                    Icon(Icons.check_circle_outline, size: 14, color: Color(0xFF2E9E5B)),
                     SizedBox(width: 4),
-                    Text('Verificado', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: Color(0xFF2E9E5B))),
+                    // Solo significa que el dígito verificador del RUT cuadra; no prueba que sea de la persona.
+                    Text('RUT válido', style: TextStyle(fontSize: Fs.sm, fontWeight: FontWeight.w700, color: Color(0xFF2E9E5B))),
                   ]),
                 ),
             ]),
@@ -399,30 +421,31 @@ class _AjustesScreenState extends State<AjustesScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text('${UsuarioActual.empresa.isEmpty ? 'Empresa' : UsuarioActual.empresa} · RUT ${UsuarioActual.rutEmpresa}',
-                      maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12.5, color: c.text2)),
+                      maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: Fs.md, color: c.text2)),
                 ),
               ]),
             ],
           ],
-          const SizedBox(height: 12),
-          Wrap(spacing: 8, runSpacing: 8, children: [
-            if (!DemoModo.instance.activo)
-              GgButton(UsuarioActual.tieneNombre ? 'Editar nombre' : 'Agregar mi nombre', ghost: true, small: true, icon: Icons.edit_outlined, onTap: _editarPerfil),
-            if (!DemoModo.instance.activo)
-              GgButton('Cambiar contraseña', ghost: true, small: true, icon: Icons.lock_outline_rounded, onTap: _cambiarClave),
-            GgButton(DemoModo.instance.activo ? 'Salir de la demo' : 'Cerrar sesión', ghost: true, small: true, icon: Icons.logout, onTap: _cerrarSesion),
-          ]),
+          const SizedBox(height: 16),
+          GgButton(UsuarioActual.tieneNombre ? 'Editar nombre' : 'Agregar mi nombre', ghost: true, expand: true, icon: Icons.edit_outlined, onTap: _editarPerfil),
+          const SizedBox(height: 8),
+          GgButton('Cambiar contraseña', ghost: true, expand: true, icon: Icons.lock_outline_rounded, onTap: _cambiarClave),
+          const SizedBox(height: 8),
+          GgButton('Cerrar sesión', ghost: true, expand: true, icon: Icons.logout, onTap: _cerrarSesion),
         ]),
       ),
-      if (!DemoModo.instance.activo && UsuarioActual.id != null) _seguridad(context),
+      if (UsuarioActual.id != null) _seguridad(context),
       GgCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            const Expanded(child: SecTitle('Estado del sistema', bottom: 0)),
-            if (revisado != null) Text('Actualizado ${_hora(revisado!)}', style: TextStyle(fontSize: 10.5, color: c.text3)),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const SecTitle('Estado del sistema', bottom: 0),
+                if (revisado != null) Text('Actualizado ${_hora(revisado!)}', style: TextStyle(fontSize: Fs.xs, color: c.text3)),
+              ]),
+            ),
             IconButton(
               tooltip: 'Revisar de nuevo',
-              visualDensity: VisualDensity.compact,
               onPressed: revisando ? null : _estadoServidor,
               icon: revisando
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
@@ -444,7 +467,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
             Padding(
               padding: const EdgeInsets.only(top: 10, bottom: 2),
               child: Text('INTELIGENCIA ARTIFICIAL',
-                  style: TextStyle(fontSize: 10.5, letterSpacing: 1.2, fontWeight: FontWeight.w600, color: c.text3)),
+                  style: TextStyle(fontSize: Fs.xs, letterSpacing: 1.2, fontWeight: FontWeight.w600, color: c.text3)),
             ),
             for (final (clave, nombre) in const [('gemini', 'Gemini'), ('groq', 'Groq'), ('nvidia', 'NVIDIA')])
               _fila(
@@ -477,7 +500,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
             ),
           if (aviso.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Text(aviso, style: TextStyle(fontSize: 12, color: c.med)),
+            Text(aviso, style: TextStyle(fontSize: Fs.sm, color: c.med)),
           ],
         ]),
       ),
@@ -504,19 +527,22 @@ class _AjustesScreenState extends State<AjustesScreen> {
             shape: const Border(),
             collapsedShape: const Border(),
             leading: Icon(Icons.tune, color: c.text2, size: 20),
-            title: Text('Avanzado · dirección del servidor', style: TextStyle(fontSize: 13, color: c.text2)),
+            title: Text('Avanzado · dirección del servidor', style: TextStyle(fontSize: Fs.md, color: c.text2)),
             expandedCrossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextField(
                 controller: _url,
                 keyboardType: TextInputType.url,
+                textInputAction: TextInputAction.done,
+                autocorrect: false,
+                onSubmitted: (_) => probando ? null : _guardar(),
+                scrollPadding: const EdgeInsets.only(bottom: 160), // deja ver los botones con el teclado abierto
                 decoration: const InputDecoration(labelText: 'URL del servidor', hintText: 'https://mi-servidor.onrender.com'),
               ),
-              const SizedBox(height: 10),
-              Wrap(spacing: 8, runSpacing: 8, children: [
-                GgButton('Guardar y probar', icon: Icons.wifi_tethering, loading: probando, onTap: _guardar),
-                GgButton('Valor por defecto', ghost: true, onTap: () => _url.text = Config.apiPorDefecto()),
-              ]),
+              const SizedBox(height: 16),
+              GgButton('Guardar y probar', icon: Icons.wifi_tethering, expand: true, loading: probando, onTap: _guardar),
+              const SizedBox(height: 8),
+              GgButton('Valor por defecto', ghost: true, expand: true, onTap: () => _url.text = Config.apiPorDefecto()),
               if (estado != null) ...[
                 const SizedBox(height: 10),
                 Text(estado!, style: TextStyle(color: estado!.startsWith('✓') ? c.low : c.crit, fontWeight: FontWeight.w600)),
@@ -527,7 +553,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
                   '- Emulador de Android con Docker en el mismo computador: `http://10.0.2.2:8000`\n'
                   '- Teléfono real en la misma red WiFi: `http://IP-DEL-COMPUTADOR:8000` (por ejemplo 192.168.1.10)\n'
                   '- Servidor publicado en internet: su dirección `https://…`',
-                  size: 12.5, color: c.text2),
+                  size: Fs.md, color: c.text2),
             ],
           ),
         ),

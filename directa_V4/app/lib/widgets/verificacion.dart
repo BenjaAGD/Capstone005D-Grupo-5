@@ -19,21 +19,29 @@ class SelloVerificacion extends StatelessWidget {
       return Row(mainAxisSize: MainAxisSize.min, children: [
         const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 1.8)),
         const SizedBox(width: 6),
-        Text('Verificando con el documento…', style: TextStyle(fontSize: 11.5, color: c.text3)),
+        Text('Verificando con el documento…', style: TextStyle(fontSize: Fs.sm, color: c.text3)),
       ]);
     }
     final v = verificacion;
     if (v == null) {
       if (onVerificar == null) return const SizedBox.shrink();
       return TextButton.icon(
-        style: TextButton.styleFrom(foregroundColor: c.text2, padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
+        style: TextButton.styleFrom(foregroundColor: c.text2, padding: const EdgeInsets.symmetric(horizontal: 4)),
         onPressed: onVerificar,
         icon: const Icon(Icons.fact_check_outlined, size: 16),
-        label: const Text('Verificar con el documento', style: TextStyle(fontSize: 12)),
+        label: const Text('Verificar con el documento', style: TextStyle(fontSize: Fs.sm)),
       );
     }
     final info = selloInfo(context, '${v['estado'] ?? ''}');
-    return Material(
+    // El sello se ve compacto, pero su zona táctil mide al menos 48 dp de alto.
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => mostrarDetalleVerificacion(context, v, textoOriginal: textoOriginal),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 48),
+        child: Align(
+          widthFactor: 1,
+          child: Material(
       color: info.color.withValues(alpha: 0.12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: info.color.withValues(alpha: 0.45))),
       child: InkWell(
@@ -44,14 +52,17 @@ class SelloVerificacion extends StatelessWidget {
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             Icon(info.icon, size: 15, color: info.color),
             const SizedBox(width: 5),
-            Text('${v['etiqueta'] ?? info.label}', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: info.color)),
+            Text('${v['etiqueta'] ?? info.label}', style: TextStyle(fontSize: Fs.sm, fontWeight: FontWeight.w700, color: info.color)),
             if (textoOriginal != null) ...[
               const SizedBox(width: 6),
-              Text('· corregida', style: TextStyle(fontSize: 11, color: info.color)),
+              Text('· corregida', style: TextStyle(fontSize: Fs.xs, color: info.color)),
             ],
             const SizedBox(width: 4),
             Icon(Icons.chevron_right, size: 15, color: info.color),
           ]),
+        ),
+      ),
+          ),
         ),
       ),
     );
@@ -86,7 +97,6 @@ Future<void> mostrarDetalleVerificacion(BuildContext context, Map<String, dynami
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    constraints: const BoxConstraints(maxWidth: 680),
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
     builder: (_) => DraggableScrollableSheet(
       expand: false,
@@ -103,13 +113,13 @@ Future<void> mostrarDetalleVerificacion(BuildContext context, Map<String, dynami
           Row(children: [
             Icon(info.icon, color: info.color),
             const SizedBox(width: 8),
-            Text('${v['etiqueta'] ?? info.label}', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: info.color)),
+            Text('${v['etiqueta'] ?? info.label}', style: TextStyle(fontSize: Fs.xl, fontWeight: FontWeight.w700, color: info.color)),
           ]),
           const SizedBox(height: 6),
-          Text('${v['resumen'] ?? ''}', style: TextStyle(fontSize: 13, color: c.text2)),
+          Text('${v['resumen'] ?? ''}', style: TextStyle(fontSize: Fs.md, color: c.text2)),
           if (v['motivo'] != null) ...[
             const SizedBox(height: 6),
-            Text('${v['motivo']}', style: TextStyle(fontSize: 12, color: c.text3)),
+            Text('${v['motivo']}', style: TextStyle(fontSize: Fs.sm, color: c.text3)),
           ],
           const SizedBox(height: 10),
           Container(
@@ -119,7 +129,7 @@ Future<void> mostrarDetalleVerificacion(BuildContext context, Map<String, dynami
               'El verificador comprueba que la respuesta sea fiel al documento (cifras, citas y período). '
               'No comprueba que el documento sea cierto.'
               '${v['mismo_modelo'] == true ? ' Esta vez lo revisó el mismo modelo que escribió la respuesta, porque el otro no respondió.' : ''}',
-              style: TextStyle(fontSize: 11.8, color: c.text2, height: 1.4),
+              style: TextStyle(fontSize: Fs.sm, color: c.text2, height: 1.4),
             ),
           ),
           if (textoOriginal != null) ...[
@@ -128,7 +138,7 @@ Future<void> mostrarDetalleVerificacion(BuildContext context, Map<String, dynami
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(color: c.surface3, borderRadius: BorderRadius.circular(10)),
-              child: Text(textoOriginal, style: TextStyle(fontSize: 12.3, color: c.text2, height: 1.45)),
+              child: Text(textoOriginal, style: TextStyle(fontSize: Fs.sm, color: c.text2, height: 1.45)),
             ),
           ],
           const SizedBox(height: 14),
@@ -146,7 +156,7 @@ Future<void> mostrarDetalleVerificacion(BuildContext context, Map<String, dynami
                 ].join('\n'),
                 footer: Wrap(spacing: 8, children: [
                   Pill(e.label, fg: e.color, dot: true),
-                  Text(_revisores['${a['revisor']}'] ?? '', style: TextStyle(fontSize: 11.5, color: c.text3)),
+                  Text(_revisores['${a['revisor']}'] ?? '', style: TextStyle(fontSize: Fs.sm, color: c.text3)),
                 ]),
               );
             }),
@@ -159,7 +169,7 @@ Future<void> mostrarDetalleVerificacion(BuildContext context, Map<String, dynami
                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Icon(Icons.warning_amber_rounded, size: 16, color: p['gravedad'] == 'alta' ? c.high : c.med),
                   const SizedBox(width: 6),
-                  Expanded(child: Text('${p['detalle']}', style: TextStyle(fontSize: 12, color: c.text2))),
+                  Expanded(child: Text('${p['detalle']}', style: TextStyle(fontSize: Fs.sm, color: c.text2))),
                 ]),
               ),
           ],
@@ -197,7 +207,7 @@ class MarcaVerificacionSenal extends StatelessWidget {
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(e.icon, size: 14, color: e.color),
         const SizedBox(width: 3),
-        Text(e.label, style: TextStyle(fontSize: 11.2, color: e.color, fontWeight: FontWeight.w600)),
+        Text(e.label, style: TextStyle(fontSize: Fs.xs, color: e.color, fontWeight: FontWeight.w600)),
       ]),
     );
   }

@@ -77,7 +77,7 @@ class _DetalleAnalisisScreenState extends State<DetalleAnalisisScreen> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(nombreDoc(st.docActivoMap).isEmpty ? 'Documento activo' : nombreDoc(st.docActivoMap),
               maxLines: 2, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.body)),
           const SizedBox(height: 14),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
@@ -97,7 +97,7 @@ class _DetalleAnalisisScreenState extends State<DetalleAnalisisScreen> {
           ]),
           const SizedBox(height: 10),
           Text('Un agente sin fragmentos significa que no recuperó texto útil para analizar. No necesariamente indica un error del servidor.',
-              style: TextStyle(fontSize: 12, color: c.text2, height: 1.4)),
+              style: TextStyle(fontSize: Fs.sm, color: c.text2, height: 1.4)),
         ]),
       ),
       GgCard(
@@ -141,7 +141,7 @@ class _Conteo extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
         decoration: BoxDecoration(color: color.withValues(alpha: .12), borderRadius: BorderRadius.circular(20)),
-        child: Text(texto, style: TextStyle(color: color, fontSize: 11.5, fontWeight: FontWeight.w700)),
+        child: Text(texto, style: TextStyle(color: color, fontSize: Fs.sm, fontWeight: FontWeight.w700)),
       );
 }
 
@@ -159,7 +159,7 @@ class _Filtro extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 6),
         decoration: BoxDecoration(color: active ? c.accentSoft : Colors.transparent, borderRadius: BorderRadius.circular(10)),
-        child: Center(child: Text(text, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
+        child: Center(child: Text(text, style: TextStyle(fontSize: Fs.sm, fontWeight: FontWeight.w700,
             color: active ? c.accentText : c.text2))),
       ),
     );
@@ -191,20 +191,20 @@ class _AgenteCard extends StatelessWidget {
       borderColor: color.withValues(alpha: .55),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Expanded(child: Text(nombre, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14))),
+          Expanded(child: Text(nombre, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.body))),
           _Conteo(texto: etiqueta, color: color),
         ]),
         if (registro['codigo_error'] != null) ...[
           const SizedBox(height: 10),
-          Text('Código: ${registro['codigo_error']}', style: TextStyle(color: c.accentText, fontSize: 11, fontWeight: FontWeight.w700)),
+          Text('Código: ${registro['codigo_error']}', style: TextStyle(color: c.accentText, fontSize: Fs.xs, fontWeight: FontWeight.w700)),
         ],
         if (registro['mensaje'] != null && '${registro['mensaje']}'.trim().isNotEmpty) ...[
           const SizedBox(height: 5),
-          Text('${registro['mensaje']}', style: TextStyle(fontSize: 12, color: c.text2, height: 1.4)),
+          Text('${registro['mensaje']}', style: TextStyle(fontSize: Fs.sm, color: c.text2, height: 1.4)),
         ],
         if (registro['intentos'] != null && (registro['intentos'] as num).toInt() > 0) ...[
           const SizedBox(height: 6),
-          Text('Intentos: ${registro['intentos']}', style: TextStyle(fontSize: 11, color: c.text3)),
+          Text('Intentos: ${registro['intentos']}', style: TextStyle(fontSize: Fs.xs, color: c.text3)),
         ],
         if (registro['reintentable'] == true) ...[
           const SizedBox(height: 8),

@@ -45,7 +45,7 @@ SELLOS = {
     "no_verificable": "No verificable",
 }
 
-# Marcas que reconoce la IA simulada del modo demo (demo/demo_ia.py)
+# Marcas que identifican las llamadas del verificador y de la corrección
 MARCA_VERIFICADOR = "[VERIFICADOR DIRECTA]"
 MARCA_CORRECCION = "[CORRECCION DIRECTA]"
 MARCA_VERIF_SENALES = "[VERIFICADOR SENALES DIRECTA]"

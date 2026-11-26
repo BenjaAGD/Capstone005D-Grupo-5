@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/bloqueo.dart';
+import '../core/theme.dart';
 import '../core/usuario.dart';
 
 const _navy = Color(0xFF12324B);
@@ -149,8 +150,15 @@ class _PantallaBloqueoState extends State<PantallaBloqueo> {
     }
     final quedan = await Bloqueo.intentosRestantes(widget.uid);
     if (quedan <= 0) {
-      await Bloqueo.quitar(widget.uid);
-      await _salir();
+      // Primero se cierra la sesión; el PIN solo se borra cuando ya no hay sesión. Si el cierre falla
+      // (por ejemplo sin internet), el PIN se conserva y la app sigue bloqueada: nunca queda abierta.
+      if (await _salir()) await Bloqueo.quitar(widget.uid);
+      if (mounted) {
+        setState(() {
+          _pin = '';
+          _error = 'Demasiados intentos. Cierra la sesión e inicia de nuevo con tu contraseña.';
+        });
+      }
       return;
     }
     HapticFeedback.heavyImpact();
@@ -163,10 +171,14 @@ class _PantallaBloqueoState extends State<PantallaBloqueo> {
   }
 
   /// Cierra la sesión: para volver hay que entrar con correo y contraseña.
-  Future<void> _salir() async {
+  /// Devuelve true si ya no queda sesión guardada en el celular.
+  Future<bool> _salir() async {
+    final auth = Supabase.instance.client.auth;
     try {
-      await Supabase.instance.client.auth.signOut();
+      // scope local: borra la sesión del celular sin depender de la red.
+      await auth.signOut(scope: SignOutScope.local);
     } catch (_) {}
+    return auth.currentSession == null;
   }
 
   @override
@@ -174,17 +186,19 @@ class _PantallaBloqueoState extends State<PantallaBloqueo> {
     return Material(
       color: _navy,
       child: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 380),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
-              child: Column(children: [
+        // Con letra grande o teclado abierto la pantalla se desplaza en vez de desbordar.
+        child: LayoutBuilder(
+          builder: (context, box) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: box.maxHeight),
+              child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                 const SizedBox(height: 18),
                 const _Logo(),
                 const SizedBox(height: 8),
-                Text('Hola, ${UsuarioActual.primerNombre}', style: const TextStyle(color: Color(0xFFA9C1D6), fontSize: 14)),
-                const Spacer(),
+                Text('Hola, ${UsuarioActual.primerNombre}', style: const TextStyle(color: Color(0xFFA9C1D6), fontSize: Fs.body)),
+                const SizedBox(height: 24),
                 if (!_listo)
                   const SizedBox.shrink()
                 else if (_bio) ...[
@@ -203,15 +217,16 @@ class _PantallaBloqueoState extends State<PantallaBloqueo> {
                     ),
                   ),
                   const SizedBox(height: 18),
-                  const Text('Toca para desbloquear', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+                  const Text('Toca para desbloquear', style: TextStyle(color: Colors.white, fontSize: Fs.xl, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 6),
-                  const Text('Usa tu huella o tu rostro', style: TextStyle(color: Color(0xFFA9C1D6), fontSize: 13)),
+                  const Text('Usa tu huella o tu rostro', style: TextStyle(color: Color(0xFFA9C1D6), fontSize: Fs.md)),
                   const SizedBox(height: 26),
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white,
                       side: const BorderSide(color: Colors.white38),
                       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                      minimumSize: const Size(48, 48),
                     ),
                     onPressed: () => setState(() => _bio = false),
                     icon: const Icon(Icons.dialpad_rounded, size: 18),
@@ -220,13 +235,13 @@ class _PantallaBloqueoState extends State<PantallaBloqueo> {
                 ] else ...[
                   Icon(Icons.lock_outline_rounded, color: _cyan.withValues(alpha: .9), size: 26),
                   const SizedBox(height: 10),
-                  const Text('Ingresa tu PIN', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+                  const Text('Ingresa tu PIN', style: TextStyle(color: Colors.white, fontSize: Fs.xl, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 18),
                   PuntosPin(largo: _pin.length, claro: true),
-                  SizedBox(
-                    height: 34,
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 34),
                     child: Center(
-                      child: Text(_error ?? '', style: const TextStyle(color: Color(0xFFFFB4A8), fontSize: 12.5)),
+                      child: Text(_error ?? '', textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFFFFB4A8), fontSize: Fs.md)),
                     ),
                   ),
                   TecladoPin(
@@ -247,12 +262,15 @@ class _PantallaBloqueoState extends State<PantallaBloqueo> {
                         : null,
                   ),
                 ],
-                const Spacer(),
+                const SizedBox(height: 24),
                 TextButton(
                   onPressed: _salir,
-                  child: const Text('¿Olvidaste tu PIN? Entrar con mi contraseña', style: TextStyle(color: _cyan, fontWeight: FontWeight.w700)),
+                  style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+                  child: const Text('¿Olvidaste tu PIN? Entrar con mi contraseña',
+                      textAlign: TextAlign.center, style: TextStyle(color: _cyan, fontWeight: FontWeight.w700, fontSize: Fs.md)),
                 ),
               ]),
+            ),
             ),
           ),
         ),
@@ -266,7 +284,7 @@ class _Logo extends StatelessWidget {
   @override
   Widget build(BuildContext context) => RichText(
         text: const TextSpan(
-          style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: 4, color: Colors.white),
+          style: TextStyle(fontSize: Fs.display, fontWeight: FontWeight.w800, letterSpacing: 4, color: Colors.white),
           children: [TextSpan(text: 'DIREC'), TextSpan(text: 'TA', style: TextStyle(color: _cyan))],
         ),
       );
@@ -320,7 +338,7 @@ class TecladoPin extends StatelessWidget {
               child: SizedBox(
                 width: 64,
                 height: 64,
-                child: Center(child: Text(t, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600, color: color))),
+                child: Center(child: Text(t, style: TextStyle(fontSize: Fs.display, fontWeight: FontWeight.w600, color: color))),
               ),
             ),
           ),
@@ -397,24 +415,35 @@ class _CrearPinScreenState extends State<CrearPinScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(widget.titulo)),
       body: SafeArea(
-        child: Center(
-          child: Column(children: [
-            const Spacer(),
-            Icon(Icons.pin_outlined, size: 30, color: t.colorScheme.primary),
-            const SizedBox(height: 10),
-            Text(_primero == null ? 'Elige un PIN de ${Bloqueo.largoPin} dígitos' : 'Repite tu PIN',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 6),
-            Text('Lo pediremos cada vez que abras DIRECTA.', style: TextStyle(fontSize: 13, color: t.colorScheme.onSurfaceVariant)),
-            const SizedBox(height: 20),
-            PuntosPin(largo: _pin.length),
-            SizedBox(
-              height: 36,
-              child: Center(child: Text(_error ?? '', style: TextStyle(color: t.colorScheme.error, fontSize: 12.5))),
+        child: LayoutBuilder(
+          builder: (context, box) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: box.maxHeight),
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Icon(Icons.pin_outlined, size: 30, color: t.colorScheme.primary),
+                const SizedBox(height: 10),
+                Text(_primero == null ? 'Elige un PIN de ${Bloqueo.largoPin} dígitos' : 'Repite tu PIN',
+                    textAlign: TextAlign.center, style: const TextStyle(fontSize: Fs.xl, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 6),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Text('Lo pediremos cada vez que abras DIRECTA.',
+                      textAlign: TextAlign.center, style: TextStyle(fontSize: Fs.md, color: t.colorScheme.onSurfaceVariant)),
+                ),
+                const SizedBox(height: 20),
+                PuntosPin(largo: _pin.length),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 36),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Center(child: Text(_error ?? '', textAlign: TextAlign.center, style: TextStyle(color: t.colorScheme.error, fontSize: Fs.md))),
+                  ),
+                ),
+                TecladoPin(onTecla: _tecla),
+                const SizedBox(height: 16),
+              ]),
             ),
-            TecladoPin(onTecla: _tecla),
-            const Spacer(),
-          ]),
+          ),
         ),
       ),
     );
@@ -459,16 +488,23 @@ class _ConfirmarPinScreenState extends State<ConfirmarPinScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Confirma tu PIN')),
       body: SafeArea(
-        child: Center(
-          child: Column(children: [
-            const Spacer(),
-            const Text('Ingresa tu PIN actual', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 20),
-            PuntosPin(largo: _pin.length),
-            SizedBox(height: 36, child: Center(child: Text(_error ?? '', style: TextStyle(color: t.colorScheme.error)))),
-            TecladoPin(onTecla: _tecla),
-            const Spacer(),
-          ]),
+        child: LayoutBuilder(
+          builder: (context, box) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: box.maxHeight),
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                const Text('Ingresa tu PIN actual', style: TextStyle(fontSize: Fs.xl, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 20),
+                PuntosPin(largo: _pin.length),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 36),
+                  child: Center(child: Text(_error ?? '', textAlign: TextAlign.center, style: TextStyle(color: t.colorScheme.error, fontSize: Fs.md))),
+                ),
+                TecladoPin(onTecla: _tecla),
+                const SizedBox(height: 16),
+              ]),
+            ),
+          ),
         ),
       ),
     );

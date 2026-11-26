@@ -8,8 +8,7 @@ directa/
 │   ├── Dockerfile
 │   ├── requirements.txt
 │   ├── .env.example          copia a .env y pon tus llaves (Supabase, NVIDIA, Groq)
-│   ├── base_de_datos.sql     tablas y función de búsqueda para Supabase (instalación desde cero)
-│   ├── migracion_v3.sql      tablas nuevas: valoraciones, lecciones, perfiles de tono (solo agrega)
+│   ├── base_de_datos.sql     todas las tablas y la función de búsqueda para Supabase (instalación desde cero)
 │   ├── verificador.py        revisa cada respuesta en 3 capas (código, otro modelo, corrección)
 │   ├── aprendizaje.py        valoraciones 👍/👎 y lecciones por agente (con aprobación y prueba)
 │   ├── tono.py               perfil de tono de la memoria, aprendido de memorias anteriores
@@ -24,13 +23,11 @@ directa/
 │   │   ├── indicadores.html  ┘
 │   │   ├── css/              base-modulos.css (común a los 3 módulos) + un .css por página
 │   │   └── js/               tema.js (tema claro/oscuro) + un .js por página
-│   └── demo/                 MODO DEMO: base en memoria + IA simulada (sin llaves)
 ├── docs/auditoria_agentes.md  revisión de los 14 agentes y resultados del verificador
 ├── app/                      App Flutter "DIRECTA GG" (Android, iOS y web)
 │   ├── Dockerfile            versión web servida con nginx
 │   └── nginx.conf.template   reenvía /api/ al backend
-├── docker-compose.yml        backend real + app web
-├── docker-compose.demo.yml   cambia el backend a modo demo
+├── docker-compose.yml        backend + app web
 ├── render.yaml               publicar el backend en Render (Docker, gratis)
 └── codemagic.yaml            compilar el APK en la nube (Codemagic)
 ```
@@ -39,12 +36,7 @@ directa/
 
 Requisito: Docker Desktop.
 
-**Modo demo** (no necesita llaves; carga dos memorias ficticias de "Andes Demo S.A."):
-```bash
-docker compose -f docker-compose.yml -f docker-compose.demo.yml up --build
-```
-
-**Modo real** (tus llaves de Supabase y de la IA):
+Necesitas tus llaves de Supabase y de la IA:
 ```bash
 cp backend/.env.example backend/.env     # y complétalo
 docker compose up --build
@@ -98,15 +90,31 @@ El APK queda firmado con la llave de pruebas de Flutter: sirve para instalarlo y
 
 ## 3. Funciones nuevas del backend (versión 3)
 
-### 3.1 Antes de usarlas: migración de la base de datos
-En Supabase → **SQL Editor**, pega `backend/migracion_v3.sql` y presiona **Run**. Solo **agrega** tres tablas
-(`valoraciones`, `lecciones`, `perfiles_tono`); no toca los documentos ni los análisis que ya tienes.
+### 3.1 Antes de usarlas: tablas de la base de datos
+`backend/base_de_datos.sql` ya incluye las tablas `valoraciones`, `lecciones`, `perfiles_tono` y
+`analisis_diagnosticos`, y la columna `orden` de `document_chunks`.
 
-> **No vuelvas a correr `base_de_datos.sql`**: ese archivo empieza borrando todas las tablas.
+> **Ojo:** `base_de_datos.sql` empieza borrando todas las tablas. Úsalo solo en una instalación desde cero.
 
-Si la migración no se corre, la app funciona igual, pero valoraciones, lecciones y perfil de tono se guardan en
+Si esas tablas no existen, la app funciona igual, pero valoraciones, lecciones y perfil de tono se guardan en
 `backend/datos_locales/` (un archivo del servidor). En Render ese archivo se borra en cada reinicio o despliegue.
 **Más → Servidor y apariencia** muestra dónde se está guardando.
+
+### 3.1b Seguridad de sesión y datos (migración v8)
+- **Sesión obligatoria:** todas las rutas `/api/*` exigen el token de Supabase (`Authorization: Bearer`). Sin él responden 401. Solo `/` (el ping de la app) queda abierta.
+- **Documentos con dueño:** cada documento guarda la empresa que lo subió (`documentos.empresa_rut`). Una persona solo ve, consulta y borra los de su empresa; si pide uno ajeno, el servidor responde "no encontrado".
+- **La empresa de la cuenta** sale de `app_metadata.rut_empresa`, que la persona no puede editar (la copia un trigger al crear la cuenta).
+- **Tablas cerradas:** `migracion_v8_seguridad.sql` quita las políticas abiertas. La app no lee tablas directo; solo el backend, con la clave de servicio.
+
+**Orden para desplegar (importante):**
+1. En Render → Environment agrega `SUPABASE_SERVICE_ROLE_KEY` (Supabase → Project Settings → API → `service_role`). Nunca la pongas en la app ni en GitHub.
+2. Despliega el backend nuevo.
+3. Recién entonces pega `backend/migracion_v8_seguridad.sql` en el SQL Editor de Supabase y revisa los 3 resultados finales (0 políticas abiertas; todas las cuentas y documentos con empresa).
+4. Después pega `backend/migracion_v9_perfiles.sql`: crea la tabla `perfiles` con el RUT único, hace que una cuenta sin confirmar (de más de 24 horas) ya no bloquee el RUT y elimina la tabla `usuarios`, que no se usaba.
+
+**En la app:** el PIN se guarda en el almacén cifrado del celular (`flutter_secure_storage`; si había uno guardado por la versión anterior, se pasa solo), el respaldo automático de Android está desactivado y, tras 5 PIN errados, primero se cierra la sesión y recién después se borra el PIN. La insignia del perfil dice "RUT válido": solo comprueba el dígito verificador, no que el RUT sea de esa persona.
+
+Pruebas del backend (sin llaves): `cd backend && python -m unittest test_seguridad -v`.
 
 ### 3.2 Verificación de respuestas
 Cada respuesta del chat y cada señal alta o crítica del análisis pasa por tres capas:
@@ -151,7 +159,7 @@ La app instalada en un teléfono no puede usar `localhost`: necesita el backend 
 3. Queda en una dirección como `https://directa-backend.onrender.com`.
 4. En la app: **Más → Servidor y apariencia** → pega esa dirección.
 
-Plan gratuito: 750 horas al mes; el servicio se "duerme" tras 15 minutos sin uso y tarda cerca de 1 minuto en despertar (abre la dirección un rato antes de presentar). El `render.yaml` arranca en **modo demo**; para el modo real, sigue el comentario del archivo.
+Plan gratuito: 750 horas al mes; el servicio se "duerme" tras 15 minutos sin uso y tarda cerca de 1 minuto en despertar (abre la dirección un rato antes de presentar). Completa las llaves en Render → tu servicio → **Environment** (las mismas de `backend/.env.example`).
 
 ### 4.2 Instalador de la app → Codemagic + Firebase App Distribution
 | Plataforma | Para qué | Costo |
@@ -167,7 +175,6 @@ Recomendación: **Render** para el backend, **Codemagic** para compilar y **Fire
 ## 5. Notas importantes
 
 - **Seguridad**: el backend del MVP no tiene login, CORS está abierto y las políticas de Supabase son `using (true)`. Sirve para demostrar, no para datos reales en internet. Si alguna llave quedó expuesta en un `.env` compartido, cámbiala.
-- **Modo demo**: usa el `main.py` real, pero reemplaza Supabase por una base en memoria y la IA por respuestas fijas. Se borra al reiniciar. No sirve para evaluar la calidad del análisis.
-- El servidor en modo real necesita las variables de `backend/.env.example`.
+- El servidor necesita las variables de `backend/.env.example`.
 - **Páginas web**: las páginas del MVP muestran el sello de verificación en el chat; las funciones nuevas (preparar reunión, valoraciones, lecciones, perfil de tono, borrador PDF) están solo en la app.
 - **Archivos de las páginas web**: los estilos van en `backend/web/css/` y la lógica en `backend/web/js/`; el HTML solo tiene la estructura. Si cambias un `.css` o `.js`, cambia también el número `?v=` de su `<link>` o `<script>` en el HTML (cualquier valor nuevo) para que el navegador no use la versión anterior guardada.

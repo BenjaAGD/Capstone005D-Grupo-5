@@ -6,7 +6,6 @@ import '../core/models.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
 import '../widgets/common.dart';
-import '../widgets/demo_offline.dart';
 
 class DocumentosScreen extends StatelessWidget {
   const DocumentosScreen({super.key});
@@ -42,10 +41,10 @@ class DocumentosScreen extends StatelessWidget {
                 child: Column(children: [
                   Icon(Icons.upload_file, size: 34, color: c.accentText),
                   const SizedBox(height: 8),
-                  const Text('Subir un documento', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)),
+                  const Text('Subir un documento', style: TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.lg)),
                   const SizedBox(height: 4),
                   Text('PDF, Word o Excel · análisis automático al terminar la indexación',
-                      textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: c.text2)),
+                      textAlign: TextAlign.center, style: TextStyle(fontSize: Fs.sm, color: c.text2)),
                 ]),
               ),
             ),
@@ -56,13 +55,10 @@ class DocumentosScreen extends StatelessWidget {
       GgCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           SecTitle('Documentos cargados (${st.documentos.length})'),
-          if (st.documentos.isEmpty) ...[
+          if (st.documentos.isEmpty)
             const EmptyState(icon: Icons.description_outlined, title: 'Aún no hay documentos',
-                text: 'Sube el primer archivo para empezar. Se indexará y analizará automáticamente.'),
-            const Divider(height: 22),
-            const DemoAviso(text: 'Vista de ejemplo: este archivo no está cargado ni será analizado. Sirve para mostrar cómo se verá la lista.'),
-            const DemoFila(titulo: 'Informe_Gestion_2025.pdf', detalle: 'PDF · 8,4 MB · ejemplo de archivo · análisis pendiente de una carga real', icon: Icons.picture_as_pdf_outlined),
-          ] else
+                text: 'Sube el primer archivo para empezar. Se indexará y analizará automáticamente.')
+          else
             for (final d in st.documentos) _DocRow(d: d),
         ]),
       ),
@@ -98,10 +94,10 @@ class _Progreso extends StatelessWidget {
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(nombre, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
-            Text(fase, maxLines: 3, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12.5, color: c.text2)),
+            Text(fase, maxLines: 3, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: Fs.md, color: c.text2)),
           ]),
         ),
-        Text(restante > 0 ? '~${formatTiempo(restante)}' : '…', style: TextStyle(fontSize: 12, color: c.text3)),
+        Text(restante > 0 ? '~${formatTiempo(restante)}' : '…', style: TextStyle(fontSize: Fs.sm, color: c.text3)),
       ]),
     );
   }
@@ -143,14 +139,14 @@ class _DocRow extends StatelessWidget {
             width: 40, height: 38, alignment: Alignment.center,
             decoration: BoxDecoration(color: c.surface3, borderRadius: BorderRadius.circular(9)),
             child: Text(ext.length > 4 ? ext.substring(0, 4) : ext,
-                style: AppTheme.mono(context, size: 10, color: c.text2, weight: FontWeight.w700)),
+                style: AppTheme.mono(context, size: Fs.xs, color: c.text2, weight: FontWeight.w700)),
           ),
           const SizedBox(width: 11),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(nombreDoc(d).isEmpty ? '(sin título)' : nombreDoc(d), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
+              Text(nombreDoc(d).isEmpty ? '(sin título)' : nombreDoc(d), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: Fs.body)),
               const SizedBox(height: 3),
-              Text.rich(TextSpan(style: TextStyle(fontSize: 11.8, color: c.text3), children: [
+              Text.rich(TextSpan(style: TextStyle(fontSize: Fs.sm, color: c.text3), children: [
                 TextSpan(text: '${d['total_paginas'] ?? '?'} páginas · ${d['chunks'] ?? 0} fragmentos · $nAn/${st.totalAgentes} agentes'),
                 if (activo) TextSpan(text: ' · activo', style: TextStyle(color: c.accentText)),
                 if (incompleto) TextSpan(text: ' · análisis incompleto', style: TextStyle(color: c.med)),

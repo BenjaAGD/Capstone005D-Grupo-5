@@ -46,6 +46,7 @@ dependencies:
   pdfx: ^2.9.2 # visor de PDF dentro de la app (Mis archivos y memoria generada)
   local_auth: ^2.3.0 # PIN + huella/rostro al abrir la app
   crypto: ^3.0.6 # huella SHA-256 del PIN (el PIN no se guarda)
+  flutter_secure_storage: ^11.2.0
 
 dev_dependencies:
   flutter_test:

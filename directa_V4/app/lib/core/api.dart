@@ -14,10 +14,31 @@ class ApiError implements Exception {
 
 /// Cliente HTTP del backend DIRECTA (main.py). Todas las rutas son las mismas que usa el index.html.
 class Api {
-  Api(this.baseUrl, {http.Client? client}) : _client = client ?? http.Client();
+  Api(this.baseUrl, {http.Client? client, this.token}) : _client = client ?? http.Client();
 
   String baseUrl;
   final http.Client _client;
+
+  /// Entrega el token de la sesión (Supabase). Se envía en cada llamada como `Authorization: Bearer`.
+  /// Si es null (pruebas), las llamadas salen sin token.
+  final Future<String?> Function()? token;
+
+  Future<Map<String, String>> _h([Map<String, String>? extra]) async {
+    final t = token == null ? null : await token!();
+    return {...?extra, if (t != null && t.isNotEmpty) 'Authorization': 'Bearer $t'};
+  }
+
+  static const _sesionVencida = 'Tu sesión venció o no es válida. Cierra sesión y vuelve a entrar.';
+
+  static String _mensajeHttp(http.Response r) {
+    if (r.statusCode == 401) return _sesionVencida;
+    String msg = 'El servidor respondió ${r.statusCode}';
+    try {
+      final j = jsonDecode(utf8.decode(r.bodyBytes));
+      if (j is Map && j['error'] != null) msg = j['error'].toString();
+    } catch (_) {}
+    return msg;
+  }
   static const _timeout = Duration(seconds: 8);
 
   Uri _u(String path, [Map<String, String>? q]) {
@@ -26,20 +47,13 @@ class Api {
   }
 
   dynamic _decode(http.Response r) {
-    if (r.statusCode < 200 || r.statusCode >= 300) {
-      String msg = 'El servidor respondió ${r.statusCode}';
-      try {
-        final j = jsonDecode(utf8.decode(r.bodyBytes));
-        if (j is Map && j['error'] != null) msg = j['error'].toString();
-      } catch (_) {}
-      throw ApiError(msg);
-    }
+    if (r.statusCode < 200 || r.statusCode >= 300) throw ApiError(_mensajeHttp(r));
     return jsonDecode(utf8.decode(r.bodyBytes));
   }
 
   Future<dynamic> getJson(String path, {Map<String, String>? query, Duration? timeout}) async {
     try {
-      final r = await _client.get(_u(path, query)).timeout(timeout ?? _timeout);
+      final r = await _client.get(_u(path, query), headers: await _h()).timeout(timeout ?? _timeout);
       return _decode(r);
     } on ApiError {
       rethrow;
@@ -52,7 +66,9 @@ class Api {
 
   Future<dynamic> postForm(String path, Map<String, String> fields) async {
     try {
-      final req = http.MultipartRequest('POST', _u(path))..fields.addAll(fields);
+      final req = http.MultipartRequest('POST', _u(path))
+        ..fields.addAll(fields)
+        ..headers.addAll(await _h());
       final r = await http.Response.fromStream(await _client.send(req).timeout(const Duration(minutes: 3)));
       return _decode(r);
     } on ApiError {
@@ -65,7 +81,7 @@ class Api {
   Future<dynamic> postJson(String path, Object body) async {
     try {
       final r = await _client
-          .post(_u(path), headers: {'Content-Type': 'application/json'}, body: jsonEncode(body))
+          .post(_u(path), headers: await _h({'Content-Type': 'application/json'}), body: jsonEncode(body))
           .timeout(const Duration(minutes: 3));
       return _decode(r);
     } on ApiError {
@@ -77,7 +93,7 @@ class Api {
 
   Future<dynamic> delete(String path) async {
     try {
-      return _decode(await _client.delete(_u(path)).timeout(_timeout));
+      return _decode(await _client.delete(_u(path), headers: await _h()).timeout(_timeout));
     } on ApiError {
       rethrow;
     } catch (e) {
@@ -90,6 +106,7 @@ class Api {
     try {
       final req = http.MultipartRequest('POST', _u(path))
         ..fields.addAll(fields)
+        ..headers.addAll(await _h())
         ..files.add(http.MultipartFile.fromBytes(fileField, bytes, filename: fileName));
       final r = await http.Response.fromStream(await _client.send(req).timeout(const Duration(minutes: 5)));
       return _decode(r);
@@ -105,24 +122,19 @@ class Api {
     http.Response r;
     try {
       if (form != null) {
-        final req = http.MultipartRequest('POST', _u(path))..fields.addAll(form);
+        final req = http.MultipartRequest('POST', _u(path))
+          ..fields.addAll(form)
+          ..headers.addAll(await _h());
         r = await http.Response.fromStream(await _client.send(req).timeout(const Duration(minutes: 3)));
       } else {
         r = await _client
-            .post(_u(path), headers: {'Content-Type': 'application/json'}, body: jsonEncode(json ?? {}))
+            .post(_u(path), headers: await _h({'Content-Type': 'application/json'}), body: jsonEncode(json ?? {}))
             .timeout(const Duration(minutes: 3));
       }
     } catch (e) {
       throw ApiError('No se pudo conectar con el servidor ($baseUrl).');
     }
-    if (r.statusCode != 200) {
-      String msg = 'El servidor respondió ${r.statusCode}';
-      try {
-        final j = jsonDecode(utf8.decode(r.bodyBytes));
-        if (j is Map && j['error'] != null) msg = j['error'].toString();
-      } catch (_) {}
-      throw ApiError(msg);
-    }
+    if (r.statusCode != 200) throw ApiError(_mensajeHttp(r));
     return r.bodyBytes;
   }
 
@@ -130,25 +142,18 @@ class Api {
   Future<Uint8List> getBytes(String path) async {
     http.Response r;
     try {
-      r = await _client.get(_u(path)).timeout(const Duration(minutes: 3));
+      r = await _client.get(_u(path), headers: await _h()).timeout(const Duration(minutes: 3));
     } catch (e) {
       throw ApiError('No se pudo conectar con el servidor ($baseUrl).');
     }
-    if (r.statusCode != 200) {
-      String msg = 'El servidor respondió ${r.statusCode}';
-      try {
-        final j = jsonDecode(utf8.decode(r.bodyBytes));
-        if (j is Map && j['error'] != null) msg = j['error'].toString();
-      } catch (_) {}
-      throw ApiError(msg);
-    }
+    if (r.statusCode != 200) throw ApiError(_mensajeHttp(r));
     return r.bodyBytes;
   }
 
   Future<dynamic> putJson(String path, Object body) async {
     try {
       final r = await _client
-          .put(_u(path), headers: {'Content-Type': 'application/json'}, body: jsonEncode(body))
+          .put(_u(path), headers: await _h({'Content-Type': 'application/json'}), body: jsonEncode(body))
           .timeout(const Duration(minutes: 2));
       return _decode(r);
     } on ApiError {
@@ -161,8 +166,11 @@ class Api {
   /// Respuesta del chat por Server-Sent Events (POST /api/consultar-stream/).
   /// Emite mapas con "chunk", "fuentes", "agente" o "error".
   Stream<Map<String, dynamic>> sse(String path, Map<String, String> fields) async* {
-    final req = http.MultipartRequest('POST', _u(path))..fields.addAll(fields);
+    final req = http.MultipartRequest('POST', _u(path))
+      ..fields.addAll(fields)
+      ..headers.addAll(await _h());
     final resp = await _client.send(req).timeout(const Duration(minutes: 4));
+    if (resp.statusCode == 401) throw ApiError(_sesionVencida);
     if (resp.statusCode != 200) throw ApiError('El servidor respondió ${resp.statusCode}');
     var buffer = '';
     await for (final parte in resp.stream.transform(utf8.decoder)) {
